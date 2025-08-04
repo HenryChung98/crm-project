@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { countries } from "typed-countries";
 
 interface OrganizationFormData {
   orgName: string;
@@ -24,6 +25,7 @@ interface Country {
 // email verify redirect to signup2 page / email-confirmed: true
 
 export default function CreateOrganizationPage() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const countries = require("typed-countries").countries;
   const sortedCountries = countries.sort((a: Country, b: Country) => a.name.localeCompare(b.name));
 
