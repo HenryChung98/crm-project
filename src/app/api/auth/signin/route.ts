@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ user: data.user });
     // return NextResponse.redirect(new URL("/", req.url));
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

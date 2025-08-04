@@ -40,8 +40,12 @@ export const useSupabase = () => {
         last_sign_in_at: user_metadata?.last_sign_in_at ?? "",
         email_confirmed_at: user_metadata?.email_confirmed_at ?? "",
       });
-    } catch (error: any) {
-      console.error("getSession error:", error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("getSession error:", error.message);
+      } else {
+        console.error("getSession error:", error);
+      }
       setUser(null);
     } finally {
       setLoading(false);
@@ -90,8 +94,12 @@ export const useSupabase = () => {
         }
         await getSession();
         return true;
-      } catch (error: any) {
-        console.error("setSession exception:", error.message);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error("session exception:", error.message);
+        } else {
+          console.error("session exception:", error);
+        }
         return false;
       }
     },
@@ -106,8 +114,12 @@ export const useSupabase = () => {
         return false;
       }
       return true;
-    } catch (error: any) {
-      console.error("signOut exception:", error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("signOut exception:", error.message);
+      } else {
+        console.error("signOut exception:", error);
+      }
       return false;
     }
   }, []);

@@ -34,9 +34,9 @@ export default function ResetPasswordPage() {
     }
   };
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setData((prev: any) => ({
+    setData((prev) => ({
       ...prev,
       [name]: value,
     }));
