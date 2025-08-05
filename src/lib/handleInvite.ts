@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-
+// fixx
 export async function handleInvite(supabase: SupabaseClient, inviteCode: string, userId: string) {
   const { data: invite, error: inviteError } = await supabase
     .from("organization_invitations")
