@@ -1,9 +1,10 @@
 // business logic
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { useSupabase } from "./useSupabase";
 
 export const useViews = () => {
+  const { supabase } = useSupabase();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [views, setViews] = useState<any[]>([]);
   const getViews = async () => {

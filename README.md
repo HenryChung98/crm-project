@@ -5,7 +5,7 @@
 - npm install typed-countries
 
 (supabase)[https://supabase.com/]
-
+(vercel)[https://vercel.com/]
 ### env file template
 
 ##### supabase
