@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { acceptInviteAction } from "./route";
+import { acceptInviteAction } from "../../../api/auth/invite/accept/route";
 
 export default function AcceptInvitePage() {
   const searchParams = useSearchParams();
