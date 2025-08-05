@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { useSupabase } from "@/hooks/useSupabase";
+import Link from "next/link";
 
 export default function DashboardPage() {
   const { user } = useSupabase();
@@ -21,6 +22,7 @@ export default function DashboardPage() {
           >
             Edit Profile
           </button>
+          <Link href="/dashboard/invite-member" className="bg-blue-500">Invite Member</Link>
         </div>
       </div>
     </div>

@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
+import { handleInvite } from "@/lib/handleInvite";
 
 export async function signUp(formData: FormData) {
   const supabase = await createClient();
@@ -34,7 +36,7 @@ export async function signUp(formData: FormData) {
     password,
     options: {
       data: { first_name: firstName, last_name: lastName },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/callback/confirmed`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL_DEV}/callback/confirmed`,
     },
   });
 
@@ -48,6 +50,18 @@ export async function signUp(formData: FormData) {
   }
   if (!authData.user?.id) {
     return { error: "Signup failed: missing user ID." };
+  }
+
+  // if invited
+  const inviteCode = (await cookies()).get("invite_code")?.value;
+
+  if (inviteCode) {
+    try {
+      await handleInvite(supabase, inviteCode, authData.user.id);
+      (await cookies()).delete("invite_code");
+    } catch (err: any) {
+      return { error: err.message || "Failed to process invitation." };
+    }
   }
 
   redirect("/verify");

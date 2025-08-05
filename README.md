@@ -1,27 +1,19 @@
-- [nextjs](https://nextjs.org/docs/app/getting-started/installation)
-- [react-icons](https://react-icons.github.io/react-icons/)
-- npm install zustand
-- npm install @supabase/supabase-js @supabase/ssr
-- npm install typed-countries
+### Libraries / Frameworks
 
-(supabase)[https://supabase.com/]
-(vercel)[https://vercel.com/]
-### env file template
+- [React Icons](https://react-icons.github.io/react-icons/)
+- [Next.js](https://nextjs.org/docs/app/getting-started/installation)
+- [Tailwind CSS](https://tailwindcss.com/docs/installation/framework-guides/nextjs)
+- [Zustand](https://zustand-demo.pmnd.rs/)
+- [typed-countries](https://www.npmjs.com/package/typed-countries)
 
-##### supabase
+### OAuth Provider
 
-NEXT_PUBLIC_SUPABASE_URL= Connect -> App Frameworks
+- [Google](https://console.cloud.google.com/)
 
-NEXT_PUBLIC_SUPABASE_ANON_KEY= Connect -> App Frameworks
+### BaaS
 
-NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY= Project Settings -> API Keys -> Legacy API Keys
+- [supabase](https://supabase.com/)
 
-##### Google OAuth Provider
+### Deploy
 
-[google console](https://console.cloud.google.com/)
-
-api 및 서비스 -> OAuth 동의 화면 -> 시작하기 -> OAuth 클라이언트 만들기 -> 승인된 JavaScript 원본: http://localhost:3000 -> 승인된 리디렉션 URI: supabase callback url -> 만들기
-
-GOOGLE_CLIENT_ID=
-
-GOOGLE_CLIENT_SECRET=
+- [vercel](https://vercel.com/)
