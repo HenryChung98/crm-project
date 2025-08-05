@@ -1,135 +1,162 @@
 "use client";
 
-import { supabase } from "@/lib/supabase";
-import { useState, useCallback, useEffect, useRef } from "react";
-import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
-import type { Database } from "@/types/supabase";
-
-type AuthUser = Database["public"]["Tables"]["auth_users"]["Row"];
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Session, User, AuthChangeEvent } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 export const useSupabase = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const fetchingSession = useRef(false);
+  const supabase = useMemo(() => createClient(), []);
+  const router = useRouter();
+  type AuthUser = {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    image: string;
+    created_at: string;
+    email_confirmed_at: string;
+    last_sign_in_at: string | null;
+  };
 
-  const getSession = useCallback(async () => {
-    if (fetchingSession.current) return;
-    fetchingSession.current = true;
-    setLoading(true);
+  const mapToUserProfile = (sessionUser: User): AuthUser => ({
+    id: sessionUser.id,
+    email: sessionUser.email ?? "",
+    first_name: sessionUser.user_metadata?.first_name ?? "",
+    last_name: sessionUser.user_metadata?.last_name ?? "",
+    image: sessionUser.user_metadata?.image ?? "",
+    created_at: sessionUser.created_at,
+    email_confirmed_at: sessionUser.email_confirmed_at ?? "",
+    last_sign_in_at: sessionUser.last_sign_in_at ?? null,
+  });
 
-    try {
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-
-      if (sessionError || !session) {
-        setUser(null);
-        return;
-      }
-
-      const { id, email, user_metadata } = session.user;
-
-      setUser({
-        id,
-        email: email ?? "",
-        first_name: user_metadata?.first_name ?? "",
-        last_name: user_metadata?.last_name ?? "",
-        image: user_metadata?.image ?? "",
-        created_at: new Date().toISOString(),
-        last_sign_in_at: user_metadata?.last_sign_in_at ?? "",
-        email_confirmed_at: user_metadata?.email_confirmed_at ?? "",
-      });
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("getSession error:", error.message);
-      } else {
-        console.error("getSession error:", error);
-      }
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
+  const loadUserProfile = useCallback(async (sessionUser: User): Promise<AuthUser> => {
+    return mapToUserProfile(sessionUser);
   }, []);
 
-  useEffect(() => {
-    getSession();
+  const handleAuthStateChange = useCallback(
+    async (event: AuthChangeEvent, session: Session | null) => {
+      console.log("Auth state changed:", event);
 
-    const { data } = supabase.auth.onAuthStateChange(
-      async (event: AuthChangeEvent, session: Session | null) => {
-        if (event === "SIGNED_OUT" || !session?.user) {
+      switch (event) {
+        case "SIGNED_OUT":
           setUser(null);
-        } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-          const { id, email, user_metadata } = session.user;
+          setLoading(false);
+          break;
 
-          setUser({
-            id,
-            email: email ?? "",
-            first_name: user_metadata?.first_name ?? "",
-            last_name: user_metadata?.last_name ?? "",
-            image: user_metadata?.image ?? "",
-            created_at: new Date().toISOString(),
-            last_sign_in_at: user_metadata?.last_sign_in_at ?? "",
-            email_confirmed_at: user_metadata?.email_confirmed_at ?? "",
-          });
-        }
+        case "SIGNED_IN":
+        case "TOKEN_REFRESHED":
+        case "INITIAL_SESSION":
+          if (session?.user) {
+            setLoading(true);
+            try {
+              const profile = await loadUserProfile(session.user);
+              setUser(profile);
+            } catch (err) {
+              console.error("Failed to load profile on auth change:", err);
+              setUser(null);
+            } finally {
+              setLoading(false);
+            }
+          } else {
+            setUser(null);
+            setLoading(false);
+          }
+          break;
+
+        default:
+          break;
       }
-    );
+    },
+    [loadUserProfile]
+  );
 
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(handleAuthStateChange);
     return () => {
-      data?.subscription?.unsubscribe?.(); // ✅ prevent memory leak
+      subscription.unsubscribe();
     };
-  }, [getSession]);
+  }, [handleAuthStateChange, supabase.auth]);
 
   const setSession = useCallback(
     async (access_token: string, refresh_token: string) => {
       try {
-        const { error } = await supabase.auth.setSession({
-          access_token,
-          refresh_token,
-        });
+        setLoading(true);
+        const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
+
         if (error) {
-          console.error("failed to set session:", error.message);
+          console.error("Failed to set session:", error.message);
           return false;
         }
-        await getSession();
-        return true;
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          console.error("session exception:", error.message);
-        } else {
-          console.error("session exception:", error);
+
+        if (data.session?.user) {
+          const profile = await loadUserProfile(data.session.user);
+          setUser(profile);
         }
+
+        return true;
+      } catch (err) {
+        console.error("setSession error:", err);
         return false;
+      } finally {
+        setLoading(false);
       }
     },
-    [getSession]
+    [supabase.auth, loadUserProfile]
   );
 
   const signOut = useCallback(async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error("Failed to sign out:", error.message);
+        console.error("Sign out error:", error.message);
         return false;
-      }
-      return true;
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("signOut exception:", error.message);
       } else {
-        console.error("signOut exception:", error);
+        router.push("/");
       }
+    } catch (err) {
+      console.error("signOut exception:", err);
       return false;
     }
-  }, []);
+  }, [supabase.auth]);
+
+  const refreshSession = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.refreshSession();
+
+      if (error) {
+        console.error("Failed to refresh session:", error.message);
+        return false;
+      }
+
+      if (data.session?.user) {
+        const profile = await loadUserProfile(data.session.user);
+        setUser(profile);
+      } else {
+        setUser(null);
+      }
+
+      return true;
+    } catch (err) {
+      console.error("refreshSession error:", err);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase.auth, loadUserProfile]);
 
   return {
     user,
     loading,
-    getSession,
+    isAuthenticated: !!user,
+    supabase,
     setSession,
     signOut,
-    isAuthenticated: !!user,
+    refreshSession,
   };
 };

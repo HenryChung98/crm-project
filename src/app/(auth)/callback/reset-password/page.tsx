@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useSupabase } from "@/hooks/useSupabase";
 
 export default function ResetPasswordPage() {
-  const supabase = createClientComponentClient();
+  const { supabase } = useSupabase();
+
   const router = useRouter();
 
   const [data, setData] = useState<{
@@ -34,9 +33,9 @@ export default function ResetPasswordPage() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: any) => {
     const { name, value } = e.target;
-    setData((prev) => ({
+    setData((prev: any) => ({
       ...prev,
       [name]: value,
     }));
@@ -64,9 +63,7 @@ export default function ResetPasswordPage() {
           onChange={handleChange}
         />
       </div>
-      <button onClick={() => setShowPassword(!showPassword)}>
-        show passwords
-      </button>
+      <button onClick={() => setShowPassword(!showPassword)}>show passwords</button>
       <br />
       <button onClick={confirmPasswords}>reset</button>
     </>

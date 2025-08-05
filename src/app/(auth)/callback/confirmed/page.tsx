@@ -2,23 +2,19 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { useSupabase } from "@/hooks/useSupabase";
 
 export default function AuthCallback() {
   const router = useRouter();
+  const { user } = useSupabase();
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        // if logged in, redirect to home
-        router.replace("/");
-      } else {
-        // if not logged in, redirect to signin
-        router.replace("/signin");
-      }
-    };
-    checkSession();
+    if (user) {
+      router.replace("/");
+    } else {
+      // if not logged in, redirect to signin
+      router.replace("/signin");
+    }
   }, [router]);
 
   return <p>Loading...</p>;

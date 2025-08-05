@@ -1,7 +1,7 @@
 - [nextjs](https://nextjs.org/docs/app/getting-started/installation)
 - [react-icons](https://react-icons.github.io/react-icons/)
 - npm install zustand
-- npm install @supabase/supabase-js @supabase/auth-helpers-nextjs @supabase/ssr
+- npm install @supabase/supabase-js @supabase/ssr
 - npm install typed-countries
 
 (supabase)[https://supabase.com/]

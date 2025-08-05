@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { FiSearch, FiShoppingCart, FiMenu, FiX } from 'react-icons/fi';
+import { FiSearch, FiMenu, FiX } from 'react-icons/fi';
 import { RiAccountCircleLine } from 'react-icons/ri';
+import { MdOutlineDashboard } from "react-icons/md";
 import { useNavStore } from '@/lib/store/useNavStore';
 import DesktopNav from './DesktopNav';
 import MobileMenu from './MobileMenu';
@@ -97,8 +98,8 @@ export default function NavBar() {
               <Link href={user ? "/profile" : "/signin"}>
                 <RiAccountCircleLine size={24} className={baseItemStyle} />
               </Link>
-              <Link href="#" className="pr-5">
-                <FiShoppingCart size={24} className={baseItemStyle} />
+              <Link href={user ? "/dashboard" : "/signin"} className="pr-5">
+                <MdOutlineDashboard size={24} className={baseItemStyle} />
               </Link>
             </div>
           </div>

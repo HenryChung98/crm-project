@@ -1,53 +1,45 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { countries } from "typed-countries";
-
+import React, { useState } from "react";
+import { createOrganization } from "./action";
 interface OrganizationFormData {
   orgName: string;
-  // orgCountry: string;
+  orgCountry: string;
   orgProvince: string;
   orgCity: string;
 }
 
 interface Country {
-  iso: string; // ISO Alpha‑2 코드 ("US", "CA" 등)
-  name: string; // 국가명 ("United States")
+  iso: string; // ISO Alpha‑2 code ("US", "CA")
+  name: string; 
   hasPostalCodes: boolean;
   region: string;
-  states?: { iso: string; name: string }[]; // 주/도 리스트
+  states?: { iso: string; name: string }[]; 
   zipRegex?: string;
 }
 
-// continue with google if exists in public table ? signin / email-confirmed:true : signup2 page
-// email verify redirect to signup2 page / email-confirmed: true
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const countries = require("typed-countries").countries;
+const sortedCountries = countries.sort((a: Country, b: Country) => a.name.localeCompare(b.name));
 
 export default function CreateOrganizationPage() {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const countries = require("typed-countries").countries;
-  const sortedCountries = countries.sort((a: Country, b: Country) => a.name.localeCompare(b.name));
-
-  const [country, setCountry] = useState<string>("");
+  // const [country, setCountry] = useState<string>("");
   const [noProvince, setNoProvince] = useState<boolean>(false);
 
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCountry(e.target.value);
-  };
+  // const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  //   setFormData.orgCountry(e.target.value);
+  // };
 
   const [formData, setFormData] = useState<OrganizationFormData>({
     orgName: "",
-    // orgCountry: "",
+    orgCountry: "",
     orgProvince: "",
     orgCity: "",
   });
 
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
@@ -60,36 +52,18 @@ export default function CreateOrganizationPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (formData: FormData) => {
+    const res = await createOrganization(formData);
 
-    setLoading(true);
-
-    const res = await fetch("/api/auth/signup/create-organization", {
-      method: "POST",
-      body: JSON.stringify({
-        orgName: formData.orgName.trim(),
-        orgCountry: country,
-        orgProvince: formData.orgProvince.toUpperCase().trim(),
-        orgCity: formData.orgCity.trim(),
-      }),
-      headers: { "Content-Type": "application/json" },
-    });
-
-    if (res.ok) {
-      router.push("/");
-    } else {
-      const result = await res.json();
-      setError(result.error || "Failed to set your organization");
+    if (res?.error) {
+      setError(res.error);
     }
-
-    setLoading(false);
   };
 
   return (
     <div>
-      <h1 className="text-xl font-semibold mb-4">Sign Up</h1>
-      <form onSubmit={handleSubmit} className="space-y-4 border w-1/3 m-auto p-4 rounded">
+      <h1 className="text-xl font-semibold mb-4">organization</h1>
+      <form action={handleSubmit} className="space-y-4 border w-1/3 m-auto p-4 rounded">
         <div>
           <input
             name="orgName"
@@ -104,8 +78,8 @@ export default function CreateOrganizationPage() {
 
         <select
           name="orgCountry"
-          value={country}
-          onChange={handleSelectChange}
+          value={formData.orgCountry}
+          onChange={handleChange}
           required
           className="border w-full p-2 text-black"
         >
@@ -132,7 +106,7 @@ export default function CreateOrganizationPage() {
               setNoProvince((prev) => !prev);
               setFormData((prev) => ({
                 ...prev,
-                orgProvince: "", 
+                orgProvince: "",
               }));
             }}
           >
@@ -153,10 +127,9 @@ export default function CreateOrganizationPage() {
 
         <button
           type="submit"
-          disabled={loading}
           className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:opacity-50"
         >
-          {loading ? "loading..." : "Start"}
+          Start
         </button>
       </form>
     </div>
