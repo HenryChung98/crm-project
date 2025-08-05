@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { acceptInviteAction } from "../../../api/auth/invite/accept/route";
+// import { acceptInviteAction } from "../../../api/auth/invite/accept/route";
 
 export default function AcceptInvitePage() {
   const searchParams = useSearchParams();
@@ -18,12 +18,12 @@ export default function AcceptInvitePage() {
   }, [code, router]);
 
   const acceptInvite = async (inviteCode: string) => {
-    const res = await acceptInviteAction(inviteCode);
-    if (res.error) {
-      setStatus(res.error);
-    } else {
-      setStatus("success");
-    }
+    // const res = await acceptInviteAction(inviteCode);
+    // if (res.error) {
+      // setStatus(res.error);
+    // } else {
+      // setStatus("success");
+    // }
   };
 
   return (
