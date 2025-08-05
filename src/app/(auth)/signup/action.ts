@@ -59,8 +59,9 @@ export async function signUp(formData: FormData) {
     try {
       await handleInvite(supabase, inviteCode, authData.user.id);
       (await cookies()).delete("invite_code");
-    } catch (err: any) {
-      return { error: err.message || "Failed to process invitation." };
+    } catch (err: unknown) {
+      const error = err as Error;
+      return { error: error.message || "Failed to process invitation." };
     }
   }
 
