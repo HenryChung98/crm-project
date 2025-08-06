@@ -17,43 +17,47 @@ export const orgMembersKeys = {
   byRole: (orgId: string, role: string) => [...orgMembersKeys.byOrg(orgId), "role", role] as const,
 };
 
-// API 함수들
-const fetchOrganizationMembers = async (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+// 제네릭 API 함수들
+const fetchOrganizationMembers = async <T extends keyof OrgMember>(
+  supabase: SupabaseClient<Database>,
   userId: string,
-  select: string = "*"
-): Promise<OrgMember[]> => {
+  select: T[]
+): Promise<Pick<OrgMember, T>[]> => {
   const { data, error } = await supabase
     .from("organization_members")
-    .select(select)
+    .select(select.join(","))
     .eq("user_id", userId);
 
   if (error) throw error;
-  return data || [];
+  return (data as unknown as Pick<OrgMember, T>[]) || [];
 };
 
-const fetchMembersByOrganization = async (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+const fetchMembersByOrganization = async <T extends keyof OrgMember>(
+  supabase: SupabaseClient<Database>,
   orgId: string,
-  select: string = "*"
-): Promise<OrgMember[]> => {
+  select: T[]
+): Promise<Pick<OrgMember, T>[]> => {
   const { data, error } = await supabase
     .from("organization_members")
-    .select(select)
+    .select(select.join(","))
     .eq("organization_id", orgId);
 
   if (error) throw error;
-  return data || [];
+  return (data as unknown as Pick<OrgMember, T>[]) || [];
 };
 
 // 기본 훅: 현재 사용자의 모든 조직 멤버십
-export const useOrganizationMembers = (select: string = "*") => {
+// = useOrganizationMembers<
+//     "id" | "organization_id" | "organization_name" | "role" | "created_at"
+//   >(["id", "organization_id", "organization_name", "role", "created_at"]);
+
+export const useOrganizationMembers = <T extends keyof OrgMember = keyof OrgMember>(
+  select: T[] = Object.keys({} as OrgMember) as T[]
+) => {
   const { user, supabase } = useAuth();
 
   return useQuery({
-    queryKey: orgMembersKeys.byUserWithSelect(user?.id || "", select),
+    queryKey: orgMembersKeys.byUserWithSelect(user?.id || "", select.join(",")),
     queryFn: () => fetchOrganizationMembers(supabase, user!.id, select),
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5분간 fresh 데이터로 취급
@@ -68,9 +72,9 @@ export const useOrganizationMembers = (select: string = "*") => {
 };
 
 // 특정 조직의 모든 멤버들 (관리자용)
-export const useOrganizationMembersByOrgId = (
+export const useOrganizationMembersByOrgId = <T extends keyof OrgMember = keyof OrgMember>(
   orgId: string,
-  select: string = "*, users(id, email, full_name)"
+  select: T[] = Object.keys({} as OrgMember) as T[]
 ) => {
   const { supabase } = useAuth();
 
@@ -84,10 +88,10 @@ export const useOrganizationMembersByOrgId = (
 };
 
 // 특정 역할의 멤버들만
-export const useOrganizationMembersByRole = (
+export const useOrganizationMembersByRole = <T extends keyof OrgMember = keyof OrgMember>(
   orgId: string,
   role: string,
-  select: string = "*, users(id, email, full_name)"
+  select: T[] = Object.keys({} as OrgMember) as T[]
 ) => {
   const { supabase } = useAuth();
 
@@ -96,12 +100,12 @@ export const useOrganizationMembersByRole = (
     queryFn: async () => {
       const { data, error } = await supabase
         .from("organization_members")
-        .select(select)
+        .select(select.join(","))
         .eq("organization_id", orgId)
         .eq("role", role);
 
       if (error) throw error;
-      return data || [];
+      return (data as unknown as Pick<OrgMember, T>[]) || [];
     },
     enabled: !!orgId && !!role,
     staleTime: 5 * 60 * 1000,
@@ -213,13 +217,23 @@ export const usePrefetchOrganizationMembers = () => {
     if (orgId) {
       queryClient.prefetchQuery({
         queryKey: orgMembersKeys.byOrg(orgId),
-        queryFn: () => fetchMembersByOrganization(supabase, orgId),
+        queryFn: () =>
+          fetchMembersByOrganization(
+            supabase,
+            orgId,
+            Object.keys({} as OrgMember) as (keyof OrgMember)[]
+          ),
         staleTime: 2 * 60 * 1000,
       });
     } else if (user) {
       queryClient.prefetchQuery({
         queryKey: orgMembersKeys.byUser(user.id),
-        queryFn: () => fetchOrganizationMembers(supabase, user.id),
+        queryFn: () =>
+          fetchOrganizationMembers(
+            supabase,
+            user.id,
+            Object.keys({} as OrgMember) as (keyof OrgMember)[]
+          ),
         staleTime: 5 * 60 * 1000,
       });
     }

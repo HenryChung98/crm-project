@@ -4,8 +4,11 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 
+import { useOrganizationInvitations } from "@/hooks/fetchData/useOrganizationInvitations";
 export default function DashboardPage() {
   const { user, supabase } = useAuth();
+
+  const { orgInvitations, orgError, isLoading } = useOrganizationInvitations();
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-24">
@@ -27,7 +30,11 @@ export default function DashboardPage() {
           <Link href="/dashboard/invite-member" className="bg-blue-500">
             Invite Member
           </Link>
-          total something
+          {orgInvitations.map((invitation) => (
+              <div key={invitation.id} className="text-green-600">
+                invited from {invitation.organization_id}
+              </div>
+            ))}
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { inviteUser } from "./action";
 import { useAuth } from "@/contexts/AuthContext";
-import { useOrganizationMembers } from "@/hooks/fetchData/useOrganizationMembers";
+import { useOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
 
 interface OrgOption {
   organization_id: string;
@@ -18,7 +18,14 @@ export default function InviteMemberForm() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const { orgMembers, orgError, isLoading } = useOrganizationMembers();
+  const {
+    data: orgMembers = [],
+    error: orgError,
+    isLoading,
+  } = useOrganizationMembers<"organization_id" | "organization_name">([
+    "organization_id",
+    "organization_name",
+  ]);
 
   const handleSubmit = async (formData: FormData) => {
     setLoading(true);
@@ -40,7 +47,7 @@ export default function InviteMemberForm() {
   };
 
   return (
-    <form action={handleSubmit} className="space-y-4">
+    <form action={handleSubmit} className="space-y-4 w-1/3 m-auto">
       <label className="block">
         <span className="text-sm font-medium">Invite by email</span>
         <input
@@ -51,11 +58,6 @@ export default function InviteMemberForm() {
         />
       </label>
 
-      {orgMembers.map((membership) => (
-        <div key={membership.id} className="text-green-600">
-          Role: {membership.role}
-        </div>
-      ))}
       <select name="orgId" required className="mt-4 p-2 border rounded text-gray-500 w-full">
         {orgMembers.map((org) => (
           <option key={org.organization_id} value={org.organization_id}>

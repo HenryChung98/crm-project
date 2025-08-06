@@ -64,6 +64,7 @@ export async function createOrganization(formData: FormData) {
     user_id: user.id,
     role: "owner",
     invited_by: null,
+    user_email: user.email,
   };
 
   const { error: orgMemberDataError } = await supabase

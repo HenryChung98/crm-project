@@ -23,17 +23,34 @@ export async function inviteUser(formData: FormData) {
     return { error: "Not authenticated." };
   }
 
-  // prevent duplicated invitation
-  const { data: existingInvite, error: checkError } = await supabase
+  // Check if user is already a member of the organization
+  const { data: existingMember, error: memberCheckError } = await supabase
+    .from("organization_members")
+    .select("id, user_email")
+    .eq("organization_id", orgId)
+    .eq("user_email", invitedEmail)
+    .maybeSingle();
+
+  if (memberCheckError) {
+    return { error: "Error checking existing membership: " + memberCheckError.message };
+  }
+
+  if (existingMember) {
+    return { error: "User is already a member of this organization." };
+  }
+
+  // Check if user has already been invited to this organization
+  const { data: existingInvite, error: inviteCheckError } = await supabase
     .from("organization_invitations")
-    .select("id")
+    .select("*")
     .eq("email", invitedEmail)
     .eq("organization_id", orgId)
     .eq("accepted", false)
+    .gt("expires_at", "now()")
     .maybeSingle();
 
-  if (checkError) {
-    return { error: "Error checking existing invitation: " + checkError.message };
+  if (inviteCheckError) {
+    return { error: "Error checking existing invitation: " + inviteCheckError.message };
   }
 
   if (existingInvite) {
@@ -42,16 +59,14 @@ export async function inviteUser(formData: FormData) {
 
   const code = randomUUID();
 
-  const { error: inviteError } = await supabase
-    .from("organization_invitations")
-    .insert({
-      id: code,
-      email: invitedEmail,
-      organization_id: orgId,
-      invited_by: user.id,
-      accepted: false,
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    });
+  const { error: inviteError } = await supabase.from("organization_invitations").insert({
+    id: code,
+    email: invitedEmail,
+    organization_id: orgId,
+    invited_by: user.id,
+    accepted: false,
+    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  });
 
   if (inviteError) {
     return { error: inviteError.message };

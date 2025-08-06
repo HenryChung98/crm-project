@@ -13,7 +13,9 @@ export default function ProfilePage() {
     isLoading,
     isFetching, // 백그라운드 업데이트 중인지
     refetch, // 수동 새로고침용
-  } = useOrganizationMembers("id, organization_id, organization_name, role, created_at");
+  } = useOrganizationMembers<
+    "id" | "organization_id" | "organization_name" | "role" | "created_at"
+  >(["id", "organization_id", "organization_name", "role", "created_at"]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-24">
