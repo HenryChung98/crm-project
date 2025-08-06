@@ -1,28 +1,33 @@
 "use client";
 import React from "react";
-import { useSupabase } from "@/hooks/useSupabase";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
-  const { user } = useSupabase();
+  const { user, supabase } = useAuth();
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-24">
       <h1 className="text-4xl font-bold mb-8">Dashboard</h1>
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
+      <div className="w-full max-w-md p-8 rounded-lg shadow-md">
         <div className="mb-4">
-          <label htmlFor="username" className="block text-gray-700 text-sm font-bold mb-2">
+          <label htmlFor="username" className="block text-gray-500 text-sm font-bold mb-2">
             {user?.first_name}, {user?.last_name}, {user?.email}
           </label>
         </div>
         <div className="mb-4"></div>
         <div className="flex items-center justify-between">
-          <button
-            type="button"
+          <Link
+            href="/dashboard/profile"
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           >
             Edit Profile
-          </button>
-          <Link href="/dashboard/invite-member" className="bg-blue-500">Invite Member</Link>
+          </Link>
+          <Link href="/dashboard/invite-member" className="bg-blue-500">
+            Invite Member
+          </Link>
+          total something
         </div>
       </div>
     </div>

@@ -7,8 +7,8 @@ import { createClient } from "@/utils/supabase/server";
 export async function signIn(formData: FormData) {
   const supabase = await createClient();
 
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  const email = formData.get("email")?.toString().trim();
+  const password = formData.get("password")?.toString().trim();
 
   if (!email || !password) {
     return { success: false, error: "Email and password are required." };
@@ -39,5 +39,6 @@ export async function signIn(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/");
+
+  return { success: true };
 }

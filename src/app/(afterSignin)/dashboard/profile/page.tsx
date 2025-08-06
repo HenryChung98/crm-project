@@ -1,9 +1,13 @@
 "use client";
-import React from "react";
-import { useSupabase } from "@/hooks/useSupabase";
+
+import { useOrganizationMembers } from "@/hooks/fetchData/useOrganizationMembers";
+import { useAuth } from "@/contexts/AuthContext";
+import Link from "next/link";
 
 export default function ProfilePage() {
-  const { user } = useSupabase();
+  const { user, supabase } = useAuth();
+  const { orgMembers, orgError, isLoading } = useOrganizationMembers();
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-24">
       <h1 className="text-4xl font-bold mb-8">User Profile</h1>
@@ -13,6 +17,17 @@ export default function ProfilePage() {
             {user?.first_name}, {user?.last_name}, {user?.email},{user?.image}
             {user?.created_at && new Date(user.created_at).toLocaleString()}
           </label>
+          <div className="text-red-500">{orgError}</div>
+          <div className="text-red-500">
+            {orgMembers.map((membership) => (
+              <div key={membership.id} className="text-green-600">
+                Role: {membership.role}
+              </div>
+            ))}
+          </div>
+          <Link href="/dashboard/create-organization" className="text-blue-500">
+            create organization
+          </Link>
         </div>
         <div className="mb-4"></div>
         <div className="flex items-center justify-between">

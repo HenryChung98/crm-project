@@ -2,11 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSupabase } from "@/hooks/useSupabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function AuthCallback() {
   const router = useRouter();
-  const { user } = useSupabase();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (user) {

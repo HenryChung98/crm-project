@@ -1,10 +1,11 @@
 "use client";
 import { createClient } from "@/utils/supabase/client";
-import { useSupabase } from "@/hooks/useSupabase";
 import { useEffect } from "react";
+import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Home() {
-  const { user } = useSupabase();
+  const { user, loading } = useAuth();
 
   const supabase = createClient();
   useEffect(() => {
@@ -24,12 +25,18 @@ export default function Home() {
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        {user ? (
+        {loading ? (
+          <span className="text-gray-400">Checking auth...</span>
+        ) : user ? (
           <span className="text-green-700">{user.email}</span>
         ) : (
           <span className="text-gray-500">Guest</span>
         )}
+        <Link href={user ? "/dashboard" : "/signin"} className="pr-5">
+          dashboard / signin
+        </Link>
       </main>
+
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center"></footer>
     </div>
   );

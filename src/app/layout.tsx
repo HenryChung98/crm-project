@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import ThemeToggle from "./components/ThemeToggle";
+import ScrollToTop from "./components/ScrollToTop";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,8 +24,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
-        <ThemeToggle />
-        {children}
+        <AuthProvider>
+          <ThemeToggle />
+          <ScrollToTop />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

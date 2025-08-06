@@ -8,11 +8,11 @@ import { handleInvite } from "@/lib/handleInvite";
 export async function signUp(formData: FormData) {
   const supabase = await createClient();
 
-  const firstName = formData.get("firstName") as string;
-  const lastName = formData.get("lastName") as string;
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-  const confirmPassword = formData.get("confirmPassword") as string;
+  const firstName = formData.get("firstName")?.toString().trim();
+  const lastName = formData.get("lastName")?.toString().trim();
+  const email = formData.get("email")?.toString().trim();
+  const password = formData.get("password")?.toString().trim();
+  const confirmPassword = formData.get("confirmPassword")?.toString().trim();
 
   // check all fields
   if (!email || !password || !firstName || !lastName) {
@@ -36,7 +36,7 @@ export async function signUp(formData: FormData) {
     password,
     options: {
       data: { first_name: firstName, last_name: lastName },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL_DEV}/callback/confirmed`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/callback/confirmed`,
     },
   });
 

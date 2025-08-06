@@ -1,86 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Session, User, AuthChangeEvent } from "@supabase/supabase-js";
-import { createClient } from "@/utils/supabase/client";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+interface AuthUser {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  image: string;
+  created_at: string;
+  email_confirmed_at: string;
+  last_sign_in_at: string | null;
+}
 
 export const useSupabase = () => {
-  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = useMemo(() => createClient(), []);
+  const { supabase } = useAuth();
   const router = useRouter();
-  type AuthUser = {
-    id: string;
-    email: string;
-    first_name: string;
-    last_name: string;
-    image: string;
-    created_at: string;
-    email_confirmed_at: string;
-    last_sign_in_at: string | null;
-  };
-
-  const mapToUserProfile = (sessionUser: User): AuthUser => ({
-    id: sessionUser.id,
-    email: sessionUser.email ?? "",
-    first_name: sessionUser.user_metadata?.first_name ?? "",
-    last_name: sessionUser.user_metadata?.last_name ?? "",
-    image: sessionUser.user_metadata?.image ?? "",
-    created_at: sessionUser.created_at,
-    email_confirmed_at: sessionUser.email_confirmed_at ?? "",
-    last_sign_in_at: sessionUser.last_sign_in_at ?? null,
-  });
-
-  const loadUserProfile = useCallback(async (sessionUser: User): Promise<AuthUser> => {
-    return mapToUserProfile(sessionUser);
-  }, []);
-
-  const handleAuthStateChange = useCallback(
-    async (event: AuthChangeEvent, session: Session | null) => {
-      console.log("Auth state changed:", event);
-
-      switch (event) {
-        case "SIGNED_OUT":
-          setUser(null);
-          setLoading(false);
-          break;
-
-        case "SIGNED_IN":
-        case "TOKEN_REFRESHED":
-        case "INITIAL_SESSION":
-          if (session?.user) {
-            setLoading(true);
-            try {
-              const profile = await loadUserProfile(session.user);
-              setUser(profile);
-            } catch (err) {
-              console.error("Failed to load profile on auth change:", err);
-              setUser(null);
-            } finally {
-              setLoading(false);
-            }
-          } else {
-            setUser(null);
-            setLoading(false);
-          }
-          break;
-
-        default:
-          break;
-      }
-    },
-    [loadUserProfile]
-  );
-
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(handleAuthStateChange);
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [handleAuthStateChange, supabase.auth]);
 
   const setSession = useCallback(
     async (access_token: string, refresh_token: string) => {
@@ -93,11 +30,6 @@ export const useSupabase = () => {
           return false;
         }
 
-        if (data.session?.user) {
-          const profile = await loadUserProfile(data.session.user);
-          setUser(profile);
-        }
-
         return true;
       } catch (err) {
         console.error("setSession error:", err);
@@ -106,7 +38,7 @@ export const useSupabase = () => {
         setLoading(false);
       }
     },
-    [supabase.auth, loadUserProfile]
+    [supabase.auth]
   );
 
   const signOut = useCallback(async () => {
@@ -122,7 +54,7 @@ export const useSupabase = () => {
       console.error("signOut exception:", err);
       return false;
     }
-  }, [supabase.auth]);
+  }, [supabase.auth, router]);
 
   const refreshSession = useCallback(async () => {
     try {
@@ -134,13 +66,6 @@ export const useSupabase = () => {
         return false;
       }
 
-      if (data.session?.user) {
-        const profile = await loadUserProfile(data.session.user);
-        setUser(profile);
-      } else {
-        setUser(null);
-      }
-
       return true;
     } catch (err) {
       console.error("refreshSession error:", err);
@@ -148,13 +73,10 @@ export const useSupabase = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase.auth, loadUserProfile]);
+  }, [supabase.auth]);
 
   return {
-    user,
     loading,
-    isAuthenticated: !!user,
-    supabase,
     setSession,
     signOut,
     refreshSession,

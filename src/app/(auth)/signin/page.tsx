@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { signIn } from "./action";
 import { signInWithGoogle } from "./signInWIthGoogle";
-
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 interface SignInFormData {
   email: string;
   password: string;
@@ -18,7 +19,8 @@ export default function SigninPage() {
     password: "",
   });
   const [error, setError] = useState<string | null>(null);
-
+  const router = useRouter();
+  const { refetchUser } = useAuth();
   // handle input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -36,6 +38,9 @@ export default function SigninPage() {
     if (res?.error) {
       setError(res.error);
     }
+
+    refetchUser();
+    router.push("/dashboard");
   };
 
   return (

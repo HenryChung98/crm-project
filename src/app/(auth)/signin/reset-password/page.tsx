@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSupabase } from "@/hooks/useSupabase";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function UpdatePasswordPage() {
   const [email, setEmail] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
   const router = useRouter();
-  const { supabase, isAuthenticated } = useSupabase();
+  const { supabase, isAuthenticated } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);

@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSupabase } from "@/hooks/useSupabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ResetPasswordPage() {
-  const { supabase } = useSupabase();
+  const { supabase } = useAuth();
 
   const router = useRouter();
 
