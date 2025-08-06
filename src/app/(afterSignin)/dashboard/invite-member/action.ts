@@ -50,7 +50,7 @@ export async function inviteUser(formData: FormData) {
       organization_id: orgId,
       invited_by: user.id,
       accepted: false,
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 유효
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
 
   if (inviteError) {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { inviteUser } from "./action";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganizationMembers } from "@/hooks/fetchData/useOrganizationMembers";
 
 interface OrgOption {
   organization_id: string;
@@ -17,26 +18,7 @@ export default function InviteMemberForm() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Fetch user's organizations
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchOrgs = async () => {
-      const { data, error } = await supabase
-        .from("organization_members")
-        .select("organization_id, organization_name")
-        .eq("user_id", user.id);
-
-      if (error) {
-        console.error("Error fetching orgs:", error.message);
-        return;
-      }
-
-      setOrgs(data || []);
-    };
-
-    fetchOrgs();
-  }, [user, supabase]);
+  const { orgMembers, orgError, isLoading } = useOrganizationMembers();
 
   const handleSubmit = async (formData: FormData) => {
     setLoading(true);
@@ -69,12 +51,13 @@ export default function InviteMemberForm() {
         />
       </label>
 
-      <select
-        name="orgId"
-        required
-        className="mt-4 p-2 border rounded text-gray-500 w-full"
-      >
-        {orgs.map((org) => (
+      {orgMembers.map((membership) => (
+        <div key={membership.id} className="text-green-600">
+          Role: {membership.role}
+        </div>
+      ))}
+      <select name="orgId" required className="mt-4 p-2 border rounded text-gray-500 w-full">
+        {orgMembers.map((org) => (
           <option key={org.organization_id} value={org.organization_id}>
             {org.organization_name || "Unnamed Org"}
           </option>

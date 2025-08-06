@@ -5,6 +5,7 @@
 - [Tailwind CSS](https://tailwindcss.com/docs/installation/framework-guides/nextjs)
 - [Zustand](https://zustand-demo.pmnd.rs/)
 - [typed-countries](https://www.npmjs.com/package/typed-countries)
+- [Tanstack Query + devtools](https://tanstack.com/query/v5/docs/framework/react/installation)
 
 ### OAuth Provider
 

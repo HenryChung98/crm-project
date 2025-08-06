@@ -131,7 +131,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       supabase,
       refetchUser,
     }),
-    [user, loading, supabase]
+    [user, loading, supabase, refetchUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
