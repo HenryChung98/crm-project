@@ -1,118 +1,130 @@
-// hooks/useOrganizationMembers.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Database } from "@/types/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { NetworkError } from "@/types/errors";
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 type OrgMember = Database["public"]["Tables"]["organization_members"]["Row"];
 
-// 쿼리 키 팩토리 (일관된 키 관리)
-export const orgMembersKeys = {
+export type QueryResult<T> = {
+  data: T[];
+  error: Error | null;
+  isLoading: boolean;
+  isFetching: boolean;
+  // isRefetching: boolean;
+  // isSuccess: boolean;
+  // isError: boolean;
+  // isStale: boolean;
+  // status: "idle" | "loading" | "error" | "success";
+  refetch: () => void;
+};
+
+export const orgKeys = {
   all: ["organizationMembers"] as const,
-  byUser: (userId: string) => [...orgMembersKeys.all, "user", userId] as const,
-  byUserWithSelect: (userId: string, select: string) =>
-    [...orgMembersKeys.byUser(userId), "select", select] as const,
-  byOrg: (orgId: string) => [...orgMembersKeys.all, "org", orgId] as const,
-  byRole: (orgId: string, role: string) => [...orgMembersKeys.byOrg(orgId), "role", role] as const,
+  byUser: (userId: string) => [...orgKeys.all, "user", userId] as const,
+  byOrg: (orgId: string) => [...orgKeys.all, "org", orgId] as const,
+  byRole: (orgId: string, role: string) => [...orgKeys.byOrg(orgId), "role", role] as const,
 };
 
-// 제네릭 API 함수들
-const fetchOrganizationMembers = async <T extends keyof OrgMember>(
-  supabase: SupabaseClient<Database>,
-  userId: string,
-  select: T[]
-): Promise<Pick<OrgMember, T>[]> => {
-  const { data, error } = await supabase
-    .from("organization_members")
-    .select(select.join(","))
-    .eq("user_id", userId);
-
-  if (error) throw error;
-  return (data as unknown as Pick<OrgMember, T>[]) || [];
-};
-
-const fetchMembersByOrganization = async <T extends keyof OrgMember>(
-  supabase: SupabaseClient<Database>,
-  orgId: string,
-  select: T[]
-): Promise<Pick<OrgMember, T>[]> => {
-  const { data, error } = await supabase
-    .from("organization_members")
-    .select(select.join(","))
-    .eq("organization_id", orgId);
-
-  if (error) throw error;
-  return (data as unknown as Pick<OrgMember, T>[]) || [];
-};
-
-// 기본 훅: 현재 사용자의 모든 조직 멤버십
-// = useOrganizationMembers<
-//     "id" | "organization_id" | "organization_name" | "role" | "created_at"
-//   >(["id", "organization_id", "organization_name", "role", "created_at"]);
-
-export const useOrganizationMembers = <T extends keyof OrgMember = keyof OrgMember>(
-  select: T[] = Object.keys({} as OrgMember) as T[]
-) => {
+// 현재 사용자의 조직 멤버십 (제네릭 타입 지원)
+export const useOrganizationMembers = <T = OrgMember>(
+  select?: string
+): QueryResult<T> => {
   const { user, supabase } = useAuth();
 
-  return useQuery({
-    queryKey: orgMembersKeys.byUserWithSelect(user?.id || "", select.join(",")),
-    queryFn: () => fetchOrganizationMembers(supabase, user!.id, select),
+  const result = useQuery({
+    queryKey: [...orgKeys.byUser(user?.id || ""), select || "*"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("organization_members")
+        .select(select || "*")
+        .eq("user_id", user!.id);
+
+      if (error) throw error;
+      return data || [];
+    },
     enabled: !!user,
-    staleTime: 5 * 60 * 1000, // 5분간 fresh 데이터로 취급
-    gcTime: 10 * 60 * 1000, // 10분 후 가비지 컬렉션 (구 cacheTime)
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
     retry: (failureCount, error: NetworkError) => {
-      // 인증 오류는 재시도하지 않음
       if (error?.code === "PGRST301") return false;
       return failureCount < 3;
     },
   });
+
+  return {
+    data: result.data as T[],
+    error: result.error,
+    isLoading: result.isLoading,
+    isFetching: result.isFetching,
+    refetch: result.refetch,
+  };
 };
 
-// 특정 조직의 모든 멤버들 (관리자용)
-export const useOrganizationMembersByOrgId = <T extends keyof OrgMember = keyof OrgMember>(
+// 특정 조직의 모든 멤버들
+export const useOrganizationMembersByOrgId = <T = OrgMember>(
   orgId: string,
-  select: T[] = Object.keys({} as OrgMember) as T[]
-) => {
+  select = "*"
+): QueryResult<T> => {
   const { supabase } = useAuth();
 
-  return useQuery({
-    queryKey: orgMembersKeys.byOrg(orgId),
-    queryFn: () => fetchMembersByOrganization(supabase, orgId, select),
-    enabled: !!orgId,
-    staleTime: 2 * 60 * 1000, // 2분 (더 자주 업데이트될 수 있음)
-    gcTime: 5 * 60 * 1000,
-  });
-};
-
-// 특정 역할의 멤버들만
-export const useOrganizationMembersByRole = <T extends keyof OrgMember = keyof OrgMember>(
-  orgId: string,
-  role: string,
-  select: T[] = Object.keys({} as OrgMember) as T[]
-) => {
-  const { supabase } = useAuth();
-
-  return useQuery({
-    queryKey: orgMembersKeys.byRole(orgId, role),
+  const result = useQuery({
+    queryKey: [...orgKeys.byOrg(orgId), select],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("organization_members")
-        .select(select.join(","))
+        .select(select)
+        .eq("organization_id", orgId);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!orgId,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  return {
+    data: result.data as T[],
+    error: result.error,
+    isLoading: result.isLoading,
+    isFetching: result.isFetching,
+    refetch: result.refetch,
+  };
+};
+
+// 특정 역할의 멤버들
+export const useOrganizationMembersByRole = <T = OrgMember>(
+  orgId: string,
+  role: string,
+  select = "*"
+): QueryResult<T> => {
+  const { supabase } = useAuth();
+
+  const result = useQuery({
+    queryKey: [...orgKeys.byRole(orgId, role), select],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("organization_members")
+        .select(select)
         .eq("organization_id", orgId)
         .eq("role", role);
 
       if (error) throw error;
-      return (data as unknown as Pick<OrgMember, T>[]) || [];
+      return data || [];
     },
     enabled: !!orgId && !!role,
     staleTime: 5 * 60 * 1000,
   });
+
+  return {
+    data: result.data as T[],
+    error: result.error,
+    isLoading: result.isLoading,
+    isFetching: result.isFetching,
+    refetch: result.refetch,
+  };
 };
 
-// Mutation 훅들 (데이터 변경용)
+// 멤버 추가
 export const useAddOrganizationMember = () => {
   const { supabase } = useAuth();
   const queryClient = useQueryClient();
@@ -129,27 +141,13 @@ export const useAddOrganizationMember = () => {
       return data;
     },
     onSuccess: (data, variables) => {
-      // 관련된 모든 쿼리 무효화
-      queryClient.invalidateQueries({
-        queryKey: orgMembersKeys.byUser(variables.user_id),
-      });
-      queryClient.invalidateQueries({
-        queryKey: orgMembersKeys.byOrg(variables.organization_id),
-      });
-
-      // Optimistic update (선택사항)
-      queryClient.setQueryData(
-        orgMembersKeys.byUser(variables.user_id),
-        (old: OrgMember[] | undefined) => (old ? [...old, data] : [data])
-      );
-    },
-    onError: (error) => {
-      console.error("Failed to add member:", error);
-      // 토스트 알림 등 에러 처리
+      queryClient.invalidateQueries({ queryKey: orgKeys.byUser(variables.user_id) });
+      queryClient.invalidateQueries({ queryKey: orgKeys.byOrg(variables.organization_id) });
     },
   });
 };
 
+// 멤버 업데이트
 export const useUpdateOrganizationMember = () => {
   const { supabase } = useAuth();
   const queryClient = useQueryClient();
@@ -166,24 +164,13 @@ export const useUpdateOrganizationMember = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
-      // 모든 관련 쿼리 무효화
-      queryClient.invalidateQueries({
-        queryKey: orgMembersKeys.all,
-      });
-
-      // 또는 특정 쿼리만 업데이트
-      queryClient.setQueriesData(
-        { queryKey: orgMembersKeys.all },
-        (old: OrgMember[] | undefined) => {
-          if (!old) return old;
-          return old.map((member) => (member.id === data.id ? { ...member, ...data } : member));
-        }
-      );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orgKeys.all });
     },
   });
 };
 
+// 멤버 삭제
 export const useRemoveOrganizationMember = () => {
   const { supabase } = useAuth();
   const queryClient = useQueryClient();
@@ -195,45 +182,44 @@ export const useRemoveOrganizationMember = () => {
       if (error) throw error;
       return { id };
     },
-    onSuccess: (data) => {
-      // 캐시에서 해당 멤버 제거
-      queryClient.setQueriesData(
-        { queryKey: orgMembersKeys.all },
-        (old: OrgMember[] | undefined) => {
-          if (!old) return old;
-          return old.filter((member) => member.id !== data.id);
-        }
-      );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orgKeys.all });
     },
   });
 };
 
-// 프리페칭 훅 (미리 데이터 로드)
+// 프리페칭
 export const usePrefetchOrganizationMembers = () => {
   const { user, supabase } = useAuth();
   const queryClient = useQueryClient();
 
-  const prefetchMembers = (orgId?: string) => {
+  const prefetchMembers = async (orgId?: string) => {
     if (orgId) {
-      queryClient.prefetchQuery({
-        queryKey: orgMembersKeys.byOrg(orgId),
-        queryFn: () =>
-          fetchMembersByOrganization(
-            supabase,
-            orgId,
-            Object.keys({} as OrgMember) as (keyof OrgMember)[]
-          ),
+      await queryClient.prefetchQuery({
+        queryKey: orgKeys.byOrg(orgId),
+        queryFn: async () => {
+          const { data, error } = await supabase
+            .from("organization_members")
+            .select("*")
+            .eq("organization_id", orgId);
+
+          if (error) throw error;
+          return data || [];
+        },
         staleTime: 2 * 60 * 1000,
       });
     } else if (user) {
-      queryClient.prefetchQuery({
-        queryKey: orgMembersKeys.byUser(user.id),
-        queryFn: () =>
-          fetchOrganizationMembers(
-            supabase,
-            user.id,
-            Object.keys({} as OrgMember) as (keyof OrgMember)[]
-          ),
+      await queryClient.prefetchQuery({
+        queryKey: orgKeys.byUser(user.id),
+        queryFn: async () => {
+          const { data, error } = await supabase
+            .from("organization_members")
+            .select("*")
+            .eq("user_id", user.id);
+
+          if (error) throw error;
+          return data || [];
+        },
         staleTime: 5 * 60 * 1000,
       });
     }
@@ -241,3 +227,250 @@ export const usePrefetchOrganizationMembers = () => {
 
   return { prefetchMembers };
 };
+
+/*
+
+
+// 1. 기본 사용법 (모든 필드)
+const {
+  data: orgMembers = [],
+  isLoading,
+  error,
+  isFetching,
+  refetch,
+} = useOrganizationMembers();
+
+// 2. 조인 쿼리 사용법
+type OrgMemberWithOrg = OrgMember & {
+  organizations: {
+    name: string;
+    description: string;
+  };
+};
+
+const {
+  data: orgMembers = [],
+  isLoading,
+  error: orgError,
+  isFetching,
+  refetch,
+} = useOrganizationMembers<OrgMemberWithOrg>(`
+  id, role, created_at,
+  organizations:organization_id(name, description)
+`);
+
+// 3. 특정 필드만 선택
+type MemberBasic = {
+  id: string;
+  role: string;
+  user_id: string;
+};
+
+const {
+  data: basicMembers = [],
+  isLoading,
+} = useOrganizationMembers<MemberBasic>("id, role, user_id");
+
+// 4. 특정 조직의 멤버들 조회
+const {
+  data: teamMembers = [],
+  isLoading: membersLoading,
+} = useOrganizationMembersByOrgId<OrgMember>("org-123");
+
+// 5. 조직 멤버들 + 사용자 정보 조인
+type MemberWithUser = OrgMember & {
+  users: {
+    email: string;
+    full_name: string;
+  };
+};
+
+const {
+  data: membersWithUsers = [],
+} = useOrganizationMembersByOrgId<MemberWithUser>(
+  "org-123",
+  `*, users:user_id(email, full_name)`
+);
+
+// 6. 특정 역할의 멤버들만 조회
+const {
+  data: admins = [],
+  isLoading: adminsLoading,
+} = useOrganizationMembersByRole<OrgMember>("org-123", "admin");
+
+// 7. 관리자들 + 조직 정보
+const {
+  data: adminWithOrg = [],
+} = useOrganizationMembersByRole<OrgMemberWithOrg>(
+  "org-123", 
+  "admin",
+  `*, organizations:organization_id(name, description)`
+);
+
+// 8. 멤버 추가
+const addMember = useAddOrganizationMember();
+
+const handleAddMember = async () => {
+  try {
+    await addMember.mutateAsync({
+      user_id: "user-456",
+      organization_id: "org-123",
+      role: "member",
+    });
+  } catch (error) {
+    console.error("Failed to add member:", error);
+  }
+};
+
+// 9. 멤버 업데이트
+const updateMember = useUpdateOrganizationMember();
+
+const handleUpdateRole = async (memberId: string) => {
+  try {
+    await updateMember.mutateAsync({
+      id: memberId,
+      updates: { role: "admin" }
+    });
+  } catch (error) {
+    console.error("Failed to update member:", error);
+  }
+};
+
+// 10. 멤버 삭제
+const removeMember = useRemoveOrganizationMember();
+
+const handleRemoveMember = async (memberId: string) => {
+  try {
+    await removeMember.mutateAsync(memberId);
+  } catch (error) {
+    console.error("Failed to remove member:", error);
+  }
+};
+
+// 11. 프리페칭 사용
+const { prefetchMembers } = usePrefetchOrganizationMembers();
+
+const handleHoverOrgCard = (orgId: string) => {
+  // 사용자가 조직 카드에 호버할 때 미리 데이터 로드
+  prefetchMembers(orgId);
+};
+
+const handlePageLoad = () => {
+  // 페이지 로드 시 현재 사용자의 멤버십 미리 로드
+  prefetchMembers();
+};
+
+// 12. React 컴포넌트에서 실제 사용 예시
+function OrganizationMembersPage() {
+  const {
+    data: orgMembers = [],
+    isLoading,
+    error,
+    refetch,
+  } = useOrganizationMembers<OrgMemberWithOrg>(`
+    id, role, created_at,
+    organizations:organization_id(name, description)
+  `);
+
+  const addMember = useAddOrganizationMember();
+  const updateMember = useUpdateOrganizationMember();
+  const removeMember = useRemoveOrganizationMember();
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      <h1>My Organizations</h1>
+      {orgMembers.map((member) => (
+        <div key={member.id}>
+          <h3>{member.organizations.name}</h3>
+          <p>Role: {member.role}</p>
+          <p>Joined: {new Date(member.created_at).toLocaleDateString()}</p>
+          
+          <button
+            onClick={() => updateMember.mutate({
+              id: member.id,
+              updates: { role: member.role === "admin" ? "member" : "admin" }
+            })}
+            disabled={updateMember.isPending}
+          >
+            Toggle Role
+          </button>
+          
+          <button
+            onClick={() => removeMember.mutate(member.id)}
+            disabled={removeMember.isPending}
+          >
+            Leave Organization
+          </button>
+        </div>
+      ))}
+      
+      <button onClick={refetch}>Refresh</button>
+    </div>
+  );
+}
+
+// 13. 조건부 쿼리 사용
+function TeamMembersPage({ orgId }: { orgId?: string }) {
+  const {
+    data: members = [],
+    isLoading,
+  } = useOrganizationMembersByOrgId<MemberWithUser>(
+    orgId || "",  // orgId가 없으면 빈 문자열
+    `*, users:user_id(email, full_name)`
+  );
+
+  // orgId가 없으면 쿼리가 비활성화됨 (enabled: !!orgId)
+  if (!orgId) return <div>Please select an organization</div>;
+  if (isLoading) return <div>Loading members...</div>;
+
+  return (
+    <div>
+      {members.map((member) => (
+        <div key={member.id}>
+          <span>{member.users.full_name}</span>
+          <span>{member.users.email}</span>
+          <span>{member.role}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// 14. 에러 핸들링 예시
+function MembersWithErrorHandling() {
+  const {
+    data: members = [],
+    error,
+    isLoading,
+    refetch,
+  } = useOrganizationMembers();
+
+  const addMember = useAddOrganizationMember();
+
+  const handleAddMember = async (userData: any) => {
+    try {
+      await addMember.mutateAsync(userData);
+      // 성공 시 알림 표시
+      alert("Member added successfully!");
+    } catch (error) {
+      // 에러 시 상세 메시지 표시
+      if (error instanceof Error) {
+        alert(`Failed to add member: ${error.message}`);
+      }
+    }
+  };
+
+  if (error) {
+    return (
+      <div>
+        <p>Failed to load members: {error.message}</p>
+        <button onClick={() => refetch()}>Retry</button>
+      </div>
+    );
+  }
+
+ 
+*/

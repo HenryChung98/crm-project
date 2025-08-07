@@ -1,5 +1,4 @@
 import React from "react";
-import ScrollToTop from "../components/ScrollToTop";
 import Footer from "../components/Footer";
 
 export default function MainLayout({

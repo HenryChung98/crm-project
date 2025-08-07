@@ -1,31 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { inviteUser } from "./action";
-import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
 
-interface OrgOption {
+interface OrgMember {
   organization_id: string;
   organization_name: string;
 }
 
 export default function InviteMemberForm() {
-  const { user, supabase } = useAuth();
-
-  const [orgs, setOrgs] = useState<OrgOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const {
     data: orgMembers = [],
-    error: orgError,
     isLoading,
-  } = useOrganizationMembers<"organization_id" | "organization_name">([
-    "organization_id",
-    "organization_name",
-  ]);
+    error,
+    isFetching,
+    refetch,
+  } = useOrganizationMembers<OrgMember>(`
+    organization_id, organization_name
+  `);
 
   const handleSubmit = async (formData: FormData) => {
     setLoading(true);

@@ -60,7 +60,7 @@ export interface Database {
           id: string;
           organization_id: string;
           email: string;
-          accept: boolean;
+          accepted: boolean;
           invited_by: string;
           created_at: string;
           expires_at: string;
@@ -69,13 +69,13 @@ export interface Database {
           id: string;
           organization_id: string;
           email: string;
-          accept: boolean;
+          accepted: boolean;
           invited_by: string;
           created_at: string;
           expires_at: string;
         };
         Update: {
-          accept?: boolean | null;
+          accepted?: boolean | null;
           expires_at?: string | null;
         };
         Relationships: [];

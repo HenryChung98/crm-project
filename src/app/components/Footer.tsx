@@ -70,7 +70,6 @@ export default function Footer() {
             Works
           </Link>
         </div>
-        {/* <ScrollToTop /> */}
         copyright ©2025; Designed by HENRY
       </div>
     </footer>

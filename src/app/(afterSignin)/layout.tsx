@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import NavBar from "../components/navbar/NavBar";
-import ScrollToTop from "../components/ScrollToTop";
+
 
 export default function MainLayout({
   children,
