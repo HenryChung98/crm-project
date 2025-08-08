@@ -14,13 +14,7 @@ export default function InviteMemberForm() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const {
-    data: orgMembers = [],
-    isLoading,
-    error,
-    isFetching,
-    refetch,
-  } = useOrganizationMembers<OrgMember>(`
+  const { data: orgMembers = [] } = useOrganizationMembers<OrgMember>(`
     organization_id, organization_name
   `);
 

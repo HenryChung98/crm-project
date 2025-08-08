@@ -29,7 +29,7 @@ export default function ResetPasswordPage() {
       password: data.password,
     });
     if (resetData) {
-      router.push("/signin");
+      router.push("/auth/signin");
     }
   };
 

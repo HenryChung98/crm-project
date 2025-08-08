@@ -2,9 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-
 import { useOrganizationInvitationsByEmail } from "@/hooks/tanstack/useOrganizationInvitations";
-
 import JoinOrgButton from "@/app/components/JoinOrgButton";
 
 type OrgInvitation = {
@@ -18,7 +16,7 @@ type OrgInvitation = {
 };
 
 export default function DashboardPage() {
-  const { user, supabase } = useAuth();
+  const { user } = useAuth();
 
   const {
     data: orgInvitations = [],
@@ -52,16 +50,16 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {/* 조직 초대장 목록 */}
+        {/* invitation list */}
         {isLoading && <div className="mt-4 text-gray-500">Loading invitations...</div>}
-        {/* 수동 새로고침 버튼 */}
+        {/* refresh button */}
         <div className="mb-4">
           <button
             onClick={() => refetch()}
             disabled={isFetching}
             className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-3 rounded text-sm disabled:opacity-50"
           >
-            {isFetching ? "새로고침 중..." : "멤버십 새로고침"}
+            {isFetching ? "Refreshing..." : "Refresh"}
           </button>
         </div>
         {error && (

@@ -82,13 +82,13 @@ export default function SigninPage() {
             continue with Google
           </button>
           <div onClick={() => setShowPassword(!showPassword)}>show passwords</div>
-          <Link href="/signup" className="block text-center text-blue-500 underline">
+          <Link href="/auth/signup" className="block text-center text-blue-500 underline">
             sign up
           </Link>
         </div>
       </form>
 
-      <Link href="/signin/reset-password" className="w-full bg-blue-600 text-white p-2 rounded">
+      <Link href="/auth/signin/reset-password" className="w-full bg-blue-600 text-white p-2 rounded">
         reset password?
       </Link>
     </div>

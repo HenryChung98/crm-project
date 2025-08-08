@@ -9,22 +9,24 @@ export async function acceptInvitation(inviteId: string, orgName: string | undef
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("로그인이 필요합니다.");
+  // check auth user
+  if (!user) throw new Error("You must Sign up");
 
-  // 2. invitation 유효성 확인
+  // check invitation is valid for the user
   const { data: invitation, error: inviteError } = await supabase
     .from("organization_invitations")
     .select("*")
     .eq("organization_id", inviteId)
-    .eq("email", user.email) // 본인의 초대인지 확인
+    .eq("email", user.email)
     .eq("accepted", false)
     .single();
 
   if (inviteError || !invitation) {
     console.log(inviteError);
-    throw new Error("유효하지 않은 초대입니다.");
+    throw new Error("Invalid invitation.");
   }
 
+  // check user is already in the organization
   const { data: checkDup, error: checkDupError } = await supabase
     .from("organization_members")
     .select("*")
@@ -33,13 +35,13 @@ export async function acceptInvitation(inviteId: string, orgName: string | undef
     .single();
 
   if (checkDupError) {
-    throw new Error("error for checking dup.");
+    throw new Error("Unknown error.");
   }
   if (checkDup) {
-    throw new Error("dup.");
+    throw new Error("You are already a member of the organization.");
   }
 
-  // 3. 초대 수락 처리 (accepted = true)
+  // update accepted = true
   const { error: updateError } = await supabase
     .from("organization_invitations")
     .update({ accepted: true })
@@ -49,7 +51,7 @@ export async function acceptInvitation(inviteId: string, orgName: string | undef
     throw updateError;
   }
 
-  // 4. organization_members에 삽입
+  // 4. insert user info to organization_members
   const { error: insertError } = await supabase.from("organization_members").insert({
     organization_id: invitation.organization_id,
     user_id: user.id,

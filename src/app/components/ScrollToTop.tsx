@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { IoIosArrowRoundUp } from "react-icons/io";
 
 export default function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false);
@@ -26,22 +27,18 @@ export default function ScrollToTop() {
   return (
     <button
       onClick={scrollToTop}
-      className={`fixed z-50 bottom-4 right-4 
+      className={`fixed z-50 bottom-20 right-3 
         text-white
         bg-[#016FBE]
-        p-3 rounded-full 
+        p-2 rounded-xl 
         shadow-lg 
         hover:opacity-50 
         transition-all duration-300 
         transform
-        ${
-          isVisible
-            ? "translate-y-0 opacity-100"
-            : "translate-y-20 opacity-0 pointer-events-none"
-        }
+        ${isVisible ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none"}
       `}
     >
-      Go To Top
+      <IoIosArrowRoundUp size={30}/>
     </button>
   );
 }

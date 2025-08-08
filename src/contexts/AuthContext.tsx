@@ -12,20 +12,10 @@ import {
 import type { Session, AuthChangeEvent } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
 import { loadUserProfile } from "@/utils/auth";
-
-interface AuthUser {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  image: string;
-  created_at: string;
-  email_confirmed_at: string;
-  last_sign_in_at: string | null;
-}
+import { AuthUserType } from "@/types/authuser";
 
 interface AuthContextType {
-  user: AuthUser | null;
+  user: AuthUserType | null;
   loading: boolean;
   isAuthenticated: boolean;
   supabase: ReturnType<typeof createClient>;
@@ -43,7 +33,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  * 앱의 최상위에서 감싸서 사용
  */
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<AuthUserType | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = useMemo(() => createClient(), []);
 

@@ -56,7 +56,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         {children}
         {/* 개발 환경에서만 DevTools 표시 */}
         {process.env.NODE_ENV === "development" && (
-          <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
+          <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-left" />
         )}
       </AuthProvider>
     </QueryClientProvider>

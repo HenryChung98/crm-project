@@ -1,6 +1,6 @@
 
 import { create } from 'zustand';
-import { NavItemType } from '@/types/nav';
+import { NavItemType } from '../data/navigation';
 
 interface NavState {
   mobileMenuOpen: boolean;

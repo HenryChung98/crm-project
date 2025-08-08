@@ -41,6 +41,9 @@
   --shadow-base: var(--box-shadow); */
 }
 
+/* e.g.
+px-[var(--container-padding)] py-[var(--container-padding)] */
+
 :root {
   --line-height-base: 1.5;
   --container-padding: 1rem;

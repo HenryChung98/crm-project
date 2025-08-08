@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { IoSunnyOutline, IoMoonOutline } from "react-icons/io5";
 
 export default function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
@@ -27,9 +28,9 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      className="px-[var(--container-padding)] py-[var(--container-padding)] rounded-md bg-accent text-white"
+      className="p-2 rounded-xl bg-accent fixed right-3 bottom-3"
     >
-      {theme === "light" ? "🌙" : "☀️"}
+      {theme === "light" ? <IoMoonOutline size={30} /> : <IoSunnyOutline size={30}/>}
     </button>
   );
 }

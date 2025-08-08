@@ -13,7 +13,7 @@ export default function AuthCallback() {
       router.replace("/");
     } else {
       // if not logged in, redirect to signin
-      router.replace("/signin");
+      router.replace("/auth/signin");
     }
   }, [router]);
 

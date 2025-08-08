@@ -6,6 +6,7 @@ import { useOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers"
 
 type OrgMember = {
   id: string;
+  organization_id: string;
   role: string;
   created_at: string;
   organizations: {
@@ -24,7 +25,7 @@ export default function ProfilePage() {
     isFetching,
     refetch,
   } = useOrganizationMembers<OrgMember>(`
-    id, role, created_at,
+    id, role, created_at, organization_id,
     organizations:organization_id(name, city)
   `);
   return (
@@ -36,50 +37,52 @@ export default function ProfilePage() {
             {user?.first_name}, {user?.last_name}, {user?.email},{user?.image}
             {user?.created_at && new Date(user.created_at).toLocaleString()}
           </label>
-          {/* 로딩 상태 표시 */}
-          {isLoading && <div className="text-blue-500">멤버십 정보를 불러오는 중...</div>}
-          {/*  */}
-          {/* 백그라운드 업데이트 표시 */}
-          {isFetching && !isLoading && <div className="text-blue-400 text-sm">업데이트 중...</div>}
-          {/*  */}
-          {/* 에러 처리 */}
+          {isLoading && <div className="text-blue-500">Loading membership...</div>}
+
+          {isFetching && !isLoading && <div className="text-blue-400 text-sm">Updating...</div>}
+
           {error && (
             <div className="text-red-500">
-              오류: {error instanceof Error ? error.message : "알 수 없는 오류"}
+              Error: {error instanceof Error ? error.message : "Unknown error"}
               <button onClick={() => refetch()} className="ml-2 text-blue-500 underline">
-                다시 시도
+                Retry
               </button>
             </div>
           )}
           {/*  */}
 
-          {/* 멤버십 목록 표시 */}
+          {/* membership list */}
           {orgMembers.map((member) => (
             <div key={member.id} className="p-2 bg-gray-50 rounded">
-              <div className="text-green-600 font-medium">조직: {member.organizations?.name}</div>
-              <div className="text-green-600 font-medium">조직: {member.organizations?.city}</div>
-              <div className="text-sm text-gray-600">역할: {member.role}</div>
+              <div className="text-green-600 font-medium">id: {member.organization_id}</div>
+              <div className="text-green-600 font-medium">
+                org name: {member.organizations?.name}
+              </div>
+              <div className="text-green-600 font-medium">
+                org city: {member.organizations?.city}
+              </div>
+              <div className="text-sm text-gray-600">Role: {member.role}</div>
 
               <div className="text-xs text-gray-500">
-                가입일: {new Date(member.created_at).toLocaleDateString()}
+                Date of Registration: {new Date(member.created_at).toLocaleDateString()}
               </div>
             </div>
           ))}
           {/*  */}
-          {/* 멤버십이 없는 경우 */}
+          {/* if no member */}
           {!isLoading && !error && orgMembers.length === 0 && (
-            <div className="text-gray-500 italic">아직 가입한 조직이 없습니다.</div>
+            <div className="text-gray-500 italic">You have not joined any org.</div>
           )}
           {/* </div> */}
 
-          {/* 수동 새로고침 버튼 */}
+          {/* refresh button */}
           <div className="mb-4">
             <button
               onClick={() => refetch()}
               disabled={isFetching}
               className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-3 rounded text-sm disabled:opacity-50"
             >
-              {isFetching ? "새로고침 중..." : "멤버십 새로고침"}
+              {isFetching ? "Refreshing..." : "Refresh"}
             </button>
           </div>
           {/*  */}

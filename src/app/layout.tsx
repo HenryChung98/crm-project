@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-
+import { Suspense } from "react";
 // components
-import ThemeToggle from "./components/ThemeToggle";
 import ScrollToTop from "./components/ScrollToTop";
+import ThemeToggle from "./components/ThemeToggle";
 
 // backend
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -29,13 +29,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
-        <Providers>
-          <AuthProvider>
-            <ThemeToggle />
-            <ScrollToTop />
-            {children}
-          </AuthProvider>
-        </Providers>
+        <Suspense>
+          <Providers>
+            <AuthProvider>
+              {children}
+              <ScrollToTop />
+              <ThemeToggle />
+            </AuthProvider>
+          </Providers>
+        </Suspense>
       </body>
     </html>
   );

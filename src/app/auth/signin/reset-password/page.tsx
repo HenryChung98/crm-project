@@ -20,8 +20,8 @@ export default function UpdatePasswordPage() {
     e.preventDefault();
     setError(null);
     try {
-      const { data: resetData, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/callback/reset-password`,
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback/reset-password`,
       });
       if (!email) {
         setError("type your email");
@@ -62,7 +62,7 @@ export default function UpdatePasswordPage() {
         <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
           send reset email
         </button>
-        <Link href="/signin">go back</Link>
+        <Link href="/auth/signin">go back</Link>
       </div>
     </form>
   );

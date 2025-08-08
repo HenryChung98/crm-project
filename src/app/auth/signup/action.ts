@@ -35,7 +35,7 @@ export async function signUp(formData: FormData) {
     password,
     options: {
       data: { first_name: firstName, last_name: lastName },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/callback/confirmed`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback/confirmed`,
     },
   });
 
@@ -53,5 +53,5 @@ export async function signUp(formData: FormData) {
 
   
 
-  redirect("/verify");
+  redirect("/auth/verify");
 }
