@@ -92,7 +92,7 @@ export const useAdminOrganizationMembers = <T = OrgMember>(
     },
     enabled: !!orgId && !!user?.id && options.enabled !== false,
     staleTime: 2 * 60 * 1000,
-    retry: (failureCount, error: any) => {
+    retry: (failureCount, error: Error) => {
       // 권한 에러는 재시도 안 함
       if (error.message?.includes("Admin permission required")) return false;
       return failureCount < 2;
@@ -130,7 +130,6 @@ export const useAddOrganizationMember = () => {
     },
   });
 };
-
 
 export const useAdminUpdateOrganizationMember = () => {
   const { user, supabase } = useAuth();
