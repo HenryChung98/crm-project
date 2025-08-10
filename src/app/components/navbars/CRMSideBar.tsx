@@ -103,6 +103,9 @@ export default function CRMSidebar({ organizations, currentOrg, onOrgChange }: C
   const { user } = useAuth();
   const { signOut } = useSupabase();
 
+  const queryString = searchParams.toString();
+  const queryParam = queryString ? `?${queryString}` : "";
+
   const crmNavItems = createCrmNavItems(searchParams);
 
   const toggleItem = (itemLabel: string) => {
@@ -135,6 +138,22 @@ export default function CRMSidebar({ organizations, currentOrg, onOrgChange }: C
         <button className="text-black" onClick={signOut}>
           sign out
         </button>
+
+        {(() => {
+          const currentOrgMembership = organizations.find(
+            (org) => org.organization_id === currentOrg
+          );
+          if (currentOrgMembership?.role === "admin") {
+            return (
+              <div>
+                <Link className="text-black" href={`/dashboard/organizations/manage${queryParam}`}>
+                  manage organization
+                </Link>
+              </div>
+            );
+          }
+          return null;
+        })()}
         {crmNavItems.map((item) => (
           <NavItem
             key={item.label}

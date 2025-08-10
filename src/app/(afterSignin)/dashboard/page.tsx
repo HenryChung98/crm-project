@@ -22,8 +22,6 @@ export default function DashboardPage() {
     data: orgInvitations = [],
     isLoading,
     error,
-    isFetching,
-    refetch,
   } = useOrganizationInvitationsByEmail<OrgInvitation>(`
     id, created_at, email, organization_id,
     organizations:organization_id(name)
@@ -38,14 +36,14 @@ export default function DashboardPage() {
           </label>
         </div>
         <div className="mb-4"></div>
-        <div className="flex items-center justify-between">
+        <div className="flex gap-2 items-center justify-between">
           <Link
             href="/dashboard/profile"
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           >
             Edit Profile
           </Link>
-          <Link href="/dashboard/invite-member" className="bg-blue-500">
+          <Link href="/dashboard/invite-member" className="bg-blue-500 rounded p-2">
             Invite Member
           </Link>
         </div>
@@ -53,15 +51,7 @@ export default function DashboardPage() {
         {/* invitation list */}
         {isLoading && <div className="mt-4 text-gray-500">Loading invitations...</div>}
         {/* refresh button */}
-        <div className="mb-4">
-          <button
-            onClick={() => refetch()}
-            disabled={isFetching}
-            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-3 rounded text-sm disabled:opacity-50"
-          >
-            {isFetching ? "Refreshing..." : "Refresh"}
-          </button>
-        </div>
+        <div className="mb-4"></div>
         {error && (
           <div className="mt-4 text-red-500">Error loading invitations: {error.message}</div>
         )}

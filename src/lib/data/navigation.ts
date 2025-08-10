@@ -34,10 +34,10 @@ export function createCrmNavItems(searchParams: URLSearchParams): CRMNavItemType
     },
     {
       label: "Customers",
-      href: `/dashboard/customers${queryParam}`,
+      href: `#`,
       icon: React.createElement(SiMinetest),
       children: [
-        { label: "All Customers", href: `#` },
+        { label: "All Customers", href: `/dashboard/customers${queryParam}` },
         { label: "Add Customer", href: `#` },
         { label: "Customer Groups", href: `#` },
       ],
@@ -68,7 +68,7 @@ export function createCrmNavItems(searchParams: URLSearchParams): CRMNavItemType
       href: `#`,
       icon: React.createElement(SiMinetest),
       children: [
-        { label: "Profile", href: `#` },
+        { label: "Profile", href: `/dashboard/profile${queryParam}` },
         { label: "Team", href: `#` },
         { label: "Integrations", href: `#` },
         { label: "Billing", href: `#` },

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import CRMSideBar from "../components/navbars/CRMSideBar";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { useOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
+import { useAllOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
 
 type OrgMember = {
   id: string;
@@ -20,43 +20,14 @@ export default function AfterSigninLayout({ children }: { children: React.ReactN
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const currentOrganizationId = searchParams.get("org") || "";
 
-  const { data: orgMembers = [], isLoading } = useOrganizationMembers<OrgMember>(`
-    id, organization_id, role, created_at, role,
+  const { data: orgMembers = [], isLoading } = useAllOrganizationMembers<OrgMember>(`
+    id, organization_id, role, created_at,
     organizations:organization_id(name)
     `);
 
-  // =================== using session ===================
-  // const [currentOrganizationId, setCurrentOrganizationId] = useState<string>("");
-
-  // const STORAGE_KEY = "current_organization_id";
-  // useEffect(() => {
-  //   if (!orgMembers || orgMembers.length === 0) return;
-
-  //   const savedOrgId = sessionStorage.getItem(STORAGE_KEY);
-
-  //   const isValidOrgId =
-  //     savedOrgId && orgMembers.some((member) => member.organization_id === savedOrgId);
-
-  //   const targetOrgId = isValidOrgId ? savedOrgId : orgMembers[0].organization_id;
-
-  //   setCurrentOrganizationId(targetOrgId);
-
-  //   // 세션에 저장
-  //   sessionStorage.setItem(STORAGE_KEY, targetOrgId);
-  // }, [orgMembers]);
-
-  // const handleOrganizationSwitch = (orgId: string) => {
-  //   console.log("Changed :", orgId);
-  //   setCurrentOrganizationId(orgId);
-  //   sessionStorage.setItem(STORAGE_KEY, orgId);
-  // };
-
-  // =================== using session ===================
-
-  // =================== using URL parameters ===================
   // get org query from URL
-  const currentOrganizationId = searchParams.get("org") || "";
 
   useEffect(() => {
     if (!orgMembers || orgMembers.length === 0) return;
@@ -78,13 +49,12 @@ export default function AfterSigninLayout({ children }: { children: React.ReactN
 
   // switch handler
   const handleOrganizationSwitch = (orgId: string) => {
-    console.log("Changed :", orgId);
-
     const params = new URLSearchParams(searchParams.toString());
+    params.delete("org");
     params.set("org", orgId);
 
     // update URL
-    router.push(`${pathname}?${params.toString()}`);
+    router.push(`/dashboard?${params.toString()}`);
   };
 
   // =================== using URL parameters ===================

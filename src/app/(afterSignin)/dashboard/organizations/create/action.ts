@@ -62,7 +62,7 @@ export async function createOrganization(formData: FormData) {
     organization_id: orgInsertData.id,
     organization_name: orgData.name,
     user_id: user.id,
-    role: "owner",
+    role: "admin",
     invited_by: null,
     user_email: user.email,
   };

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { inviteUser } from "./action";
-import { useOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
-
+import { useAllOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
+import { useSearchParams } from "next/navigation";
 interface OrgMember {
   organization_id: string;
   organization_name: string;
@@ -14,7 +14,10 @@ export default function InviteMemberForm() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const { data: orgMembers = [] } = useOrganizationMembers<OrgMember>(`
+  const searchParams = useSearchParams();
+  const currentOrganizationId = searchParams.get("org") || "";
+
+  const { data: orgMembers = [] } = useAllOrganizationMembers<OrgMember>(`
     organization_id, organization_name
   `);
 

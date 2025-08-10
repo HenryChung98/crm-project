@@ -22,13 +22,10 @@ export const orgKeys = {
   all: ["organizationMembers"] as const,
   byUser: (userId: string) => [...orgKeys.all, "user", userId] as const,
   byOrg: (orgId: string) => [...orgKeys.all, "org", orgId] as const,
-  byRole: (orgId: string, role: string) => [...orgKeys.byOrg(orgId), "role", role] as const,
+  byAdmin: (orgId: string) => [...orgKeys.byOrg(orgId), "role", "admin"] as const,
 };
 
-// 현재 사용자의 조직 멤버십 (제네릭 타입 지원)
-export const useOrganizationMembers = <T = OrgMember>(
-  select?: string
-): QueryResult<T> => {
+export const useAllOrganizationMembers = <T = OrgMember>(select?: string): QueryResult<T> => {
   const { user, supabase } = useAuth();
 
   const result = useQuery({
@@ -37,7 +34,8 @@ export const useOrganizationMembers = <T = OrgMember>(
       const { data, error } = await supabase
         .from("organization_members")
         .select(select || "*")
-        .eq("user_id", user!.id);
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data || [];
@@ -60,59 +58,45 @@ export const useOrganizationMembers = <T = OrgMember>(
   };
 };
 
-// 특정 조직의 모든 멤버들
-export const useOrganizationMembersByOrgId = <T = OrgMember>(
+export const useAdminOrganizationMembers = <T = OrgMember>(
   orgId: string,
-  select = "*"
+  select = "*",
+  options: { enabled?: boolean } = {}
 ): QueryResult<T> => {
-  const { supabase } = useAuth();
+  const { user, supabase } = useAuth();
 
   const result = useQuery({
-    queryKey: [...orgKeys.byOrg(orgId), select],
+    queryKey: [...orgKeys.byOrg(orgId), select, "admin-members"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      if (!user?.id) throw new Error("User not authenticated");
+
+      const { data: adminCheck, error: adminError } = await supabase
         .from("organization_members")
-        .select(select)
-        .eq("organization_id", orgId);
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("organization_id", orgId)
+        .eq("role", "admin")
+        .maybeSingle();
 
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!orgId,
-    staleTime: 2 * 60 * 1000,
-  });
+      if (adminError) throw adminError;
+      if (!adminCheck) throw new Error("Admin permission required");
 
-  return {
-    data: result.data as T[],
-    error: result.error,
-    isLoading: result.isLoading,
-    isFetching: result.isFetching,
-    refetch: result.refetch,
-  };
-};
-
-// 특정 역할의 멤버들
-export const useOrganizationMembersByRole = <T = OrgMember>(
-  orgId: string,
-  role: string,
-  select = "*"
-): QueryResult<T> => {
-  const { supabase } = useAuth();
-
-  const result = useQuery({
-    queryKey: [...orgKeys.byRole(orgId, role), select],
-    queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: members, error: membersError } = await supabase
         .from("organization_members")
         .select(select)
         .eq("organization_id", orgId)
-        .eq("role", role);
+        .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (membersError) throw membersError;
+      return members || [];
     },
-    enabled: !!orgId && !!role,
-    staleTime: 5 * 60 * 1000,
+    enabled: !!orgId && !!user?.id && options.enabled !== false,
+    staleTime: 2 * 60 * 1000,
+    retry: (failureCount, error: any) => {
+      // 권한 에러는 재시도 안 함
+      if (error.message?.includes("Admin permission required")) return false;
+      return failureCount < 2;
+    },
   });
 
   return {
@@ -147,17 +131,36 @@ export const useAddOrganizationMember = () => {
   });
 };
 
-// 멤버 업데이트
-export const useUpdateOrganizationMember = () => {
-  const { supabase } = useAuth();
+
+export const useAdminUpdateOrganizationMember = () => {
+  const { user, supabase } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<OrgMember> }) => {
+    mutationFn: async ({
+      updateId,
+      updates,
+      organizationId,
+    }: {
+      updateId: string;
+      updates: Partial<OrgMember>;
+      organizationId: string;
+    }) => {
+      const { data: currentMember } = await supabase
+        .from("organization_members")
+        .select("role, organization_id")
+        .eq("user_id", user?.id)
+        .eq("organization_id", organizationId)
+        .single();
+
+      if (currentMember?.role !== "admin") {
+        throw new Error("Admin role required.");
+      }
       const { data, error } = await supabase
         .from("organization_members")
         .update(updates)
-        .eq("id", id)
+        .eq("id", updateId)
+        .eq("organization_id", organizationId)
         .select()
         .single();
 
@@ -170,17 +173,33 @@ export const useUpdateOrganizationMember = () => {
   });
 };
 
-// 멤버 삭제
 export const useRemoveOrganizationMember = () => {
-  const { supabase } = useAuth();
+  const { supabase, user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("organization_members").delete().eq("id", id);
+    mutationFn: async ({
+      removeId,
+      organizationId,
+    }: {
+      removeId: string;
+      organizationId: string;
+    }) => {
+      const { data: currentMember } = await supabase
+        .from("organization_members")
+        .select("role, organization_id")
+        .eq("user_id", user?.id)
+        .eq("organization_id", organizationId)
+        .single();
+
+      if (currentMember?.role !== "admin") {
+        throw new Error("Admin role required.");
+      }
+
+      const { error } = await supabase.from("organization_members").delete().eq("id", removeId);
 
       if (error) throw error;
-      return { id };
+      return { removeId };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: orgKeys.all });
@@ -229,83 +248,6 @@ export const usePrefetchOrganizationMembers = () => {
 };
 
 /*
-
-
-// 1. 기본 사용법 (모든 필드)
-const {
-  data: orgMembers = [],
-  isLoading,
-  error,
-  isFetching,
-  refetch,
-} = useOrganizationMembers();
-
-// 2. 조인 쿼리 사용법
-type OrgMemberWithOrg = OrgMember & {
-  organizations: {
-    name: string;
-    description: string;
-  };
-};
-
-const {
-  data: orgMembers = [],
-  isLoading,
-  error: orgError,
-  isFetching,
-  refetch,
-} = useOrganizationMembers<OrgMemberWithOrg>(`
-  id, role, created_at,
-  organizations:organization_id(name, description)
-`);
-
-// 3. 특정 필드만 선택
-type MemberBasic = {
-  id: string;
-  role: string;
-  user_id: string;
-};
-
-const {
-  data: basicMembers = [],
-  isLoading,
-} = useOrganizationMembers<MemberBasic>("id, role, user_id");
-
-// 4. 특정 조직의 멤버들 조회
-const {
-  data: teamMembers = [],
-  isLoading: membersLoading,
-} = useOrganizationMembersByOrgId<OrgMember>("org-123");
-
-// 5. 조직 멤버들 + 사용자 정보 조인
-type MemberWithUser = OrgMember & {
-  users: {
-    email: string;
-    full_name: string;
-  };
-};
-
-const {
-  data: membersWithUsers = [],
-} = useOrganizationMembersByOrgId<MemberWithUser>(
-  "org-123",
-  `*, users:user_id(email, full_name)`
-);
-
-// 6. 특정 역할의 멤버들만 조회
-const {
-  data: admins = [],
-  isLoading: adminsLoading,
-} = useOrganizationMembersByRole<OrgMember>("org-123", "admin");
-
-// 7. 관리자들 + 조직 정보
-const {
-  data: adminWithOrg = [],
-} = useOrganizationMembersByRole<OrgMemberWithOrg>(
-  "org-123", 
-  "admin",
-  `*, organizations:organization_id(name, description)`
-);
 
 // 8. 멤버 추가
 const addMember = useAddOrganizationMember();
@@ -359,118 +301,5 @@ const handlePageLoad = () => {
   // 페이지 로드 시 현재 사용자의 멤버십 미리 로드
   prefetchMembers();
 };
-
-// 12. React 컴포넌트에서 실제 사용 예시
-function OrganizationMembersPage() {
-  const {
-    data: orgMembers = [],
-    isLoading,
-    error,
-    refetch,
-  } = useOrganizationMembers<OrgMemberWithOrg>(`
-    id, role, created_at,
-    organizations:organization_id(name, description)
-  `);
-
-  const addMember = useAddOrganizationMember();
-  const updateMember = useUpdateOrganizationMember();
-  const removeMember = useRemoveOrganizationMember();
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-
-  return (
-    <div>
-      <h1>My Organizations</h1>
-      {orgMembers.map((member) => (
-        <div key={member.id}>
-          <h3>{member.organizations.name}</h3>
-          <p>Role: {member.role}</p>
-          <p>Joined: {new Date(member.created_at).toLocaleDateString()}</p>
-          
-          <button
-            onClick={() => updateMember.mutate({
-              id: member.id,
-              updates: { role: member.role === "admin" ? "member" : "admin" }
-            })}
-            disabled={updateMember.isPending}
-          >
-            Toggle Role
-          </button>
-          
-          <button
-            onClick={() => removeMember.mutate(member.id)}
-            disabled={removeMember.isPending}
-          >
-            Leave Organization
-          </button>
-        </div>
-      ))}
-      
-      <button onClick={refetch}>Refresh</button>
-    </div>
-  );
-}
-
-// 13. 조건부 쿼리 사용
-function TeamMembersPage({ orgId }: { orgId?: string }) {
-  const {
-    data: members = [],
-    isLoading,
-  } = useOrganizationMembersByOrgId<MemberWithUser>(
-    orgId || "",  // orgId가 없으면 빈 문자열
-    `*, users:user_id(email, full_name)`
-  );
-
-  // orgId가 없으면 쿼리가 비활성화됨 (enabled: !!orgId)
-  if (!orgId) return <div>Please select an organization</div>;
-  if (isLoading) return <div>Loading members...</div>;
-
-  return (
-    <div>
-      {members.map((member) => (
-        <div key={member.id}>
-          <span>{member.users.full_name}</span>
-          <span>{member.users.email}</span>
-          <span>{member.role}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// 14. 에러 핸들링 예시
-function MembersWithErrorHandling() {
-  const {
-    data: members = [],
-    error,
-    isLoading,
-    refetch,
-  } = useOrganizationMembers();
-
-  const addMember = useAddOrganizationMember();
-
-  const handleAddMember = async (userData: any) => {
-    try {
-      await addMember.mutateAsync(userData);
-      // 성공 시 알림 표시
-      alert("Member added successfully!");
-    } catch (error) {
-      // 에러 시 상세 메시지 표시
-      if (error instanceof Error) {
-        alert(`Failed to add member: ${error.message}`);
-      }
-    }
-  };
-
-  if (error) {
-    return (
-      <div>
-        <p>Failed to load members: {error.message}</p>
-        <button onClick={() => refetch()}>Retry</button>
-      </div>
-    );
-  }
-
  
 */

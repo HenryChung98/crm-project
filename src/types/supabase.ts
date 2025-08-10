@@ -44,6 +44,7 @@ export interface Database {
           invited_by: string;
           role: string;
           created_at: string;
+          user_email: string;
         };
         Insert: {
           organization_id: string;
@@ -52,6 +53,11 @@ export interface Database {
           role: string;
           created_at: string;
           invited_by?: string | null;
+          user_email: string;
+        };
+        Update: {
+          role: string;
+          user_email: string;
         };
         Relationships: [];
       };

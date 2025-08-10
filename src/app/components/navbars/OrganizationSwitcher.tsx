@@ -45,7 +45,9 @@ export default function OrganizationSwitcher({
             <p className="text-sm font-medium text-gray-900 truncate">{currentOrgName}</p>
           </div>
         </div>
-        <FiChevronDown className={`transition-transform text-black ${isOpen ? "rotate-180" : ""}`} />
+        <FiChevronDown
+          className={`transition-transform text-black ${isOpen ? "rotate-180" : ""}`}
+        />
       </button>
 
       {/* dropdown menu */}
@@ -81,18 +83,11 @@ export default function OrganizationSwitcher({
           {/* buttons below the list */}
           <div className="border-t border-gray-100 p-2">
             <Link
-              href="/dashboard/create-organization"
+              href="/dashboard/organizations/create"
               className="block w-full p-2 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
               onClick={closeDropdown}
             >
               + Create Organization
-            </Link>
-            <Link
-              href="/organizations/manage"
-              className="block w-full p-2 text-sm text-gray-600 hover:bg-gray-50 rounded transition-colors"
-              onClick={closeDropdown}
-            >
-              Manage Organizations
             </Link>
           </div>
         </div>
