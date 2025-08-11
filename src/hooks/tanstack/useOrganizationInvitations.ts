@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Database } from "@/types/supabase";
+import type { Database } from "@/types/database";
 import { useAuth } from "@/contexts/AuthContext";
 import { NetworkError } from "@/types/errors";
 
@@ -18,21 +18,14 @@ export type QueryResult<T> = {
   refetch: () => void;
 };
 
-export const orgKeys = {
-  // 2
-  all: ["organizationInvitations"] as const,
-  byEmail: (email: string) => [...orgKeys.all, "user", email] as const,
-  byOrg: (orgId: string) => [...orgKeys.all, "org", orgId] as const,
-};
-
-// 현재 사용자의 조직 멤버십 (제네릭 타입 지원)
+// all users can invite people using email
 export const useOrganizationInvitationsByEmail = <T = OrgMember>(
   select?: string
 ): QueryResult<T> => {
   const { user, supabase } = useAuth();
 
   const result = useQuery({
-    queryKey: [...orgKeys.byEmail(user?.email || ""), select || "*"],
+    queryKey: ["organizationInvitations", "user", user?.email || "", select || "*"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("organization_invitations")
@@ -61,37 +54,6 @@ export const useOrganizationInvitationsByEmail = <T = OrgMember>(
   };
 };
 
-// 특정 조직의 모든 멤버들
-export const useOrganizationInvitationsByOrgId = <T = OrgMember>(
-  orgId: string,
-  select = "*"
-): QueryResult<T> => {
-  const { supabase } = useAuth();
-
-  const result = useQuery({
-    queryKey: [...orgKeys.byOrg(orgId), select],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("organization_invitations")
-        .select(select)
-        .eq("organization_id", orgId);
-
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!orgId,
-    staleTime: 2 * 60 * 1000,
-  });
-
-  return {
-    data: result.data as T[],
-    error: result.error,
-    isLoading: result.isLoading,
-    isFetching: result.isFetching,
-    refetch: result.refetch,
-  };
-};
-
 // 멤버 추가
 export const useAddOrganizationInvitation = () => {
   const { supabase } = useAuth();
@@ -109,8 +71,9 @@ export const useAddOrganizationInvitation = () => {
       return data;
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: orgKeys.byEmail(variables.email) });
-      queryClient.invalidateQueries({ queryKey: orgKeys.byOrg(variables.organization_id) });
+      queryClient.invalidateQueries({
+        queryKey: ["organizationInvitations", "user", variables.email],
+      });
     },
   });
 };
@@ -133,7 +96,7 @@ export const useUpdateOrganizationInvitation = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: orgKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["organizationInvitations"] });
     },
   });
 };
@@ -154,7 +117,7 @@ export const useRemoveOrganizationInvitation = () => {
       return { id };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: orgKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["organizationInvitations"] });
     },
   });
 };
@@ -164,24 +127,10 @@ export const usePrefetchOrganizationInvitations = () => {
   const { user, supabase } = useAuth();
   const queryClient = useQueryClient();
 
-  const prefetchMembers = async (orgId?: string) => {
-    if (orgId) {
+  const prefetchMembers = async () => {
+    if (user) {
       await queryClient.prefetchQuery({
-        queryKey: orgKeys.byOrg(orgId),
-        queryFn: async () => {
-          const { data, error } = await supabase
-            .from("organization_invitations")
-            .select("*")
-            .eq("organization_id", orgId);
-
-          if (error) throw error;
-          return data || [];
-        },
-        staleTime: 2 * 60 * 1000,
-      });
-    } else if (user) {
-      await queryClient.prefetchQuery({
-        queryKey: orgKeys.byEmail(user.email),
+        queryKey: ["organizationInvitations", "user", user.email],
         queryFn: async () => {
           const { data, error } = await supabase
             .from("organization_invitations")

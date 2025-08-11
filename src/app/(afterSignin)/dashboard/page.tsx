@@ -1,9 +1,10 @@
 "use client";
 import React from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { useOrganizationInvitationsByEmail } from "@/hooks/tanstack/useOrganizationInvitations";
 import JoinOrgButton from "@/app/components/JoinOrgButton";
+import { useOrganizationInvitationsByEmail } from "@/hooks/tanstack/useOrganizationInvitations";
 
 type OrgInvitation = {
   id: string;
@@ -17,6 +18,8 @@ type OrgInvitation = {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const currentOrgId = searchParams.get("org");
 
   const {
     data: orgInvitations = [],
@@ -43,7 +46,7 @@ export default function DashboardPage() {
           >
             Edit Profile
           </Link>
-          <Link href="/dashboard/invite-member" className="bg-blue-500 rounded p-2">
+          <Link href={`/dashboard/invite-member?org=${currentOrgId}`} className="bg-blue-500 rounded p-2">
             Invite Member
           </Link>
         </div>

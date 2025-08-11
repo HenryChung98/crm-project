@@ -1,11 +1,9 @@
 "use client";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  useAdminOrganizationMembers,
-  useAdminUpdateOrganizationMember,
-  useRemoveOrganizationMember,
-} from "@/hooks/tanstack/useOrganizationMembers";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
+import { updateMemberRole, removeMember } from "./action";
 
 type OrgMember = {
   id: string;
@@ -23,12 +21,17 @@ export default function ManageOrganizationPage() {
   const currentOrgId = searchParams.get("org");
   const { user } = useAuth();
 
+  const [pendingActions, setPendingActions] = useState<Record<string, "updating" | "removing">>({});
+
   const {
     data: orgMembers = [],
     isLoading,
     error,
+    refetch,
+    isFetching,
   } = useAdminOrganizationMembers<OrgMember>(
     currentOrgId!,
+    ["owner"],
     `
       id, organization_id, role, user_id, user_email,
       organizations:organization_id(name)
@@ -36,44 +39,64 @@ export default function ManageOrganizationPage() {
     { enabled: !!currentOrgId }
   );
 
-  const updateMember = useAdminUpdateOrganizationMember();
+  const handleUpdateRole = async (memberId: string, newRole: string) => {
+    if (!window.confirm("Are you sure you want to update this member's role?")) {
+      return;
+    }
 
-  const handleUpdateRole = (memberId: string, newRole: string) => {
-    if (window.confirm("you sure?")) {
-      updateMember.mutate(
-        {
-          updateId: memberId,
-          updates: { role: newRole },
-          organizationId: currentOrgId!,
-        },
-        {
-          onError: (error) => {
-            alert(`Failed to remove: ${error.message}`);
-          },
-          onSuccess: () => {
-            alert("updated.");
-          },
-        }
-      );
+    setPendingActions((prev) => ({ ...prev, [memberId]: "updating" }));
+
+    try {
+      const formData = new FormData();
+      formData.append("memberId", memberId);
+      formData.append("role", newRole);
+      formData.append("organizationId", currentOrgId!);
+
+      const result = await updateMemberRole(formData);
+
+      if (result.success) {
+        alert("Role updated successfully!");
+        refetch();
+      } else {
+        alert(`Failed to update role: ${result.error}`);
+      }
+    } catch (error) {
+      alert("An error occurred while updating the role");
+    } finally {
+      setPendingActions((prev) => {
+        const { [memberId]: _, ...rest } = prev;
+        return rest;
+      });
     }
   };
 
-  // remove user
-  const removeMember = useRemoveOrganizationMember();
+  const handleRemove = async (memberId: string) => {
+    if (!window.confirm("Are you sure you want to remove this member?")) {
+      return;
+    }
 
-  const handleRemove = (id: string) => {
-    if (window.confirm("you sure?")) {
-      removeMember.mutate(
-        { removeId: id, organizationId: currentOrgId! },
-        {
-          onError: (error) => {
-            alert(`Failed to remove: ${error.message}`);
-          },
-          onSuccess: () => {
-            alert("the member is fired.");
-          },
-        }
-      );
+    setPendingActions((prev) => ({ ...prev, [memberId]: "removing" }));
+
+    try {
+      const formData = new FormData();
+      formData.append("removeId", memberId);
+      formData.append("organizationId", currentOrgId!);
+
+      const result = await removeMember(formData);
+
+      if (result.success) {
+        alert("Member removed successfully!");
+        refetch();
+      } else {
+        alert(`Failed to remove member: ${result.error}`);
+      }
+    } catch (error) {
+      alert("An error occurred while removing the member");
+    } finally {
+      setPendingActions((prev) => {
+        const { [memberId]: _, ...rest } = prev;
+        return rest;
+      });
     }
   };
 
@@ -85,8 +108,8 @@ export default function ManageOrganizationPage() {
     if (error.message.includes("User not authenticated")) {
       return <div>Please log in to view this page.</div>;
     }
-    if (error.message.includes("Admin permission required")) {
-      return <div>Access denied - Admin role required</div>;
+    if (error.message.includes("permission required")) {
+      return <div>Access denied - Owner role required</div>;
     }
     return <div>Error loading members: {error.message}</div>;
   }
@@ -96,14 +119,9 @@ export default function ManageOrganizationPage() {
       <h1 className="text-2xl font-bold mb-4">
         Manage {orgMembers[0]?.organizations?.name || currentOrgId}
       </h1>
-
-      <div className="mb-4 p-4 rounded">
-        <h3 className="font-semibold mb-2">Current User Info:</h3>
-        <p>User ID: {user?.id}</p>
-        <p>Current Org ID: {currentOrgId}</p>
-        <p>Your Role: {orgMembers.find((m) => m.user_id === user?.id)?.role || "Unknown"}</p>
-      </div>
-
+      <button className="border rounded p-2 m-2" onClick={refetch}>
+        {isFetching ? "loading.." : "refresh"}
+      </button>
       <div className="grid gap-4">
         {orgMembers.map((member) =>
           member.user_id !== user?.id ? (
@@ -116,23 +134,23 @@ export default function ManageOrganizationPage() {
                 <select
                   value={member.role}
                   onChange={(e) => handleUpdateRole(member.id, e.target.value)}
-                  disabled={updateMember.isPending}
+                  disabled={pendingActions[member.id] === "updating"}
                   className="px-3 py-1 text-sm border rounded disabled:opacity-50"
                 >
                   <option value="member">Member</option>
                   <option value="admin">Admin</option>
                 </select>
-                {updateMember.isPending && (
+                {pendingActions[member.id] === "updating" && (
                   <span className="text-sm text-gray-500">Updating...</span>
                 )}
               </div>
 
               <button
                 onClick={() => handleRemove(member.id)}
-                disabled={removeMember.isPending}
+                disabled={pendingActions[member.id] === "removing"}
                 className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
               >
-                {removeMember.isPending ? "deleting..." : "delete"}
+                {pendingActions[member.id] === "removing" ? "deleting..." : "delete"}
               </button>
             </div>
           ) : null

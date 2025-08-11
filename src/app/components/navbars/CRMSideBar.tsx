@@ -143,7 +143,7 @@ export default function CRMSidebar({ organizations, currentOrg, onOrgChange }: C
           const currentOrgMembership = organizations.find(
             (org) => org.organization_id === currentOrg
           );
-          if (currentOrgMembership?.role === "admin") {
+          if (currentOrgMembership?.role === "owner") {
             return (
               <div>
                 <Link className="text-black" href={`/dashboard/organizations/manage${queryParam}`}>

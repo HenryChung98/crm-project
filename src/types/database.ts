@@ -86,6 +86,46 @@ export interface Database {
         };
         Relationships: [];
       };
+      customers: {
+        Row: {
+          id: string;
+          organization_id: string;
+          first_name: string;
+          last_name: string;
+          email: string;
+          phone: string;
+          status: string;
+          created_at: string;
+          updated_at: string;
+          last_contacted_at: string;
+          source: string;
+          note: string;
+        };
+        Insert: {
+          organization_id: string;
+          first_name: string;
+          last_name: string;
+          email?: string | null;
+          phone?: string | null;
+          status: string;
+          updated_at?: string | null;
+          last_contacted_at?: string | null;
+          source: string;
+          note?: string | null;
+        };
+        Update: {
+          first_name?: string | null;
+          last_name?: string | null;
+          email?: string | null;
+          phone?: string | null;
+          status?: string | null;
+          updated_at?: string | null;
+          last_contacted_at?: string | null;
+          source?: string | null;
+          note?: string | null;
+        };
+        Relationships: [];
+      };
     };
   };
 }

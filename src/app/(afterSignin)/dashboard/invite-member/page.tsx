@@ -4,6 +4,7 @@ import { useState } from "react";
 import { inviteUser } from "./action";
 import { useAllOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
 import { useSearchParams } from "next/navigation";
+
 interface OrgMember {
   organization_id: string;
   organization_name: string;
@@ -15,11 +16,13 @@ export default function InviteMemberForm() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const searchParams = useSearchParams();
-  const currentOrganizationId = searchParams.get("org") || "";
+  const currentOrgId = searchParams.get("org") || "";
 
   const { data: orgMembers = [] } = useAllOrganizationMembers<OrgMember>(`
     organization_id, organization_name
   `);
+
+  const currentOrg = orgMembers.find((org) => org.organization_id === currentOrgId);
 
   const handleSubmit = async (formData: FormData) => {
     setLoading(true);
@@ -40,36 +43,36 @@ export default function InviteMemberForm() {
     }
   };
 
+  if (!currentOrgId) {
+    return <div className="text-center text-red-600">No organization selected</div>;
+  }
+
   return (
-    <form action={handleSubmit} className="space-y-4 w-1/3 m-auto">
-      <label className="block">
-        <span className="text-sm font-medium">Invite by email</span>
-        <input
-          type="email"
-          name="email"
-          required
-          className="w-full mt-1 border rounded px-3 py-2"
-        />
-      </label>
+    <>
+      <form action={handleSubmit} className="space-y-4 w-1/3 m-auto">
+        <label className="block">
+          <span className="text-sm font-medium">Invite to {currentOrg?.organization_name}</span>
+          <input
+            type="email"
+            name="email"
+            required
+            className="w-full mt-1 border rounded px-3 py-2"
+          />
+        </label>
 
-      <select name="orgId" required className="mt-4 p-2 border rounded text-gray-500 w-full">
-        {orgMembers.map((org) => (
-          <option key={org.organization_id} value={org.organization_id}>
-            {org.organization_name || "Unnamed Org"}
-          </option>
-        ))}
-      </select>
+        <input type="hidden" name="orgId" value={currentOrgId} />
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-      >
-        {loading ? "Sending..." : "Send Invite"}
-      </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+        >
+          {loading ? "Sending..." : "Send Invite"}
+        </button>
 
-      {successMessage && <p className="text-green-600">{successMessage}</p>}
-      {errorMessage && <p className="text-red-600">{errorMessage}</p>}
-    </form>
+        {successMessage && <p className="text-green-600">{successMessage}</p>}
+        {errorMessage && <p className="text-red-600">{errorMessage}</p>}
+      </form>
+    </>
   );
 }
