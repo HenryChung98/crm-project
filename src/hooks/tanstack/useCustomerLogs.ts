@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { NetworkError } from "@/types/errors";
 import { Database } from "@/types/database";
 
-type Customers = Database["public"]["Tables"]["customers"]["Row"];
+type CustomerLogs = Database["public"]["Tables"]["customer_logs"]["Row"];
 
 type QueryResult<T> = {
   data: T[];
@@ -18,38 +18,52 @@ type QueryResult<T> = {
   refetch: () => void;
 };
 
-export const useCustomers = <T = Customers>(
-  organizationId: string,
-  select?: string
-): QueryResult<T> => {
+export const useCustomerLogs = <T = CustomerLogs>(orgId: string): QueryResult<T> => {
   const { user, supabase } = useAuth();
 
   const result = useQuery({
-    queryKey: ["customers", organizationId, select || "*"],
+    queryKey: ["customer_logs", orgId],
     queryFn: async () => {
       if (!user?.id) throw new Error("User not authenticated");
-      if (!organizationId) return [];
+      if (!orgId) return [];
 
-      // check user is a part of the organization
+      // check user is valid to access
       const { data: memberCheck, error: memberError } = await supabase
         .from("organization_members")
         .select("role")
         .eq("user_id", user.id)
-        .eq("organization_id", organizationId)
+        .eq("organization_id", orgId)
         .single();
 
-      if (memberError) throw new Error("Organization access denied");
-      if (!memberCheck) throw new Error("You are not a member of this organization");
+      if (memberError || !memberCheck) {
+        throw new Error("Access denied: Not a member of the organization");
+      }
+
+      const { data: customers, error: customersError } = await supabase
+        .from("customers")
+        .select("id")
+        .eq("organization_id", orgId);
+
+      if (customersError) {
+        throw new Error("Failed to fetch customers");
+      }
+
+      if (!customers || customers.length === 0) {
+        return [];
+      }
+
+      const customerIds = customers.map((customer) => customer.id);
 
       const { data, error } = await supabase
-        .from("customers")
-        .select(select || "*")
-        .eq("organization_id", organizationId);
+        .from("customer_logs")
+        .select("*")
+        .in("customer_id", customerIds)
+        .order("performed_at", { ascending: false });
 
       if (error) throw error;
       return data;
     },
-    enabled: !!organizationId && !!user?.id,
+    enabled: !!orgId && !!user?.id,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
     retry: (failureCount, error: NetworkError) => {

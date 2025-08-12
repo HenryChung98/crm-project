@@ -95,6 +95,7 @@ export interface Database {
           email: string;
           phone: string;
           status: string;
+          tag: string;
           created_at: string;
           updated_at: string;
           last_contacted_at: string;
@@ -108,6 +109,7 @@ export interface Database {
           email?: string | null;
           phone?: string | null;
           status: string;
+          tag: string;
           updated_at?: string | null;
           last_contacted_at?: string | null;
           source: string;
@@ -119,10 +121,28 @@ export interface Database {
           email?: string | null;
           phone?: string | null;
           status?: string | null;
+          tag?: string | null;
           updated_at?: string | null;
           last_contacted_at?: string | null;
           source?: string | null;
           note?: string | null;
+        };
+        Relationships: [];
+      };
+      customer_logs: {
+        Row: {
+          id: string;
+          customer_id: string;
+          action: string;
+          changed_data: Json;
+          performed_by: string;
+          performed_at: string;
+        };
+        Insert: {
+          customer_id: string;
+          action: string;
+          changed_data: Json;
+          performed_by: string;
         };
         Relationships: [];
       };

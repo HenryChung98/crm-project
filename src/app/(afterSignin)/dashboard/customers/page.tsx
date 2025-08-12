@@ -24,6 +24,7 @@ export default function CustomersPage() {
             <p className="text-gray-600">{customer.organization_id}</p>
             <p className="text-gray-600">{customer.first_name}</p>
             <p className="text-gray-600">{customer.last_name}</p>
+            <p className="text-gray-600">{customer.email}</p>
             <p className="text-gray-600">{customer.status}</p>
             <p className="text-gray-600">{customer.source}</p>
             <p className="text-gray-600">{new Date(customer.created_at).toLocaleString()}</p>

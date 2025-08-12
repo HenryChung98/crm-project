@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import JoinOrgButton from "@/app/components/JoinOrgButton";
 import { useOrganizationInvitationsByEmail } from "@/hooks/tanstack/useOrganizationInvitations";
+import { useCustomers } from "@/hooks/tanstack/useCustomers";
 
 type OrgInvitation = {
   id: string;
@@ -21,10 +22,12 @@ export default function DashboardPage() {
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org");
 
+  const { data: customers, isLoading, error, refetch, isFetching } = useCustomers(currentOrgId!);
+
   const {
     data: orgInvitations = [],
-    isLoading,
-    error,
+    isLoading: isInvitationLoading,
+    error: invitationError,
   } = useOrganizationInvitationsByEmail<OrgInvitation>(`
     id, created_at, email, organization_id,
     organizations:organization_id(name)
@@ -33,30 +36,39 @@ export default function DashboardPage() {
     <div className="flex min-h-screen flex-col items-center justify-center p-24">
       <h1 className="text-4xl font-bold mb-8">Dashboard</h1>
       <div className="w-full max-w-md p-8 rounded-lg shadow-md">
-        <div className="mb-4">
-          <label htmlFor="username" className="block text-gray-500 text-sm font-bold mb-2">
-            {user?.first_name}, {user?.last_name}, {user?.email}
-          </label>
-        </div>
+        <div className="mb-4"></div>
         <div className="mb-4"></div>
         <div className="flex gap-2 items-center justify-between">
           <Link
-            href="/dashboard/profile"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            href={`/dashboard/invite-member?org=${currentOrgId}`}
+            className="bg-blue-500 rounded p-2"
           >
-            Edit Profile
-          </Link>
-          <Link href={`/dashboard/invite-member?org=${currentOrgId}`} className="bg-blue-500 rounded p-2">
             Invite Member
           </Link>
         </div>
+        <div>
+          <p>customer</p>
+          {customers?.map((customer) => (
+            <div key={customer.id} className="p-4 border rounded">
+              <p className="text-gray-600">{customer.first_name}</p>
+              <p className="text-gray-600">{customer.last_name}</p>
+              <p className="text-gray-600">{customer.email}</p>
+              <p className="text-gray-600">{customer.status}</p>
+              <p className="text-gray-600">{customer.tag}</p>
+              <p className="text-gray-600">{customer.source}</p>
+              <p className="text-gray-600">{new Date(customer.created_at).toLocaleString()}</p>
+            </div>
+          ))}
+        </div>
 
         {/* invitation list */}
-        {isLoading && <div className="mt-4 text-gray-500">Loading invitations...</div>}
+        {isInvitationLoading && <div className="mt-4 text-gray-500">Loading invitations...</div>}
         {/* refresh button */}
         <div className="mb-4"></div>
-        {error && (
-          <div className="mt-4 text-red-500">Error loading invitations: {error.message}</div>
+        {invitationError && (
+          <div className="mt-4 text-red-500">
+            Error loading invitations: {invitationError.message}
+          </div>
         )}
         {orgInvitations.length > 0 && (
           <div className="mt-4">

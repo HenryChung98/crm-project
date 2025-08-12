@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAllOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
-
+import { createCustomer } from "./action";
 interface OrgMember {
   organization_id: string;
   organization_name: string;
@@ -13,7 +13,7 @@ interface CustomerFormData {
   firstName: string;
   lastName: string;
   source: string;
-  email?: string | null;
+  email: string;
   phone?: string | null;
   note?: string | null;
 }
@@ -21,6 +21,8 @@ interface CustomerFormData {
 export default function CreateCustomersPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
   const [formData, setFormData] = useState<CustomerFormData>({
@@ -48,8 +50,23 @@ export default function CreateCustomersPage() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async (formData: FormData) => {
     setLoading(true);
+    setSuccessMessage("");
+    setErrorMessage("");
+
+    try {
+      const res = await createCustomer(formData);
+      if (res.success) {
+        setSuccessMessage("Invitation sent successfully.");
+      } else {
+        setErrorMessage(res.error || "Failed to send invitation.");
+      }
+    } catch (error) {
+      setErrorMessage("An error occurred.");
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <>
@@ -70,7 +87,7 @@ export default function CreateCustomersPage() {
           name="lastName"
           type="text"
           placeholder="Last Name"
-          value={formData.firstName}
+          value={formData.lastName}
           onChange={handleChange}
           required
           className="border w-full p-2"
@@ -79,7 +96,7 @@ export default function CreateCustomersPage() {
           name="source"
           type="text"
           placeholder="Source"
-          value={formData.firstName}
+          value={formData.source}
           onChange={handleChange}
           required
           className="border w-full p-2"
@@ -88,7 +105,7 @@ export default function CreateCustomersPage() {
           name="email"
           type="email"
           placeholder="Email"
-          value={formData.firstName}
+          value={formData.email}
           onChange={handleChange}
           className="border w-full p-2"
         />
@@ -96,7 +113,7 @@ export default function CreateCustomersPage() {
           name="phone"
           type="text"
           placeholder="Phone Number"
-          value={formData.firstName}
+          value={formData.phone ?? ""}
           onChange={handleChange}
           className="border w-full p-2"
         />
@@ -104,7 +121,7 @@ export default function CreateCustomersPage() {
           name="note"
           type="text"
           placeholder="Note"
-          value={formData.firstName}
+          value={formData.note ?? ""}
           onChange={handleChange}
           className="border w-full p-2"
         />
@@ -114,11 +131,11 @@ export default function CreateCustomersPage() {
           disabled={loading}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
         >
-          {loading ? "Sending..." : "Send Invite"}
+          {loading ? "Adding..." : "Add customer"}
         </button>
 
-        {/* {successMessage && <p className="text-green-600">{successMessage}</p>} */}
-        {/* {errorMessage && <p className="text-red-600">{errorMessage}</p>} */}
+        {successMessage && <p className="text-green-600">{successMessage}</p>}
+        {errorMessage && <p className="text-red-600">{errorMessage}</p>}
       </form>
     </>
   );

@@ -39,7 +39,7 @@ export function createCrmNavItems(searchParams: URLSearchParams): CRMNavItemType
       children: [
         { label: "All Customers", href: `/dashboard/customers${queryParam}` },
         { label: "Add Customer", href: `/dashboard/customers/create${queryParam}` },
-        { label: "Customer Groups", href: `#` },
+        { label: "Customer Logs", href: `/dashboard/customers/log${queryParam}` },
       ],
     },
     {
