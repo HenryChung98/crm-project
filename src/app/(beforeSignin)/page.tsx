@@ -35,36 +35,6 @@ export default function Home() {
         <Link href={user ? "/dashboard" : "/auth/signin"} className="pr-5">
           dashboard / signin
         </Link>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
-        <div>dummy</div>
       </main>
 
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center"></footer>

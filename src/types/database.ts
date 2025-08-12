@@ -135,8 +135,11 @@ export interface Database {
           customer_id: string;
           action: string;
           changed_data: Json;
-          performed_by: string;
           performed_at: string;
+          performed_by: string;
+          organization_members?: {
+            user_email: string;
+          };
         };
         Insert: {
           customer_id: string;

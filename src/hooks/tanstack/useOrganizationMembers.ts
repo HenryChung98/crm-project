@@ -1,6 +1,9 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  getAllOrganizationMembers,
+  getAdminOrganizationMembers,
+} from "../hook-actions/organization-members";
 import type { Database } from "@/types/database";
-import { useAuth } from "@/contexts/AuthContext";
 import { NetworkError } from "@/types/errors";
 
 type OrgMember = Database["public"]["Tables"]["organization_members"]["Row"];
@@ -10,32 +13,14 @@ type QueryResult<T> = {
   error: Error | null;
   isLoading: boolean;
   isFetching: boolean;
-  // isRefetching: boolean;
-  // isSuccess: boolean;
-  // isError: boolean;
-  // isStale: boolean;
-  // status: "idle" | "loading" | "error" | "success";
   refetch: () => void;
 };
 
-// all users can accept organization members database (for organization list in navbar)
+// 사용자가 속한 모든 조직 멤버십 조회 (네비바의 조직 목록용)
 export const useAllOrganizationMembers = <T = OrgMember>(select?: string): QueryResult<T> => {
-  const { user, supabase } = useAuth();
-
   const result = useQuery({
-    queryKey: ["organizationMembers", "user", user?.id || "", select || "*"],
-    queryFn: async () => {
-      if (!user?.id) throw new Error("User not authenticated");
-      const { data, error } = await supabase
-        .from("organization_members")
-        .select(select || "*")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user,
+    queryKey: ["organizationMembers", "user", select || "*"],
+    queryFn: () => getAllOrganizationMembers(select),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
     retry: (failureCount, error: NetworkError) => {
@@ -45,7 +30,7 @@ export const useAllOrganizationMembers = <T = OrgMember>(select?: string): Query
   });
 
   return {
-    data: result.data as T[],
+    data: (result.data as T[]) || [],
     error: result.error,
     isLoading: result.isLoading,
     isFetching: result.isFetching,
@@ -53,15 +38,13 @@ export const useAllOrganizationMembers = <T = OrgMember>(select?: string): Query
   };
 };
 
-// only owner or admin can use this hook (for )
+// 관리자 권한이 필요한 조직 멤버 목록 조회
 export const useAdminOrganizationMembers = <T = OrgMember>(
   orgId: string,
   requiredRoles: ("owner" | "admin")[],
   select = "*",
   options: { enabled?: boolean } = {}
 ): QueryResult<T> => {
-  const { user, supabase } = useAuth();
-
   const result = useQuery({
     queryKey: [
       "organizationMembers",
@@ -71,39 +54,17 @@ export const useAdminOrganizationMembers = <T = OrgMember>(
       "members-by-role",
       requiredRoles.sort(),
     ],
-    queryFn: async () => {
-      if (!user?.id) throw new Error("User not authenticated");
-
-      const { data: adminCheck, error: adminError } = await supabase
-        .from("organization_members")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("organization_id", orgId)
-        .eq("role", requiredRoles)
-        .maybeSingle();
-
-      if (adminError) throw adminError;
-      if (!adminCheck) throw new Error(`${requiredRoles.join(" or ")} permission required`);
-
-      const { data: members, error: membersError } = await supabase
-        .from("organization_members")
-        .select(select)
-        .eq("organization_id", orgId)
-        .order("created_at", { ascending: false });
-
-      if (membersError) throw membersError;
-      return members || [];
-    },
-    enabled: !!orgId && !!user?.id && requiredRoles.length > 0 && options.enabled !== false,
+    queryFn: () => getAdminOrganizationMembers(orgId, requiredRoles, select),
+    enabled: !!orgId && requiredRoles.length > 0 && options.enabled !== false,
     staleTime: 2 * 60 * 1000,
     retry: (failureCount, error: Error) => {
-      if (error.message?.includes("Admin permission required")) return false;
+      if (error.message?.includes("permission required")) return false;
       return failureCount < 2;
     },
   });
 
   return {
-    data: result.data as T[],
+    data: (result.data as T[]) || [],
     error: result.error,
     isLoading: result.isLoading,
     isFetching: result.isFetching,
@@ -111,40 +72,23 @@ export const useAdminOrganizationMembers = <T = OrgMember>(
   };
 };
 
-// pre-fetch
+// 프리페칭
 export const usePrefetchOrganizationMembers = () => {
-  const { user, supabase } = useAuth();
   const queryClient = useQueryClient();
 
   const prefetchMembers = async (orgId?: string) => {
     if (orgId) {
+      // 특정 조직의 멤버 프리페칭
       await queryClient.prefetchQuery({
         queryKey: ["organizationMembers", "org", orgId],
-        queryFn: async () => {
-          if (!user?.id) throw new Error("User not authenticated");
-          const { data, error } = await supabase
-            .from("organization_members")
-            .select("*")
-            .eq("organization_id", orgId);
-
-          if (error) throw error;
-          return data || [];
-        },
+        queryFn: () => getAdminOrganizationMembers(orgId, ["owner", "admin"]),
         staleTime: 2 * 60 * 1000,
       });
-    } else if (user) {
+    } else {
+      // 사용자의 모든 조직 멤버십 프리페칭
       await queryClient.prefetchQuery({
-        queryKey: ["organizationMembers", "user", user.id],
-        queryFn: async () => {
-          if (!user?.id) throw new Error("User not authenticated");
-          const { data, error } = await supabase
-            .from("organization_members")
-            .select("*")
-            .eq("user_id", user.id);
-
-          if (error) throw error;
-          return data || [];
-        },
+        queryKey: ["organizationMembers", "user"],
+        queryFn: () => getAllOrganizationMembers(),
         staleTime: 5 * 60 * 1000,
       });
     }

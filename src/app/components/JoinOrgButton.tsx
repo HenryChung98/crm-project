@@ -1,6 +1,6 @@
 "use client";
 
-import { acceptInvitation } from "../../lib/actions/accept-invitation";
+import { acceptInvitation } from "./component-actions/accept-invitation";
 import { useTransition } from "react";
 
 export default function JoinOrgButton({

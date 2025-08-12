@@ -1,6 +1,5 @@
-
-import { create } from 'zustand';
-import { NavItemType } from '../data/navigation';
+import { create } from "zustand";
+import { NavItemType } from "@/utils/data/navigation";
 
 interface NavState {
   mobileMenuOpen: boolean;
@@ -16,7 +15,8 @@ export const useNavStore = create<NavState>((set) => ({
   mobileMenuOpen: false,
   isSearchOpen: false,
   selectedMobileItem: null,
-  toggleMobileMenu: () => set((state) => ({ mobileMenuOpen: !state.mobileMenuOpen, selectedMobileItem: null })),
+  toggleMobileMenu: () =>
+    set((state) => ({ mobileMenuOpen: !state.mobileMenuOpen, selectedMobileItem: null })),
   toggleSearch: () => set((state) => ({ isSearchOpen: !state.isSearchOpen })),
   setSelectedMobileItem: (item) => set({ selectedMobileItem: item }),
   closeAll: () => set({ mobileMenuOpen: false, isSearchOpen: false, selectedMobileItem: null }),

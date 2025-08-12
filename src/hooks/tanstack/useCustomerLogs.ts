@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/contexts/AuthContext";
 import { NetworkError } from "@/types/errors";
 import { Database } from "@/types/database";
+import { getCustomerLogs } from "../hook-actions/customer-logs";
 
 type CustomerLogs = Database["public"]["Tables"]["customer_logs"]["Row"];
 
@@ -18,52 +18,14 @@ type QueryResult<T> = {
   refetch: () => void;
 };
 
-export const useCustomerLogs = <T = CustomerLogs>(orgId: string): QueryResult<T> => {
-  const { user, supabase } = useAuth();
-
+export const useCustomerLogs = <T = CustomerLogs>(
+  orgId: string,
+  select?: string
+): QueryResult<T> => {
   const result = useQuery({
-    queryKey: ["customer_logs", orgId],
-    queryFn: async () => {
-      if (!user?.id) throw new Error("User not authenticated");
-      if (!orgId) return [];
-
-      // check user is valid to access
-      const { data: memberCheck, error: memberError } = await supabase
-        .from("organization_members")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("organization_id", orgId)
-        .single();
-
-      if (memberError || !memberCheck) {
-        throw new Error("Access denied: Not a member of the organization");
-      }
-
-      const { data: customers, error: customersError } = await supabase
-        .from("customers")
-        .select("id")
-        .eq("organization_id", orgId);
-
-      if (customersError) {
-        throw new Error("Failed to fetch customers");
-      }
-
-      if (!customers || customers.length === 0) {
-        return [];
-      }
-
-      const customerIds = customers.map((customer) => customer.id);
-
-      const { data, error } = await supabase
-        .from("customer_logs")
-        .select("*")
-        .in("customer_id", customerIds)
-        .order("performed_at", { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!orgId && !!user?.id,
+    queryKey: ["customer_logs", orgId, select || "*"],
+    queryFn: () => getCustomerLogs(orgId),
+    enabled: !!orgId,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
     retry: (failureCount, error: NetworkError) => {
@@ -72,7 +34,7 @@ export const useCustomerLogs = <T = CustomerLogs>(orgId: string): QueryResult<T>
     },
   });
   return {
-    data: result.data as T[],
+    data: (result.data as T[]) || [],
     error: result.error,
     isLoading: result.isLoading,
     isFetching: result.isFetching,

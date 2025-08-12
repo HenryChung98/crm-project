@@ -5,7 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import JoinOrgButton from "@/app/components/JoinOrgButton";
 import { useOrganizationInvitationsByEmail } from "@/hooks/tanstack/useOrganizationInvitations";
-import { useCustomers } from "@/hooks/tanstack/useCustomers";
+import { useCustomerLogs } from "@/hooks/tanstack/useCustomerLogs";
+import { useDashboardStats } from "@/hooks/tanstack/useDashboardStats";
 
 type OrgInvitation = {
   id: string;
@@ -17,13 +18,33 @@ type OrgInvitation = {
   } | null;
 };
 
+type CustomerLog = {
+  id: string;
+  action: string;
+  performed_at: string;
+  performed_by: string;
+  organization_members?: {
+    user_email: string;
+  };
+};
+
+function StatCard({ title, value }: { title: string; value?: number }) {
+  return (
+    <div className="p-4 border rounded shadow rounded-lg text-center">
+      <h3 className="text-sm font-medium text-gray-500">{title}</h3>
+      <p className="mt-2 text-2xl font-bold">{value ?? 0}</p>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org");
 
-  const { data: customers, isLoading, error, refetch, isFetching } = useCustomers(currentOrgId!);
+  const { data, isLoading } = useDashboardStats(currentOrgId!);
 
+  // organization invitation
   const {
     data: orgInvitations = [],
     isLoading: isInvitationLoading,
@@ -32,6 +53,17 @@ export default function DashboardPage() {
     id, created_at, email, organization_id,
     organizations:organization_id(name)
   `);
+
+  const {
+    data: customerLogs = [],
+    isLoading: customerLogLoading,
+    error: customerLogError,
+  } = useCustomerLogs<CustomerLog>(
+    currentOrgId!,
+    `id, action, organization_members:performed_by(
+      user_email`
+  );
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-24">
       <h1 className="text-4xl font-bold mb-8">Dashboard</h1>
@@ -46,17 +78,17 @@ export default function DashboardPage() {
             Invite Member
           </Link>
         </div>
-        <div>
-          <p>customer</p>
-          {customers?.map((customer) => (
-            <div key={customer.id} className="p-4 border rounded">
-              <p className="text-gray-600">{customer.first_name}</p>
-              <p className="text-gray-600">{customer.last_name}</p>
-              <p className="text-gray-600">{customer.email}</p>
-              <p className="text-gray-600">{customer.status}</p>
-              <p className="text-gray-600">{customer.tag}</p>
-              <p className="text-gray-600">{customer.source}</p>
-              <p className="text-gray-600">{new Date(customer.created_at).toLocaleString()}</p>
+        <div className="flex items-center gap-5">
+          <StatCard title="total customers" value={data?.total} />
+          <StatCard title="new customers (last 30days)" value={data?.new} />
+          <StatCard title="activated customers" value={data?.active} />
+        </div>
+        <div className="border rounded p-2 m-2">
+          logs:
+          {customerLogs.map((log) => (
+            <div key={log.id} className="mt-4 text-gray-500">
+              <div>action: {log?.action}</div>
+              <div>by: {log?.organization_members?.user_email}</div>
             </div>
           ))}
         </div>

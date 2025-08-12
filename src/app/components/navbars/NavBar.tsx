@@ -7,8 +7,8 @@ import { useAuth } from "@/contexts/AuthContext";
 
 import { FiSearch, FiMenu, FiX } from "react-icons/fi";
 
-import { useNavStore } from "@/lib/store/useNavStore";
-import { navItems } from "@/lib/data/navigation";
+import { useNavStore } from "@/store/useNavStore";
+import { navItems } from "@/utils/data/navigation";
 import { AuthUserType } from "@/types/authuser";
 
 interface NavItem {

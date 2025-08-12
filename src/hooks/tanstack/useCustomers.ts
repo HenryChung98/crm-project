@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/contexts/AuthContext";
 import { NetworkError } from "@/types/errors";
 import { Database } from "@/types/database";
+import { getCustomers } from "../hook-actions/customers";
 
 type Customers = Database["public"]["Tables"]["customers"]["Row"];
 
@@ -22,34 +22,10 @@ export const useCustomers = <T = Customers>(
   organizationId: string,
   select?: string
 ): QueryResult<T> => {
-  const { user, supabase } = useAuth();
-
   const result = useQuery({
     queryKey: ["customers", organizationId, select || "*"],
-    queryFn: async () => {
-      if (!user?.id) throw new Error("User not authenticated");
-      if (!organizationId) return [];
-
-      // check user is a part of the organization
-      const { data: memberCheck, error: memberError } = await supabase
-        .from("organization_members")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("organization_id", organizationId)
-        .single();
-
-      if (memberError) throw new Error("Organization access denied");
-      if (!memberCheck) throw new Error("You are not a member of this organization");
-
-      const { data, error } = await supabase
-        .from("customers")
-        .select(select || "*")
-        .eq("organization_id", organizationId);
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!organizationId && !!user?.id,
+    queryFn: async () => getCustomers(organizationId, select),
+    enabled: !!organizationId,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
     retry: (failureCount, error: NetworkError) => {

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
-import { createCrmNavItems, CRMNavItemType } from "@/lib/data/navigation";
+import { createCrmNavItems, CRMNavItemType } from "@/utils/data/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import OrganizationSwitcher from "./OrganizationSwitcher";
 import { useSupabase } from "@/hooks/useSupabase";

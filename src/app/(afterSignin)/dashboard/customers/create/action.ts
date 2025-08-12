@@ -43,6 +43,17 @@ export async function createCustomer(formData: FormData) {
     return { error: "This customer already exists." };
   }
 
+  // check user is in the organization
+  const { data: validUser, error: validUserError } = await supabase
+    .from("organization_members")
+    .select("id")
+    .eq("organization_id", orgId)
+    .single();
+
+  if (validUserError && validUserError.code !== "PGRST116") {
+    return { error: validUserError.message };
+  }
+
   const customerData = {
     organization_id: orgId,
     first_name: firstName,
@@ -69,7 +80,7 @@ export async function createCustomer(formData: FormData) {
     customer_id: customerInsertData.id,
     action: "created",
     changed_data: customerData,
-    performed_by: user.id,
+    performed_by: validUser?.id,
   };
 
   const { data: customerLogInsert, error: customerLogError } = await supabase
