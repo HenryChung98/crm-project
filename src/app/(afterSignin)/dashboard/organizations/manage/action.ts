@@ -4,33 +4,15 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { withOrgAuth } from "@/utils/auth";
 
-export async function updateMemberRole(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, error: "Unauthorized" };
-  }
-
+export async function updateMemberRole(orgId: string, formData: FormData) {
   const memberId = formData.get("memberId") as string;
   const newRole = formData.get("role") as string;
   const organizationId = formData.get("organizationId") as string;
 
   try {
-    // Check if current user is owner
-    const { data: currentMember } = await supabase
-      .from("organization_members")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("organization_id", organizationId)
-      .single();
-
-    if (currentMember?.role !== "owner") {
-      return { success: false, error: "Owner role required." };
-    }
+    const { user, orgMember, supabase } = await withOrgAuth(orgId, ["owner"]);
 
     // Update member role
     const { data, error } = await supabase

@@ -1,6 +1,10 @@
 "use client";
 import { useSearchParams } from "next/navigation";
 import { useCustomers } from "@/hooks/tanstack/useCustomers";
+import UpdateCustomerStatusButton from "@/components/UpdateCustomerStatusButton";
+
+// ui
+import { Button } from "@/components/ui/Button";
 
 export default function CustomersPage() {
   const searchParams = useSearchParams();
@@ -14,9 +18,10 @@ export default function CustomersPage() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Customers {currentOrgId && `(${currentOrgId})`}</h1>
-      <button onClick={refetch} className="border rounded p-2 m-2">
+      <Button onClick={refetch} variant="primary">
         {isFetching ? "loading.." : "refresh"}
-      </button>
+      </Button>
+      <UpdateCustomerStatusButton orgId={currentOrgId} />
       <div className="grid gap-4">
         {customers?.map((customer) => (
           <div key={customer.id} className="p-4 border rounded">

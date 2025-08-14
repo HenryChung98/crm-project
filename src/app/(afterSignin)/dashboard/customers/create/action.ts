@@ -1,9 +1,8 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { withOrgAuth } from "@/utils/auth";
 
 export async function createCustomer(formData: FormData) {
-  const supabase = await createClient();
   const orgId = formData.get("orgId")?.toString().trim();
   const firstName = formData.get("firstName")?.toString().trim();
   const lastName = formData.get("lastName")?.toString().trim();
@@ -12,20 +11,10 @@ export async function createCustomer(formData: FormData) {
   const phone = formData.get("phone")?.toString().trim();
   const note = formData.get("note")?.toString().trim();
 
+  const { user, orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin"]);
   // check all fields
   if (!orgId || !firstName || !lastName || !source || !email) {
     return { error: "Customer's name, email and source are required." };
-  }
-
-  // get user from auth.users
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) {
-    console.error("Failed to get user:", userError?.message);
-    return { error: "Unauthorized" };
   }
 
   // check duplicate
@@ -41,17 +30,6 @@ export async function createCustomer(formData: FormData) {
   }
   if (existingCustomer) {
     return { error: "This customer already exists." };
-  }
-
-  // check user is in the organization
-  const { data: validUser, error: validUserError } = await supabase
-    .from("organization_members")
-    .select("id")
-    .eq("organization_id", orgId)
-    .single();
-
-  if (validUserError && validUserError.code !== "PGRST116") {
-    return { error: validUserError.message };
   }
 
   const customerData = {
@@ -78,12 +56,12 @@ export async function createCustomer(formData: FormData) {
 
   const customerLogData = {
     customer_id: customerInsertData.id,
-    action: "created",
+    action: "customer-created",
     changed_data: customerData,
-    performed_by: validUser?.id,
+    performed_by: orgMember?.id,
   };
 
-  const { data: customerLogInsert, error: customerLogError } = await supabase
+  const { error: customerLogError } = await supabase
     .from("customer_logs")
     .insert([customerLogData])
     .select("id")

@@ -5,6 +5,11 @@ import { inviteUser } from "./action";
 import { useAllOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
 import { useSearchParams } from "next/navigation";
 
+// ui
+import { Form } from "@/components/ui/Form";
+import { FormField } from "@/components/ui/FormField";
+import { Button } from "@/components/ui/Button";
+
 interface OrgMember {
   organization_id: string;
   organization_name: string;
@@ -49,30 +54,15 @@ export default function InviteMemberForm() {
 
   return (
     <>
-      <form action={handleSubmit} className="space-y-4 w-1/3 m-auto">
-        <label className="block">
-          <span className="text-sm font-medium">Invite to {currentOrg?.organization_name}</span>
-          <input
-            type="email"
-            name="email"
-            required
-            className="w-full mt-1 border rounded px-3 py-2"
-          />
-        </label>
-
+      <Form action={handleSubmit} formTitle={`Invite to ${currentOrg?.organization_name}`}>
         <input type="hidden" name="orgId" value={currentOrgId} />
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-        >
+        <FormField label="Email" type="email" name="email" required />
+        <Button type="submit" disabled={loading}>
           {loading ? "Sending..." : "Send Invite"}
-        </button>
-
+        </Button>
         {successMessage && <p className="text-green-600">{successMessage}</p>}
         {errorMessage && <p className="text-red-600">{errorMessage}</p>}
-      </form>
+      </Form>
     </>
   );
 }

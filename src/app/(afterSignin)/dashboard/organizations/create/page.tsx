@@ -2,6 +2,13 @@
 
 import React, { useState } from "react";
 import { createOrganization } from "./action";
+
+// ui
+import { Form } from "@/components/ui/Form";
+import { FormField } from "@/components/ui/FormField";
+import { Button } from "@/components/ui/Button";
+import { Dropdown } from "@/components/ui/Dropdown";
+
 interface OrganizationFormData {
   orgName: string;
   orgCountry: string;
@@ -11,10 +18,10 @@ interface OrganizationFormData {
 
 interface Country {
   iso: string; // ISO Alpha‑2 code ("US", "CA")
-  name: string; 
+  name: string;
   hasPostalCodes: boolean;
   region: string;
-  states?: { iso: string; name: string }[]; 
+  states?: { iso: string; name: string }[];
   zipRegex?: string;
 }
 
@@ -62,20 +69,62 @@ export default function CreateOrganizationPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold mb-4">organization</h1>
-      <form action={handleSubmit} className="space-y-4 border w-1/3 m-auto p-4 rounded">
-        <div>
-          <input
-            name="orgName"
-            type="text"
-            placeholder="Organization Name"
-            value={formData.orgName}
-            onChange={handleChange}
-            required
-            className="border w-full p-2"
-          />
-        </div>
-
+      <Form action={handleSubmit} formTitle="organization">
+        <FormField
+          label="Organization Name"
+          name="orgName"
+          type="text"
+          placeholder="Org 1"
+          value={formData.orgName}
+          onChange={handleChange}
+          required
+          className="border w-full p-2"
+        />
+        <Dropdown name="orgCountry" value={formData.orgCountry} onChange={handleChange} required>
+          <option value="">Select Country</option>
+          {sortedCountries.map((c: Country) => (
+            <option key={c.iso} value={c.iso}>
+              {c.name}
+            </option>
+          ))}
+        </Dropdown>
+        <FormField
+          label="Province / State"
+          name="orgProvince"
+          type="text"
+          placeholder="Province / State"
+          value={formData.orgProvince}
+          onChange={handleChange}
+          required
+          disabled={noProvince}
+          className={`border w-full p-2 ${noProvince ? "bg-red-500" : ""}`}
+        />
+        <Button
+          variant="warning"
+          onClick={() => {
+            setNoProvince((prev) => !prev);
+            setFormData((prev) => ({
+              ...prev,
+              orgProvince: "",
+            }));
+          }}
+        >
+          no province
+        </Button>
+        <FormField
+          label="City"
+          name="orgCity"
+          type="text"
+          placeholder="City"
+          value={formData.orgCity}
+          onChange={handleChange}
+          required
+          className="border w-full p-2"
+        />
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <Button type="submit">Start</Button>
+      </Form>
+      {/* <form className="space-y-4 border w-1/3 m-auto p-4 rounded">
         <select
           name="orgCountry"
           value={formData.orgCountry}
@@ -90,48 +139,7 @@ export default function CreateOrganizationPage() {
             </option>
           ))}
         </select>
-        <div>
-          <input
-            name="orgProvince"
-            type="text"
-            placeholder="Province / State"
-            value={formData.orgProvince}
-            onChange={handleChange}
-            required
-            disabled={noProvince}
-            className={`border w-full p-2 ${noProvince ? "bg-red-500" : ""}`}
-          />
-          <div
-            onClick={() => {
-              setNoProvince((prev) => !prev);
-              setFormData((prev) => ({
-                ...prev,
-                orgProvince: "",
-              }));
-            }}
-          >
-            no province
-          </div>
-        </div>
-        <input
-          name="orgCity"
-          type="text"
-          placeholder="City"
-          value={formData.orgCity}
-          onChange={handleChange}
-          required
-          className="border w-full p-2"
-        />
-
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:opacity-50"
-        >
-          Start
-        </button>
-      </form>
+      </form> */}
     </div>
   );
 }

@@ -30,7 +30,7 @@ export default function ThemeToggle() {
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
       className="p-2 rounded-xl bg-accent fixed right-3 bottom-3"
     >
-      {theme === "light" ? <IoMoonOutline size={30} /> : <IoSunnyOutline size={30}/>}
+      {theme === "light" ? <IoMoonOutline size={30} /> : <IoSunnyOutline size={30} />}
     </button>
   );
 }

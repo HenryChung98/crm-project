@@ -3,10 +3,15 @@ import React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import JoinOrgButton from "@/app/components/JoinOrgButton";
+
+// hook
 import { useOrganizationInvitationsByEmail } from "@/hooks/tanstack/useOrganizationInvitations";
 import { useCustomerLogs } from "@/hooks/tanstack/useCustomerLogs";
 import { useDashboardStats } from "@/hooks/tanstack/useDashboardStats";
+
+// ui
+import JoinOrganizationButton from "@/components/JoinOrganizationButton";
+import { Button } from "@/components/ui/Button";
 
 type OrgInvitation = {
   id: string;
@@ -71,12 +76,9 @@ export default function DashboardPage() {
         <div className="mb-4"></div>
         <div className="mb-4"></div>
         <div className="flex gap-2 items-center justify-between">
-          <Link
-            href={`/dashboard/invite-member?org=${currentOrgId}`}
-            className="bg-blue-500 rounded p-2"
-          >
-            Invite Member
-          </Link>
+          <Button variant="primary">
+            <Link href={`/dashboard/invite-member?org=${currentOrgId}`}>Invite Member</Link>
+          </Button>
         </div>
         <div className="flex items-center gap-5">
           <StatCard title="total customers" value={data?.total} />
@@ -108,7 +110,7 @@ export default function DashboardPage() {
             {orgInvitations.map((invitation) => (
               <div key={invitation.id} className="text-green-600 p-2 border rounded flex flex-col">
                 Invited from organization: {invitation.organizations?.name}
-                <JoinOrgButton
+                <JoinOrganizationButton
                   inviteId={invitation.organization_id}
                   orgName={invitation.organizations?.name}
                 />

@@ -1,39 +1,16 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
-
+import { withOrgAuth } from "@/utils/auth";
 export interface DashboardStats {
   total: number;
   new: number;
   active: number;
 }
 
-export async function getDashboardStats(organizationId: string): Promise<DashboardStats | null> {
-  if (!organizationId) return null;
+export async function getDashboardStats(orgId: string): Promise<DashboardStats | null> {
+  if (!orgId) return null;
 
-  const supabase = await createClient();
-
-  // 사용자 인증 확인
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user?.id) {
-    throw new Error("User not authenticated");
-  }
-
-  // 조직 멤버십 확인
-  const { data: memberCheck, error: memberError } = await supabase
-    .from("organization_members")
-    .select("role")
-    .eq("user_id", user.id)
-    .eq("organization_id", organizationId)
-    .single();
-
-  if (memberError || !memberCheck) {
-    throw new Error("Access denied: Not a member of the organization");
-  }
+  const { user, orgMember, supabase } = await withOrgAuth(orgId);
 
   // 병렬로 모든 통계 조회
   const [totalResult, newResult, activeResult] = await Promise.all([
@@ -41,20 +18,20 @@ export async function getDashboardStats(organizationId: string): Promise<Dashboa
     supabase
       .from("customers")
       .select("*", { count: "exact", head: true })
-      .eq("organization_id", organizationId),
+      .eq("organization_id", orgId),
 
     // 신규 고객 수 (최근 30일)
     supabase
       .from("customers")
       .select("*", { count: "exact", head: true })
-      .eq("organization_id", organizationId)
+      .eq("organization_id", orgId)
       .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
 
     // 활성 고객 수
     supabase
       .from("customers")
       .select("*", { count: "exact", head: true })
-      .eq("organization_id", organizationId)
+      .eq("organization_id", orgId)
       .eq("status", "active"),
   ]);
 

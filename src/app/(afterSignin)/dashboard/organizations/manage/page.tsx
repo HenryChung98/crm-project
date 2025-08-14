@@ -5,6 +5,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAdminOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
 import { updateMemberRole, removeMember } from "./action";
 
+// ui
+import { Button } from "@/components/ui/Button";
+import { useConfirm } from "@/components/ui/ConfirmModal";
+
 type OrgMember = {
   id: string;
   user_id: string;
@@ -20,6 +24,7 @@ export default function ManageOrganizationPage() {
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org");
   const { user } = useAuth();
+  const { confirm, ConfirmModal } = useConfirm();
 
   const [pendingActions, setPendingActions] = useState<Record<string, "updating" | "removing">>({});
 
@@ -40,64 +45,70 @@ export default function ManageOrganizationPage() {
   );
 
   const handleUpdateRole = async (memberId: string, newRole: string) => {
-    if (!window.confirm("Are you sure you want to update this member's role?")) {
-      return;
-    }
+    confirm(async () => {
+      setPendingActions((prev) => ({ ...prev, [memberId]: "updating" }));
 
-    setPendingActions((prev) => ({ ...prev, [memberId]: "updating" }));
+      try {
+        const formData = new FormData();
+        formData.append("memberId", memberId);
+        formData.append("role", newRole);
+        formData.append("organizationId", currentOrgId!);
 
-    try {
-      const formData = new FormData();
-      formData.append("memberId", memberId);
-      formData.append("role", newRole);
-      formData.append("organizationId", currentOrgId!);
+        const result = await updateMemberRole(currentOrgId!, formData);
 
-      const result = await updateMemberRole(formData);
-
-      if (result.success) {
-        alert("Role updated successfully!");
-        refetch();
-      } else {
-        alert(`Failed to update role: ${result.error}`);
+        if (result.success) {
+          alert("Role updated successfully!");
+          refetch();
+        } else {
+          alert(`Failed to update role: ${result.error}`);
+        }
+      } catch (error) {
+        alert("An error occurred while updating the role");
+      } finally {
+        setPendingActions((prev) => {
+          const { [memberId]: _, ...rest } = prev;
+          return rest;
+        });
       }
-    } catch (error) {
-      alert("An error occurred while updating the role");
-    } finally {
-      setPendingActions((prev) => {
-        const { [memberId]: _, ...rest } = prev;
-        return rest;
-      });
-    }
+    }, {
+      title: "Update Role",
+      message: "Are you sure you want to update this member's role?",
+      confirmText: "Update",
+      variant: "default"
+    });
   };
 
   const handleRemove = async (memberId: string) => {
-    if (!window.confirm("Are you sure you want to remove this member?")) {
-      return;
-    }
+    confirm(async () => {
+      setPendingActions((prev) => ({ ...prev, [memberId]: "removing" }));
 
-    setPendingActions((prev) => ({ ...prev, [memberId]: "removing" }));
+      try {
+        const formData = new FormData();
+        formData.append("removeId", memberId);
+        formData.append("organizationId", currentOrgId!);
 
-    try {
-      const formData = new FormData();
-      formData.append("removeId", memberId);
-      formData.append("organizationId", currentOrgId!);
+        const result = await removeMember(formData);
 
-      const result = await removeMember(formData);
-
-      if (result.success) {
-        alert("Member removed successfully!");
-        refetch();
-      } else {
-        alert(`Failed to remove member: ${result.error}`);
+        if (result.success) {
+          alert("Member removed successfully!");
+          refetch();
+        } else {
+          alert(`Failed to remove member: ${result.error}`);
+        }
+      } catch (error) {
+        alert("An error occurred while removing the member");
+      } finally {
+        setPendingActions((prev) => {
+          const { [memberId]: _, ...rest } = prev;
+          return rest;
+        });
       }
-    } catch (error) {
-      alert("An error occurred while removing the member");
-    } finally {
-      setPendingActions((prev) => {
-        const { [memberId]: _, ...rest } = prev;
-        return rest;
-      });
-    }
+    }, {
+      title: "Remove Member",
+      message: "Are you sure you want to remove this member? This action cannot be undone.",
+      confirmText: "Remove",
+      variant: "danger"
+    });
   };
 
   if (isLoading) {
@@ -145,17 +156,19 @@ export default function ManageOrganizationPage() {
                 )}
               </div>
 
-              <button
+              <Button
+                variant="danger"
                 onClick={() => handleRemove(member.id)}
                 disabled={pendingActions[member.id] === "removing"}
-                className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
               >
                 {pendingActions[member.id] === "removing" ? "deleting..." : "delete"}
-              </button>
+              </Button>
             </div>
           ) : null
         )}
       </div>
+      
+      <ConfirmModal />
     </div>
   );
 }

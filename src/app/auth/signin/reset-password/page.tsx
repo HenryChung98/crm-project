@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 
+// ui
+import { Form } from "@/components/ui/Form";
+import { FormField } from "@/components/ui/FormField";
+import { Button } from "@/components/ui/Button";
+
 export default function UpdatePasswordPage() {
   const [email, setEmail] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
@@ -45,10 +50,10 @@ export default function UpdatePasswordPage() {
   }, [isAuthenticated, router]);
 
   return (
-    <form onSubmit={handleUpdatePassword} className="w-1/3 m-auto">
-      <h1 className="text-xl font-semibold">reset password</h1>
-      <div className="space-y-3">
-        <input
+    <>
+      <Form onSubmit={handleUpdatePassword} formTitle="reset password">
+        <FormField
+          label="Type your email"
           type="email"
           name="email"
           placeholder="type your email"
@@ -59,11 +64,11 @@ export default function UpdatePasswordPage() {
         />
         {success && <p className="text-green-600">Check your email.</p>}
         {error && <p className="text-red-500 text-sm">{error}</p>}
-        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
-          send reset email
-        </button>
-        <Link href="/auth/signin">go back</Link>
-      </div>
-    </form>
+        <Button type="submit"> send reset email</Button>
+        <Button>
+          <Link href="/auth/signin">go back</Link>
+        </Button>
+      </Form>
+    </>
   );
 }

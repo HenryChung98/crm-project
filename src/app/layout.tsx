@@ -3,8 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
 // components
-import ScrollToTop from "./components/ScrollToTop";
-import ThemeToggle from "./components/ThemeToggle";
+import ScrollToTop from "../components/ScrollToTop";
+import ThemeToggle from "../components/ThemeToggle";
 
 // backend
 import { AuthProvider } from "@/contexts/AuthContext";

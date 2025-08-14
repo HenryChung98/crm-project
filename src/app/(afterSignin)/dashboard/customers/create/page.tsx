@@ -3,6 +3,12 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAllOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
 import { createCustomer } from "./action";
+
+// ui
+import { Form } from "@/components/ui/Form";
+import { FormField } from "@/components/ui/FormField";
+import { Button } from "@/components/ui/Button";
+
 interface OrgMember {
   organization_id: string;
   organization_name: string;
@@ -70,73 +76,68 @@ export default function CreateCustomersPage() {
   };
   return (
     <>
-      <form action={handleSubmit} className="space-y-4 w-1/3 m-auto">
-        <span className="text-sm font-medium">add customer to {currentOrg?.organization_name}</span>
+      <Form action={handleSubmit} formTitle={`add customer to ${currentOrg?.organization_name}`}>
         <input type="hidden" name="orgId" value={currentOrgId} />
-
-        <input
+        <FormField
+          label="First Name"
           name="firstName"
           type="text"
-          placeholder="First Name"
+          placeholder="John"
           value={formData.firstName}
           onChange={handleChange}
           required
-          className="border w-full p-2"
         />
-        <input
+        <FormField
+          label="Last Name"
           name="lastName"
           type="text"
-          placeholder="Last Name"
+          placeholder="Doe"
           value={formData.lastName}
           onChange={handleChange}
           required
-          className="border w-full p-2"
         />
-        <input
+        <FormField
+          label="Source"
           name="source"
           type="text"
-          placeholder="Source"
+          placeholder="By SNS"
           value={formData.source}
           onChange={handleChange}
           required
-          className="border w-full p-2"
         />
-        <input
+        <FormField
+          label="Email"
           name="email"
           type="email"
-          placeholder="Email"
+          placeholder="example@example.com"
           value={formData.email}
           onChange={handleChange}
           className="border w-full p-2"
         />
-        <input
+        <FormField
+          label="Phone"
           name="phone"
           type="text"
-          placeholder="Phone Number"
+          placeholder="1234567890"
           value={formData.phone ?? ""}
           onChange={handleChange}
           className="border w-full p-2"
         />
-        <input
+        <FormField
+          label="Note"
           name="note"
           type="text"
-          placeholder="Note"
+          placeholder="Any Note"
           value={formData.note ?? ""}
           onChange={handleChange}
           className="border w-full p-2"
         />
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={loading}>
           {loading ? "Adding..." : "Add customer"}
-        </button>
-
+        </Button>
         {successMessage && <p className="text-green-600">{successMessage}</p>}
         {errorMessage && <p className="text-red-600">{errorMessage}</p>}
-      </form>
+      </Form>
     </>
   );
 }

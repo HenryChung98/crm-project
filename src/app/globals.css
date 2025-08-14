@@ -2,29 +2,40 @@
 
 @theme inline {
   /* 기본 배경 및 텍스트 */
-  --color-background: var(--background); /* 전체 페이지 배경 */
-  --color-foreground: var(--foreground); /* 기본 텍스트 색상 */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
 
   /* 카드/팝오버 같은 컨테이너 */
   --color-card: var(--card); /* 카드 컴포넌트 배경 */
   --color-popover: var(--popover); /* 팝오버, 드롭다운 등 배경 */
 
-  /* 주요 색상 계열 */
-  --color-primary: var(--primary); /* 주 색상 (버튼, 링크 등) */
-  --color-primary-foreground: var(--primary-foreground); /* 주 색상 안의 텍스트 */
+  /* 주요 색상 계열 (버튼, 링크 등) */
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
 
-  --color-secondary: var(--secondary); /* 보조 색상 */
-  --color-secondary-foreground: var(--secondary-foreground); /* 보조 색상 텍스트 */
+  /* 보조 색상 */
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
 
-  --color-accent: var(--accent); /* 강조 요소 (hover, badge 등) */
-  --color-accent-foreground: var(--accent-foreground); /* 강조 색상 텍스트 */
+  /* 강조 요소 (hover, badge 등) */
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
 
-  /* 상태 색상 */
-  --color-success: var(--success); /* 성공 메시지, 상태 등 */
-  --color-warning: var(--warning); /* 경고 메시지 등 */
-  --color-info: var(--info); /* 정보 메시지, 툴팁 등 */
-  --color-destructive: var(--destructive); /* 오류, 삭제 등 위험한 작업 */
-  --color-destructive-foreground: var(--destructive-foreground); /* 그에 대응되는 텍스트 색상 */
+  /* 오류, 삭제 등 위험한 작업 */
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+
+  /* 성공 메시지, 상태 등 */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+
+  /* 경고 메시지 등 */
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  /* 정보 메시지, 툴팁 등 */
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
 
   /* 기타 UI 색상 */
   --color-muted: var(--muted); /* 약한 배경 (placeholder 등) */
@@ -34,22 +45,17 @@
   --color-input: var(--input); /* 입력창 배경 */
   --color-ring: var(--ring); /* 포커스 링 색상 */
 
-  /* --line-height-base: var(--line-height-base);
   --spacing-container: var(--container-padding);
   --spacing-section: var(--section-spacing);
-  --size-header-height: var(--header-height);
-  --shadow-base: var(--box-shadow); */
+  --shadow-base: var(--box-shadow);
 }
 
 /* e.g.
-px-[var(--container-padding)] py-[var(--container-padding)] */
+px-section, py-container, bg-accent, text-success, shadow-base */
 
 :root {
-  --line-height-base: 1.5;
   --container-padding: 1rem;
   --section-spacing: 4rem;
-  --header-height: 4rem;
-  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .light {
@@ -69,10 +75,16 @@ px-[var(--container-padding)] py-[var(--container-padding)] */
   --accent-foreground: #ffffff;
 
   --success: #22c55e;
+  --success-foreground: #ffffff;
+
   --warning: #facc15;
+  --warning-foreground: #0f172a;
+
   --info: #3b82f6;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
+  --info-foreground: #ffffff;
+
+  --danger: #ef4444;
+  --danger-foreground: #ffffff;
 
   --muted: #f3f4f6;
   --muted-foreground: #475569;
@@ -80,6 +92,8 @@ px-[var(--container-padding)] py-[var(--container-padding)] */
   --border: #e5e7eb;
   --input: #f9fafb;
   --ring: #3b82f6;
+
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .dark {
@@ -99,10 +113,16 @@ px-[var(--container-padding)] py-[var(--container-padding)] */
   --accent-foreground: #0f172a;
 
   --success: #4ade80;
+  --success-foreground: #0f172a;
+
   --warning: #fde047;
+  --warning-foreground: #0f172a;
+
   --info: #60a5fa;
-  --destructive: #f87171;
-  --destructive-foreground: #0f172a;
+  --info-foreground: #0f172a;
+
+  --danger: #f87171;
+  --danger-foreground: #0f172a;
 
   --muted: #1e293b;
   --muted-foreground: #94a3b8;
@@ -110,17 +130,21 @@ px-[var(--container-padding)] py-[var(--container-padding)] */
   --border: #334155;
   --input: #1e293b;
   --ring: #93c5fd;
+
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* remove it later */
 body {
   background: var(--background);
   color: var(--foreground);
+  transition: 0.3s;
 }
 
 button {
   cursor: pointer;
 }
+
 .animate-fade-in {
   animation: fadeIn 0.3s ease-in-out;
 }
