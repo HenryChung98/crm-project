@@ -9,12 +9,11 @@ export default function AuthCallback() {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user) {
-      router.replace("/");
-    } else {
-      // if not logged in, redirect to signin
-      router.replace("/auth/signin");
-    }
+    // if (user) {
+    // router.replace("/");
+    // } else {
+    router.replace("/auth/signin");
+    // }
   }, [router]);
 
   return <p>Loading...</p>;

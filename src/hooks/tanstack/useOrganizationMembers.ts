@@ -22,7 +22,7 @@ export const useAllOrganizationMembers = <T = OrgMember>(select?: string): Query
     queryKey: ["organizationMembers", "user", select || "*"],
     queryFn: () => getAllOrganizationMembers(select),
     staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     retry: (failureCount, error: NetworkError) => {
       if (error?.code === "PGRST301") return false;
       return failureCount < 3;
@@ -57,6 +57,7 @@ export const useAdminOrganizationMembers = <T = OrgMember>(
     queryFn: () => getAdminOrganizationMembers(orgId, requiredRoles, select),
     enabled: !!orgId && requiredRoles.length > 0 && options.enabled !== false,
     staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
     retry: (failureCount, error: Error) => {
       if (error.message?.includes("permission required")) return false;
       return failureCount < 2;

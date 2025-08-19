@@ -34,7 +34,7 @@ export function ConfirmModal({
       : "bg-primary text-primary-foreground hover:bg-primary/90";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center slide-in-fwd-center">
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
 

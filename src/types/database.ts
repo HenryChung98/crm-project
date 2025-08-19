@@ -70,6 +70,10 @@ export interface Database {
           invited_by: string;
           created_at: string;
           expires_at: string;
+          organizations: {
+            id: string;
+            name: string;
+          } | null;
         };
         Insert: {
           id: string;

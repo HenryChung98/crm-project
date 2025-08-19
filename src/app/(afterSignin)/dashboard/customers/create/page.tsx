@@ -8,6 +8,10 @@ import { createCustomer } from "./action";
 import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
+import { showSuccess, showError } from "@/utils/feedback";
+
+// type
+import { EMPTY_ARRAY } from "@/types/customData";
 
 interface OrgMember {
   organization_id: string;
@@ -27,8 +31,6 @@ interface CustomerFormData {
 export default function CreateCustomersPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
   const [formData, setFormData] = useState<CustomerFormData>({
@@ -42,7 +44,7 @@ export default function CreateCustomersPage() {
   });
 
   // fetch customer infos
-  const { data: orgMembers = [] } = useAllOrganizationMembers<OrgMember>(`
+  const { data: orgMembers = EMPTY_ARRAY } = useAllOrganizationMembers<OrgMember>(`
     organization_id, organization_name
     `);
   const currentOrg = orgMembers.find((org) => org.organization_id === currentOrgId);
@@ -58,18 +60,16 @@ export default function CreateCustomersPage() {
 
   const handleSubmit = async (formData: FormData) => {
     setLoading(true);
-    setSuccessMessage("");
-    setErrorMessage("");
 
     try {
       const res = await createCustomer(formData);
       if (res.success) {
-        setSuccessMessage("Invitation sent successfully.");
+        showSuccess("Invitation sent successfully.");
       } else {
-        setErrorMessage(res.error || "Failed to send invitation.");
+        showError(res.error || "Failed to send invitation.");
       }
     } catch (error) {
-      setErrorMessage("An error occurred.");
+      showError("An error occurred.");
     } finally {
       setLoading(false);
     }
@@ -135,8 +135,6 @@ export default function CreateCustomersPage() {
         <Button type="submit" disabled={loading}>
           {loading ? "Adding..." : "Add customer"}
         </Button>
-        {successMessage && <p className="text-green-600">{successMessage}</p>}
-        {errorMessage && <p className="text-red-600">{errorMessage}</p>}
       </Form>
     </>
   );

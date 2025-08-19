@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
+import { Toaster } from "react-hot-toast";
+
 // components
 import ScrollToTop from "../components/ScrollToTop";
 import ThemeToggle from "../components/ThemeToggle";
@@ -33,6 +35,7 @@ export default function RootLayout({
           <Providers>
             <AuthProvider>
               {children}
+              <Toaster />
               <ScrollToTop />
               <ThemeToggle />
             </AuthProvider>

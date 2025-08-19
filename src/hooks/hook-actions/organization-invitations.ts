@@ -5,7 +5,7 @@ import { SupabaseError } from "@/types/errors";
 import { revalidateTag } from "next/cache";
 
 type OrgMember = Database["public"]["Tables"]["organization_invitations"]["Row"];
-export async function getOrganizationInvitationsByEmail(select?: string): Promise<OrgMember[]> {
+export async function getOrganizationInvitationsByEmail(): Promise<OrgMember[]> {
   const supabase = await createClient();
 
   // 사용자 인증 확인
@@ -20,7 +20,7 @@ export async function getOrganizationInvitationsByEmail(select?: string): Promis
 
   const { data, error } = (await supabase
     .from("organization_invitations")
-    .select(select || "*")
+    .select("id, organization_id, email, organizations(name)")
     .eq("email", user.email)
     .eq("accepted", false)) as { data: OrgMember[] | null; error: SupabaseError };
 

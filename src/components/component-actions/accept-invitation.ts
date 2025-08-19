@@ -34,7 +34,7 @@ export async function acceptInvitation(inviteId: string, orgName: string | undef
     .eq("user_id", user.id)
     .single();
 
-  if (checkDupError) {
+  if (checkDupError && checkDupError.code !== "PGRST116") {
     throw new Error("Unknown error.");
   }
   if (checkDup) {

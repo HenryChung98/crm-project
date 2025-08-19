@@ -3,6 +3,8 @@
 import { acceptInvitation } from "./component-actions/accept-invitation";
 import { useTransition } from "react";
 
+import { showSuccess, showError } from "@/utils/feedback";
+
 export default function JoinOrganizationButton({
   inviteId,
   orgName,
@@ -19,9 +21,9 @@ export default function JoinOrganizationButton({
         startTransition(async () => {
           try {
             await acceptInvitation(inviteId, orgName);
-            alert("accepted!");
+            showSuccess("accepted!");
           } catch (err) {
-            alert("Failed to join: " + (err as Error).message);
+            showError("Failed to join: " + (err as Error).message);
           }
         })
       }

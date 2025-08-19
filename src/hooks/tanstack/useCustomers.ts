@@ -27,7 +27,7 @@ export const useCustomers = <T = Customers>(
     queryFn: async () => getCustomers(organizationId, select),
     enabled: !!organizationId,
     staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     retry: (failureCount, error: NetworkError) => {
       if (error?.code === "PGRST301") return false;
       return failureCount < 3;

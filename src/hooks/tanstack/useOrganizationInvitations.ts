@@ -20,14 +20,12 @@ export type QueryResult<T> = {
 };
 
 // all users can invite people using email
-export const useOrganizationInvitationsByEmail = <T = OrgMember>(
-  select?: string
-): QueryResult<T> => {
+export const useOrganizationInvitationsByEmail = <T = OrgMember>(): QueryResult<T> => {
   const result = useQuery({
-    queryKey: ["organizationInvitations", "user", select || "*"],
+    queryKey: ["organizationInvitations", "user", "id, organization_id, email, organizations(name)"],
     queryFn: async () => getOrganizationInvitationsByEmail(),
     staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     retry: (failureCount, error: NetworkError) => {
       if (error?.code === "PGRST301") return false;
       return failureCount < 3;
@@ -51,6 +49,7 @@ export const usePrefetchOrganizationInvitations = () => {
     await queryClient.prefetchQuery({
       queryKey: ["organizationInvitations", "user"],
       queryFn: () => getOrganizationInvitationsByEmail(),
+      
       staleTime: 5 * 60 * 1000,
     });
   };

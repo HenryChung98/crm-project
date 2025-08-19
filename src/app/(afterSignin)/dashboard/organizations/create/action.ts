@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 
 export async function createOrganization(formData: FormData) {
@@ -35,6 +34,16 @@ export async function createOrganization(formData: FormData) {
     return { error: "Unauthorized" };
   }
 
+  // get user's current plan
+  const { data: userPlanData, error: userPlanError } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+  if (userPlanError) {
+    return { error: userPlanError.message };
+  }
+
   // insert organization data to the table
   const orgData = {
     name: orgName,
@@ -42,6 +51,7 @@ export async function createOrganization(formData: FormData) {
     state_province: orgProvince ? orgProvince.toUpperCase() : null,
     city: orgCity,
     created_by: user.id,
+    plan_id: userPlanData.plan_id,
   };
   const { data: orgInsertData, error: orgDataError } = await supabase
     .from("organizations")
@@ -77,6 +87,5 @@ export async function createOrganization(formData: FormData) {
     await supabase.from("organizations").delete().eq("id", orgInsertData.id);
     return { error: orgMemberDataError.message };
   }
-
-  redirect("/");
+  return { success: true };
 }

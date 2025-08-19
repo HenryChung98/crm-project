@@ -2,12 +2,14 @@
 
 import React, { useState } from "react";
 import { createOrganization } from "./action";
+import { useRouter } from "next/navigation";
 
 // ui
 import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
 import { Dropdown } from "@/components/ui/Dropdown";
+import { showSuccess, showError } from "@/utils/feedback";
 
 interface OrganizationFormData {
   orgName: string;
@@ -27,9 +29,11 @@ interface Country {
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const countries = require("typed-countries").countries;
+
 const sortedCountries = countries.sort((a: Country, b: Country) => a.name.localeCompare(b.name));
 
 export default function CreateOrganizationPage() {
+  const router = useRouter();
   // const [country, setCountry] = useState<string>("");
   const [noProvince, setNoProvince] = useState<boolean>(false);
 
@@ -44,8 +48,6 @@ export default function CreateOrganizationPage() {
     orgCity: "",
   });
 
-  const [error, setError] = useState<string | null>(null);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -54,16 +56,16 @@ export default function CreateOrganizationPage() {
     if (name === "orgProvince") {
       if (value !== "" && value.length !== 2) return;
     }
-    if (error) {
-      setError(null);
-    }
   };
 
   const handleSubmit = async (formData: FormData) => {
     const res = await createOrganization(formData);
 
     if (res?.error) {
-      setError(res.error);
+      showError(`Error: ${res.error}`);
+    } else {
+      showSuccess("Organization successfully created");
+      router.replace("/dashboard");
     }
   };
 
@@ -101,6 +103,7 @@ export default function CreateOrganizationPage() {
         />
         <Button
           variant="warning"
+          type="button"
           onClick={() => {
             setNoProvince((prev) => !prev);
             setFormData((prev) => ({
@@ -121,7 +124,7 @@ export default function CreateOrganizationPage() {
           required
           className="border w-full p-2"
         />
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+
         <Button type="submit">Start</Button>
       </Form>
       {/* <form className="space-y-4 border w-1/3 m-auto p-4 rounded">

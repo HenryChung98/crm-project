@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
+// ui
+import { showError } from "@/utils/feedback";
+
 export default function ResetPasswordPage() {
   const { supabase } = useAuth();
 
@@ -22,7 +25,7 @@ export default function ResetPasswordPage() {
   const confirmPasswords = async () => {
     const { password, confirmPassword } = data;
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      showError("Passwords do not match");
       return;
     }
     const { data: resetData, error } = await supabase.auth.updateUser({

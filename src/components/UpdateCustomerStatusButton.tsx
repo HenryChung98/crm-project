@@ -5,6 +5,7 @@ import { useTransition } from "react";
 
 // ui
 import { Button } from "./ui/Button";
+import { showSuccess, showError } from "@/utils/feedback";
 
 export default function UpdateCustomerStatusButton({ orgId }: { orgId: string | undefined }) {
   const [isPending, startTransition] = useTransition();
@@ -17,9 +18,9 @@ export default function UpdateCustomerStatusButton({ orgId }: { orgId: string | 
         startTransition(async () => {
           try {
             await updateCustomerStatus(orgId);
-            alert("updated!");
+            showSuccess("updated!");
           } catch (err) {
-            alert("Failed to join: " + (err as Error).message);
+            showError("Failed to join: " + (err as Error).message);
           }
         })
       }
@@ -28,3 +29,6 @@ export default function UpdateCustomerStatusButton({ orgId }: { orgId: string | 
     </Button>
   );
 }
+
+
+

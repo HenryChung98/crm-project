@@ -37,8 +37,18 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // 디버깅을 위한 로그
+  console.log("Middleware - Current path:", request.nextUrl.pathname);
+  console.log("Middleware - User:", user ? "Logged in" : "Not logged in");
+
   // 공개 경로 정의 (로그인이 필요하지 않은 경로들)
-  const publicPaths = ["/signin", "/auth", "/signup", "/verify", "/reset"];
+  const publicPaths = [
+    "/auth/signin",
+    "/auth",
+    "/auth/signup",
+    "/auth/verify",
+    "/auth/signin/reset",
+  ];
 
   // 현재 경로가 공개 경로인지 확인
   const isPublicPath = publicPaths.some((path) => request.nextUrl.pathname.startsWith(path));
@@ -51,6 +61,21 @@ export async function updateSession(request: NextRequest) {
       url.pathname = "/auth/signin";
       return NextResponse.redirect(url);
     }
+    // 로그인된 사용자는 접근 허용
+    return supabaseResponse;
+  }
+
+  // /pricing 경로에 대한 특별 처리
+  if (request.nextUrl.pathname.startsWith("/pricing")) {
+    console.log("Middleware - Processing /pricing path");
+    if (!user) {
+      console.log("Middleware - Redirecting to /auth/signin");
+      // 로그인되지 않은 사용자는 로그인 페이지로 리다이렉트
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/signin";
+      return NextResponse.redirect(url);
+    }
+    console.log("Middleware - User authenticated, allowing access to /pricing");
     // 로그인된 사용자는 접근 허용
     return supabaseResponse;
   }

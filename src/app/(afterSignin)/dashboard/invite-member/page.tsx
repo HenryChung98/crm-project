@@ -10,6 +10,9 @@ import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
 
+// type
+import { EMPTY_ARRAY } from "@/types/customData";
+
 interface OrgMember {
   organization_id: string;
   organization_name: string;
@@ -23,7 +26,7 @@ export default function InviteMemberForm() {
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
 
-  const { data: orgMembers = [] } = useAllOrganizationMembers<OrgMember>(`
+  const { data: orgMembers = EMPTY_ARRAY } = useAllOrganizationMembers<OrgMember>(`
     organization_id, organization_name
   `);
 
