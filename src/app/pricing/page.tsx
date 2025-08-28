@@ -3,12 +3,15 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { selectPlan, PlanName } from "./action";
+import { selectPlan } from "./plan-selection";
+import { PlanName } from "@/types/plan";
+
+// ui
+import { showError, showSuccess } from "@/utils/feedback";
 
 export default function PricingPage() {
   const { user, supabase } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const handlePlanSelect = async (planName: PlanName) => {
@@ -19,19 +22,18 @@ export default function PricingPage() {
     }
 
     setLoading(true);
-    setError(null);
 
     try {
       const result = await selectPlan(supabase, user.id, planName);
-      
+
       if (result.success) {
         router.replace("/dashboard");
+        showSuccess("success");
       } else {
-        setError(result.error || "Failed to select plan");
+        showError(result.error || "Failed to select plan");
       }
     } catch (error) {
-      console.error("Unexpected error:", error);
-      setError("An unexpected error occurred");
+      showError("An unexpected error occurred");
     } finally {
       setLoading(false);
     }
@@ -41,31 +43,16 @@ export default function PricingPage() {
     <>
       <div className="m-auto flex flex-col items-center gap-5">
         <div>pricing page</div>
-        
-        {error && (
-          <div className="text-red-500 text-sm">
-            {error}
-          </div>
-        )}
-        
-        <Button 
-          onClick={() => handlePlanSelect("free")} 
-          disabled={loading}
-        >
+
+        <Button onClick={() => handlePlanSelect("free")} disabled={loading}>
           {loading ? "Processing..." : "Free"}
         </Button>
-        
-        <Button 
-          onClick={() => handlePlanSelect("basic")} 
-          disabled={loading}
-        >
+
+        <Button onClick={() => handlePlanSelect("basic")} disabled={loading}>
           {loading ? "Processing..." : "Basic"}
         </Button>
-        
-        <Button 
-          onClick={() => handlePlanSelect("premium")} 
-          disabled={loading}
-        >
+
+        <Button onClick={() => handlePlanSelect("premium")} disabled={loading}>
           {loading ? "Processing..." : "Premium"}
         </Button>
       </div>

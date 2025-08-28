@@ -18,8 +18,10 @@ type OrgMember = {
   created_at: string;
   organizations: {
     name: string;
-    plan_id?: string;
   } | null;
+  subscriptions: {
+    plan_id: string;
+  };
 };
 
 interface AfterSigninLayoutProps {
@@ -32,9 +34,6 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const [profileChecked, setProfileChecked] = useState<boolean>(false);
-  const [isInitializing, setIsInitializing] = useState<boolean>(true);
-
   // URL에서 현재 조직 ID 가져오기
   const currentOrganizationId = useMemo(() => searchParams.get("org") || "", [searchParams]);
 
@@ -45,7 +44,7 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
     error: orgMembersError,
   } = useAllOrganizationMembers<OrgMember>(`
     id, organization_id, role, created_at,
-    organizations:organization_id(name, plan_id)
+    organizations:organization_id(name)
   `);
 
   // 유효한 조직 ID인지 확인하는 함수
@@ -56,35 +55,6 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
     },
     [orgMembers]
   );
-
-  // 프로필 확인 함수
-  const checkUserProfile = useCallback(async (): Promise<boolean> => {
-    if (!user?.id || !supabase) return false;
-
-    try {
-      const { data: profile, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      // 프로필이 존재하지 않는 경우
-      if (error?.code === "PGRST116" || !profile) {
-        router.replace("/pricing");
-        return false;
-      }
-
-      // 기타 에러 처리 (로그만 남기고 계속 진행)
-      if (error) {
-        console.error("Profile check error:", error);
-      }
-
-      return true;
-    } catch (error) {
-      console.error("Unexpected error during profile check:", error);
-      return true; // 예외 상황에서는 계속 진행
-    }
-  }, [user?.id, supabase, router]);
 
   // 기본 조직으로 리다이렉트하는 함수
   const redirectToDefaultOrganization = useCallback(
@@ -108,22 +78,9 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
     [searchParams, router]
   );
 
-  // 인증 및 프로필 확인
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const profileExists = await checkUserProfile();
-      if (profileExists) {
-        setProfileChecked(true);
-      }
-      setIsInitializing(false);
-    };
-
-    initializeAuth();
-  }, [user, checkUserProfile, router]);
-
   // 조직 유효성 검사 및 리다이렉트
   useEffect(() => {
-    if (!profileChecked || isLoadingOrgMembers || !orgMembers?.length) {
+    if (isLoadingOrgMembers || !orgMembers?.length) {
       return;
     }
 
@@ -137,7 +94,6 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
   }, [
     orgMembers,
     currentOrganizationId,
-    profileChecked,
     isLoadingOrgMembers,
     isValidOrganizationId,
     redirectToDefaultOrganization,
@@ -156,7 +112,7 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
     );
   }
 
-  if (isInitializing || isLoadingOrgMembers || !profileChecked) {
+  if (isLoadingOrgMembers) {
     return <LoadingSpinner />;
   }
 

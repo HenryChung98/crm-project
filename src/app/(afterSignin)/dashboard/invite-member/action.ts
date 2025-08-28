@@ -3,10 +3,32 @@
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
 import { createClient } from "@/utils/supabase/server";
+import { getUsageForOrg } from "@/hooks/hook-actions/get-usage";
+import { getPlanByOrg } from "@/hooks/hook-actions/get-plans";
 
 export async function inviteUser(formData: FormData) {
   const invitedEmail = formData.get("email")?.toString().trim();
   const orgId = formData.get("orgId")?.toString().trim();
+
+   // get user's current plan using existing action
+   const orgPlanData = await getPlanByOrg(orgId);
+   if (!orgPlanData?.plans) {
+     return { error: "Failed to get user plan data" };
+   }
+ 
+   // get current usage using existing action
+   const currentUsage = await getUsageForOrg(orgId ?? "");
+   if (!currentUsage) {
+     return { error: "Failed to get current usage data" };
+   }
+ 
+   // check if user can create more organizations
+   const maxUsers = orgPlanData.plans.max_users || 0;
+   if (currentUsage.userTotal >= maxUsers) {
+     return {
+       error: `User limit reached. Your current plan allows up to ${maxUsers} users.`,
+     };
+   }
 
   if (!invitedEmail || !orgId) {
     return { error: "Email and organization are required." };

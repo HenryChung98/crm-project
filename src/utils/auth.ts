@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { Database } from "@/types/database";
 
 type OrgMember = Database["public"]["Tables"]["organization_members"]["Row"];
+
 export interface AuthContext {
   user: User;
   orgMember: OrgMember;

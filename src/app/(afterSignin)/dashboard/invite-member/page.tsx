@@ -9,7 +9,7 @@ import { useSearchParams } from "next/navigation";
 import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
-
+import { showError, showSuccess } from "@/utils/feedback";
 // type
 import { EMPTY_ARRAY } from "@/types/customData";
 
@@ -20,8 +20,6 @@ interface OrgMember {
 
 export default function InviteMemberForm() {
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
 
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
@@ -34,18 +32,16 @@ export default function InviteMemberForm() {
 
   const handleSubmit = async (formData: FormData) => {
     setLoading(true);
-    setSuccessMessage("");
-    setErrorMessage("");
 
     try {
       const res = await inviteUser(formData);
       if (res.success) {
-        setSuccessMessage("Invitation sent successfully.");
+        showSuccess("Invitation sent successfully.");
       } else {
-        setErrorMessage(res.error || "Failed to send invitation.");
+        showError(res.error || "Failed to send invitation.");
       }
     } catch (error) {
-      setErrorMessage("An error occurred.");
+      showError("An error occured");
     } finally {
       setLoading(false);
     }
@@ -63,8 +59,6 @@ export default function InviteMemberForm() {
         <Button type="submit" disabled={loading}>
           {loading ? "Sending..." : "Send Invite"}
         </Button>
-        {successMessage && <p className="text-green-600">{successMessage}</p>}
-        {errorMessage && <p className="text-red-600">{errorMessage}</p>}
       </Form>
     </>
   );

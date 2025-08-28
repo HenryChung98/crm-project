@@ -64,7 +64,7 @@ export default function CreateCustomersPage() {
     try {
       const res = await createCustomer(formData);
       if (res.success) {
-        showSuccess("Invitation sent successfully.");
+        showSuccess("Customer added successfully.");
       } else {
         showError(res.error || "Failed to send invitation.");
       }

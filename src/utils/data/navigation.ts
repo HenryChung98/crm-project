@@ -68,10 +68,10 @@ export function createCrmNavItems(searchParams: URLSearchParams): CRMNavItemType
       href: `#`,
       icon: React.createElement(SiMinetest),
       children: [
-        { label: "Profile", href: `/dashboard/profile${queryParam}` },
+        { label: "Profile", href: `/dashboard/settings/profile${queryParam}` },
         { label: "Team", href: `#` },
         { label: "Integrations", href: `#` },
-        { label: "Billing", href: `#` },
+        { label: "Billing", href: `/dashboard/settings/billing${queryParam}` },
       ],
     },
   ];

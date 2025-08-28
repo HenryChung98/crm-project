@@ -1,6 +1,8 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { getUsageForUser } from "@/hooks/hook-actions/get-usage";
+import { getPlanByUser } from "@/hooks/hook-actions/get-plans";
 
 export async function createOrganization(formData: FormData) {
   const supabase = await createClient();
@@ -34,14 +36,24 @@ export async function createOrganization(formData: FormData) {
     return { error: "Unauthorized" };
   }
 
-  // get user's current plan
-  const { data: userPlanData, error: userPlanError } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-  if (userPlanError) {
-    return { error: userPlanError.message };
+  // get user's current plan using existing action
+  const userPlanData = await getPlanByUser();
+  if (!userPlanData?.plans) {
+    return { error: "Failed to get user plan data" };
+  }
+
+  // get current usage using existing action
+  const currentUsage = await getUsageForUser();
+  if (!currentUsage) {
+    return { error: "Failed to get current usage data" };
+  }
+
+  // check if user can create more organizations
+  const maxOrganizations = userPlanData.plans.max_organization_num || 0;
+  if (currentUsage.orgTotal >= maxOrganizations) {
+    return {
+      error: `Organization limit reached. Your current plan allows up to ${maxOrganizations} organizations.`,
+    };
   }
 
   // insert organization data to the table
@@ -51,8 +63,8 @@ export async function createOrganization(formData: FormData) {
     state_province: orgProvince ? orgProvince.toUpperCase() : null,
     city: orgCity,
     created_by: user.id,
-    plan_id: userPlanData.plan_id,
   };
+
   const { data: orgInsertData, error: orgDataError } = await supabase
     .from("organizations")
     .insert([orgData])
@@ -87,5 +99,38 @@ export async function createOrganization(formData: FormData) {
     await supabase.from("organizations").delete().eq("id", orgInsertData.id);
     return { error: orgMemberDataError.message };
   }
+
+  // get user subscription data
+  const { data: userSubscriptionData, error: userSubscriptionError } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("user_id", user.id)
+    .single();
+  if (userSubscriptionError) {
+    return { error: userSubscriptionError.message };
+  }
+
+  // insert subscriptions data to the table
+  const subScriptionData = {
+    user_id: user.id,
+    organization_id: orgInsertData.id,
+    plan_id: userSubscriptionData.plan_id,
+    status: userSubscriptionData.status,
+    starts_at: userSubscriptionData.starts_at,
+    ends_at: userSubscriptionData.ends_at,
+    payment_status: userSubscriptionData.payment_status,
+  };
+
+  const { error: orgSubscriptionError } = await supabase
+    .from("subscriptions")
+    .insert([subScriptionData])
+    .select("id")
+    .single();
+
+  if (orgSubscriptionError) {
+    await supabase.from("subscriptions").delete().eq("id", orgInsertData.id);
+    return { error: orgSubscriptionError.message };
+  }
+
   return { success: true };
 }

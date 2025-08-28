@@ -12,18 +12,7 @@ import { showSuccess, showError } from "@/utils/feedback";
 
 // type
 import { EMPTY_ARRAY } from "@/types/customData";
-
-type OrgMember = {
-  id: string;
-  user_id: string;
-  user_email: string;
-  organization_id: string;
-  role: string;
-  organizations: {
-    name: string | null;
-    plan_id: string | null;
-  } | null;
-};
+import { OrgMember } from "@/types/plan";
 
 export default function ManageOrganizationPage() {
   const searchParams = useSearchParams();
@@ -44,7 +33,7 @@ export default function ManageOrganizationPage() {
     ["owner"],
     `
       id, organization_id, role, user_id, user_email,
-      organizations:organization_id(name, plan_id)
+      organizations:organization_id(name), subscriptions:organization_id(plan_id)
     `,
     { enabled: !!currentOrgId }
   );

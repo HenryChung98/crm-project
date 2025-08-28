@@ -37,12 +37,74 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // ========================= check subscription =========================
+  const isProtectedRoute =
+    request.nextUrl.pathname.startsWith("/dashboard") ||
+    request.nextUrl.pathname.startsWith("/(afterSignin)");
+
+  if (user && isProtectedRoute && !request.nextUrl.pathname.startsWith("/pricing")) {
+    const { data: subscriptions, error } = await supabase
+      .from("subscriptions")
+      .select("id")
+      .eq("user_id", user.id);
+
+    // subscription이 없으면 pricing으로 리다이렉트
+    if (!subscriptions || subscriptions.length === 0) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/pricing";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // ========================= check subscription =========================
+
+  // ========================= check subscription status =========================
+
+  if (user) {
+    const { data: subscriptions } = await supabase
+      .from("subscriptions")
+      .select(`*, plans (*)`)
+      .eq("user_id", user.id);
+
+    // 구독이 있는 경우에만 처리
+    if (subscriptions && subscriptions.length > 0) {
+      // 가장 최신 구독 또는 활성화된 구독을 찾기
+      const activeSubscription =
+        subscriptions.find((sub) => sub.status !== "free") ||
+        subscriptions.sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )[0];
+
+      if (activeSubscription?.status !== "free") {
+        const isExpired =
+          activeSubscription?.ends_at && new Date(activeSubscription.ends_at) < new Date();
+
+        if (isExpired) {
+          const pathname = request.nextUrl.pathname;
+
+          const restrictedPaths = ["/organizations/create", "/invite-member"];
+          const isRestrictedPath = restrictedPaths.some((path) => pathname.includes(path));
+
+          if (isRestrictedPath) {
+            const url = request.nextUrl.clone();
+            url.pathname = "/pricing";
+            return NextResponse.redirect(url);
+          }
+        }
+      }
+    }
+  }
+
+  // ========================= /check subscription status ========================
+
   // 디버깅을 위한 로그
   console.log("Middleware - Current path:", request.nextUrl.pathname);
   console.log("Middleware - User:", user ? "Logged in" : "Not logged in");
 
   // 공개 경로 정의 (로그인이 필요하지 않은 경로들)
   const publicPaths = [
+    "/",
+    "/(beforesignin)",
     "/auth/signin",
     "/auth",
     "/auth/signup",
@@ -67,7 +129,6 @@ export async function updateSession(request: NextRequest) {
 
   // /pricing 경로에 대한 특별 처리
   if (request.nextUrl.pathname.startsWith("/pricing")) {
-    console.log("Middleware - Processing /pricing path");
     if (!user) {
       console.log("Middleware - Redirecting to /auth/signin");
       // 로그인되지 않은 사용자는 로그인 페이지로 리다이렉트
@@ -75,7 +136,6 @@ export async function updateSession(request: NextRequest) {
       url.pathname = "/auth/signin";
       return NextResponse.redirect(url);
     }
-    console.log("Middleware - User authenticated, allowing access to /pricing");
     // 로그인된 사용자는 접근 허용
     return supabaseResponse;
   }

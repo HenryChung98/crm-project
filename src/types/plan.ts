@@ -39,3 +39,22 @@ export interface FeatureUsage {
   period_start: string;
   period_end: string;
 }
+
+export type PlanName = "free" | "basic" | "premium";
+export type SubscriptionStatus = "free" | "active" | "inactive" | "canceled" | "expired" | "pending";
+export type PaymentStatus = "paid" | "pending" | "failed" | "refunded";
+
+
+export type OrgMember = {
+  id: string;
+  user_id: string;
+  user_email: string;
+  organization_id: string;
+  role: string;
+  organizations: {
+    name: string | null;
+  } | null;
+  subscriptions: {
+    plan_id: string | null;
+  }
+};

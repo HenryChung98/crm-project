@@ -11,12 +11,11 @@ import { EMPTY_ARRAY } from "@/types/customData";
 import { useOrganizationInvitationsByEmail } from "@/hooks/tanstack/useOrganizationInvitations";
 import { useCustomerLogs } from "@/hooks/tanstack/useCustomerLogs";
 import { useDashboardStats } from "@/hooks/tanstack/useDashboardStats";
-import { usePlanByUser, usePlanByOrg } from "@/hooks/tanstack/usePlan";
+// import { usePlanByUser, usePlanByOrg } from "@/hooks/tanstack/usePlan";
 
 // ui
 import JoinOrganizationButton from "@/components/JoinOrganizationButton";
 import { Button } from "@/components/ui/Button";
-import { SubscribedPlan } from "@/types/plan";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 type OrgInvitation = {
@@ -72,18 +71,19 @@ export default function DashboardPage() {
   );
 
   // get current user's plan
-  const { data: plan, isLoading: planLoading, error: planError } = usePlanByUser();
+  // const { data: plan, isLoading: planLoading, error: planError } = usePlanByUser();
 
   // get current organization's plan - currentOrgId가 있을 때만 실행
-  const {
-    data: orgPlan,
-    isLoading: orgPlanLoading,
-    error: orgPlanError,
-  } = usePlanByOrg(currentOrgId);
+  // const {
+  //   data: orgPlan,
+  //   isLoading: orgPlanLoading,
+  //   error: orgPlanError,
+  // } = usePlanByOrg(currentOrgId);
 
   const hasInvitations = useMemo(() => orgInvitations.length > 0, [orgInvitations]);
 
-  const isEssentialLoading = planLoading || (currentOrgId && (isLoading || orgPlanLoading));
+  // const isEssentialLoading = planLoading || (currentOrgId && (isLoading || orgPlanLoading));
+  const isEssentialLoading = currentOrgId && isLoading;
 
   if (isEssentialLoading) {
     return (
@@ -105,14 +105,14 @@ export default function DashboardPage() {
 
       {/* 사용자 플랜 정보 */}
       <div className="mb-4 text-center">
-        <h2 className="text-2xl font-semibold mb-2">
-          You are using: <span className="text-blue-600">{plan?.plans.name}</span>
-        </h2>
-        {currentOrgId && orgPlan && (
+        {/* <h2 className="text-2xl font-semibold mb-2"> */}
+        {/* You are using: <span className="text-blue-600">{plan?.plans.name}</span> */}
+        {/* </h2> */}
+        {/* {currentOrgId && orgPlan && (
           <h3 className="text-xl text-gray-700">
             Organization Plan: <span className="text-green-600">{orgPlan.plans.name}</span>
-          </h3>
-        )}
+          </h3> */}
+        {/* )} */}
       </div>
 
       <div className="w-full max-w-4xl p-8 rounded-lg shadow-md">
@@ -140,7 +140,7 @@ export default function DashboardPage() {
               ) : customerLogs.length > 0 ? (
                 <div className="space-y-2">
                   {customerLogs.slice(0, 5).map((log) => (
-                    <div key={log.id} className="p-2 bg-gray-50 rounded">
+                    <div key={log.id} className="p-2 border rounded">
                       <div className="text-sm font-medium">Action: {log?.action}</div>
                       <div className="text-xs text-gray-600">
                         By: {log?.organization_members?.user_email || "Unknown"}

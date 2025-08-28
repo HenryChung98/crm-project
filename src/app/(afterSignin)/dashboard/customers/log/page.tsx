@@ -153,6 +153,7 @@ export default function CustomerLogPage() {
 
   return (
     <>
+    customer log page
       {logs?.map((log) => (
         <LogItem key={log.id} log={log} />
       ))}

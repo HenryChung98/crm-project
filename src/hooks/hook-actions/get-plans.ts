@@ -16,15 +16,9 @@ export async function getPlanByUser(): Promise<SubscribedPlan> {
   }
 
   const { data: userData, error: userError } = await supabase
-    .from("users")
-    .select(
-      `
-    id,
-    plan_id,
-    plans (*)
-  `
-    )
-    .eq("id", user.id)
+    .from("subscriptions")
+    .select(`*, plans (*)`)
+    .eq("user_id", user.id)
     .single();
 
   if (userError) throw userError;
@@ -40,7 +34,9 @@ export async function getPlanByUser(): Promise<SubscribedPlan> {
   } as SubscribedPlan;
 }
 
-export async function getPlanByOrg(orgPlanId?: string): Promise<SubscribedPlan> {
+export async function getPlanByOrg(orgPlanId?: string): Promise<SubscribedPlan | null> {
+  if (!orgPlanId) return null;
+
   const supabase = await createClient();
 
   const {
@@ -53,15 +49,9 @@ export async function getPlanByOrg(orgPlanId?: string): Promise<SubscribedPlan> 
   }
 
   const { data: orgData, error: orgError } = await supabase
-    .from("organizations")
-    .select(
-      `
-  id,
-  plan_id,
-  plans (*)
-`
-    )
-    .eq("id", orgPlanId)
+    .from("subscriptions")
+    .select(`*, plans (*)`)
+    .eq("organization_id", orgPlanId)
     .single();
 
   if (orgError) throw orgError;

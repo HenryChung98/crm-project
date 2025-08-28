@@ -51,7 +51,7 @@
 }
 
 /* e.g.
-px-section, py-container, bg-accent, text-success, shadow-base */
+px-section, py-container, bg-accent, text-success-foreground, shadow-base */
 
 :root {
   --container-padding: 1rem;
