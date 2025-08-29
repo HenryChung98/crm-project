@@ -66,7 +66,7 @@ export default function CreateCustomersPage() {
       if (res.success) {
         showSuccess("Customer added successfully.");
       } else {
-        showError(res.error || "Failed to send invitation.");
+        showError(res.error || "Failed to add customer.");
       }
     } catch (error) {
       showError("An error occurred.");

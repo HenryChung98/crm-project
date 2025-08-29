@@ -4,6 +4,7 @@ import {
   getCurrentSubscription,
   deactivateCurrentSubscription,
   createSubscription,
+  getPlanByName,
   SubscriptionData,
 } from "./subscription-management";
 import { PlanName, PaymentStatus } from "@/types/plan";
@@ -16,39 +17,18 @@ export interface PlanActionResult {
   subscriptionId?: string;
 }
 
-// plans 테이블에서 플랜 정보 조회
-export const getPlanByName = async (
-  supabase: SupabaseClient,
-  planName: PlanName
-): Promise<{ id: string } | null> => {
-  try {
-    const { data: plan, error } = await supabase
-      .from("plans")
-      .select("id")
-      .eq("name", planName)
-      .single();
+// =============================================================================
+// 구독 업데이트 (내부 함수)
+// =============================================================================
 
-    if (error) {
-      console.error("Error fetching plan:", error);
-      return null;
-    }
-
-    return plan;
-  } catch (error) {
-    console.error("Error in getPlanByName:", error);
-    return null;
-  }
-};
-
-// 구독 업데이트 (검증 포함)
-export const updateSubscription = async (
+const updateSubscription = async (
   supabase: SupabaseClient,
   userId: string,
   planId: string,
   targetPlan: PlanName,
-  organizationId?: string,
   currentPlan?: PlanName
 ): Promise<PlanActionResult> => {
+
   try {
     // 플랜 변경 검증 (다운그레이드인 경우에만)
     if (currentPlan && isDowngrade(currentPlan, targetPlan)) {
@@ -66,8 +46,7 @@ export const updateSubscription = async (
     }
 
     // 1. 기존 활성 구독 비활성화
-    const deactivated = await deactivateCurrentSubscription(supabase, userId, organizationId);
-
+    const deactivated = await deactivateCurrentSubscription(supabase, userId);
     if (!deactivated) {
       return {
         success: false,
@@ -78,7 +57,6 @@ export const updateSubscription = async (
     // 2. 새 구독 생성
     const subscriptionData: SubscriptionData = {
       user_id: userId,
-      organization_id: organizationId,
       plan_id: planId,
       status: targetPlan === "free" ? "free" : "active",
       starts_at: new Date().toISOString(),
@@ -87,7 +65,6 @@ export const updateSubscription = async (
     };
 
     const subscriptionResult = await createSubscription(supabase, subscriptionData);
-
     if (!subscriptionResult.success) {
       return {
         success: false,
@@ -108,21 +85,23 @@ export const updateSubscription = async (
   }
 };
 
+// =============================================================================
+// 메인 플랜 선택/변경 함수
+// =============================================================================
+
 // 플랜 선택/변경 메인 함수 (subscriptions 테이블 사용)
 export const selectPlan = async (
   supabase: SupabaseClient,
   userId: string,
-  planName: PlanName,
-  organizationId?: string
+  planName: PlanName
 ): Promise<PlanActionResult> => {
   try {
     // 1. 현재 활성 구독 정보 가져오기
-    const currentSubscriptionData = await getCurrentSubscription(supabase, userId, organizationId);
+    const currentSubscriptionData = await getCurrentSubscription(supabase, userId);
     const currentPlan = currentSubscriptionData?.plan?.name as PlanName | undefined;
 
     // 2. 타겟 플랜 정보 가져오기
     const plan = await getPlanByName(supabase, planName);
-
     if (!plan) {
       return { success: false, error: "Plan not found" };
     }
@@ -136,16 +115,7 @@ export const selectPlan = async (
     }
 
     // 4. 구독 업데이트 (검증 포함)
-    const result = await updateSubscription(
-      supabase,
-      userId,
-      plan.id,
-      planName,
-      organizationId,
-      currentPlan
-    );
-
-    return result;
+    return await updateSubscription(supabase, userId, plan.id, planName, currentPlan);
   } catch (error) {
     console.error("Error in selectPlan:", error);
     return {

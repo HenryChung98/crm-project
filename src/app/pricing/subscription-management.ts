@@ -3,7 +3,6 @@ import { PlanName, SubscriptionStatus, PaymentStatus } from "@/types/plan";
 
 export interface SubscriptionData {
   user_id: string;
-  organization_id?: string;
   plan_id: string;
   status: SubscriptionStatus;
   starts_at: string;
@@ -19,11 +18,14 @@ export interface SubscriptionInfo {
   subscriptionEndsAt?: string;
 }
 
+// =============================================================================
+// 구독 조회 함수들
+// =============================================================================
+
 // 현재 활성 구독 조회
 export const getCurrentSubscription = async (
   supabase: SupabaseClient,
-  userId: string,
-  organizationId?: string
+  userId: string
 ): Promise<{ subscription: any; plan: any } | null> => {
   try {
     let query = supabase
@@ -41,53 +43,67 @@ export const getCurrentSubscription = async (
       `
       )
       .eq("user_id", userId)
-      .eq("status", "active, free")
-      .order("starts_at", { ascending: false });
+      .in("status", ["active", "free"])
+      .order("starts_at", { ascending: false })
+      .limit(1);
 
-    if (organizationId) {
-      query = query.eq("organization_id", organizationId);
-    } else {
-      query = query.is("organization_id", null);
-    }
+    const { data, error } = await query;
 
-    const { data, error } = await query.limit(1).single();
-
-    if (error && error.code !== "PGRST116") {
-      // PGRST116은 데이터가 없을 때의 에러코드 여기 고쳐야됨됨
+    if (error) {
       console.error("Error fetching current subscription:", error);
       return null;
     }
 
-    return data ? { subscription: data, plan: data.plans } : null;
+    return data && data.length > 0 ? { subscription: data[0], plan: data[0].plans } : null;
   } catch (error) {
     console.error("Error in getCurrentSubscription:", error);
     return null;
   }
 };
 
+// plans 테이블에서 플랜 정보 조회
+export const getPlanByName = async (
+  supabase: SupabaseClient,
+  planName: PlanName
+): Promise<{ id: string } | null> => {
+  try {
+    const { data: plan, error } = await supabase
+      .from("plans")
+      .select("id")
+      .eq("name", planName)
+      .single();
+
+    if (error) {
+      console.error("Error fetching plan:", error);
+      return null;
+    }
+
+    return plan;
+  } catch (error) {
+    console.error("Error in getPlanByName:", error);
+    return null;
+  }
+};
+
+// =============================================================================
+// 구독 조작 함수들
+// =============================================================================
+
 // 기존 구독 비활성화
 export const deactivateCurrentSubscription = async (
   supabase: SupabaseClient,
-  userId: string,
-  organizationId?: string
+  userId: string
 ): Promise<boolean> => {
   try {
-    let query = supabase
+    const { error } = await supabase
       .from("subscriptions")
       .update({
         status: "canceled",
         ends_at: new Date().toISOString(),
       })
       .eq("user_id", userId)
-      .eq("status", "active");
-
-    if (organizationId) {
-      query = query.eq("organization_id", organizationId);
-    } else {
-      query = query.is("organization_id", null);
-    }
-
-    const { error } = await query;
+      .in("status", ["active", "free"])
+      .select();
 
     if (error) {
       console.error("Error deactivating subscription:", error);
@@ -132,10 +148,9 @@ export const createSubscription = async (
 export const getSubscriptionStatus = async (
   supabase: SupabaseClient,
   userId: string,
-  organizationId?: string
 ): Promise<SubscriptionInfo> => {
   try {
-    const subscriptionData = await getCurrentSubscription(supabase, userId, organizationId);
+    const subscriptionData = await getCurrentSubscription(supabase, userId);
 
     if (!subscriptionData) {
       return { hasActiveSubscription: false };
@@ -159,7 +174,6 @@ export const updatePaymentStatus = async (
   supabase: SupabaseClient,
   userId: string,
   paymentStatus: PaymentStatus,
-  organizationId?: string
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     let query = supabase
@@ -167,12 +181,6 @@ export const updatePaymentStatus = async (
       .update({ payment_status: paymentStatus })
       .eq("user_id", userId)
       .eq("status", "active");
-
-    if (organizationId) {
-      query = query.eq("organization_id", organizationId);
-    } else {
-      query = query.is("organization_id", null);
-    }
 
     const { error } = await query;
 

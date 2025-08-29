@@ -100,37 +100,5 @@ export async function createOrganization(formData: FormData) {
     return { error: orgMemberDataError.message };
   }
 
-  // get user subscription data
-  const { data: userSubscriptionData, error: userSubscriptionError } = await supabase
-    .from("subscriptions")
-    .select("*")
-    .eq("user_id", user.id)
-    .single();
-  if (userSubscriptionError) {
-    return { error: userSubscriptionError.message };
-  }
-
-  // insert subscriptions data to the table
-  const subScriptionData = {
-    user_id: user.id,
-    organization_id: orgInsertData.id,
-    plan_id: userSubscriptionData.plan_id,
-    status: userSubscriptionData.status,
-    starts_at: userSubscriptionData.starts_at,
-    ends_at: userSubscriptionData.ends_at,
-    payment_status: userSubscriptionData.payment_status,
-  };
-
-  const { error: orgSubscriptionError } = await supabase
-    .from("subscriptions")
-    .insert([subScriptionData])
-    .select("id")
-    .single();
-
-  if (orgSubscriptionError) {
-    await supabase.from("subscriptions").delete().eq("id", orgInsertData.id);
-    return { error: orgSubscriptionError.message };
-  }
-
   return { success: true };
 }

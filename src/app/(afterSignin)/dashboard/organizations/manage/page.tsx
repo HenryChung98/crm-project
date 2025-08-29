@@ -33,7 +33,7 @@ export default function ManageOrganizationPage() {
     ["owner"],
     `
       id, organization_id, role, user_id, user_email,
-      organizations:organization_id(name), subscriptions:organization_id(plan_id)
+      organizations:organization_id(name)
     `,
     { enabled: !!currentOrgId }
   );
@@ -130,7 +130,6 @@ export default function ManageOrganizationPage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">
         Manage {orgMembers[0]?.organizations?.name || currentOrgId}
-        Manage {orgMembers[0]?.organizations?.plan_id || currentOrgId}
       </h1>
       <button className="border rounded p-2 m-2" onClick={refetch}>
         {isFetching ? "loading.." : "refresh"}
