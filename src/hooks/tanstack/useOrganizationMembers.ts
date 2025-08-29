@@ -3,10 +3,8 @@ import {
   getAllOrganizationMembers,
   getAdminOrganizationMembers,
 } from "../hook-actions/organization-members";
-import type { Database } from "@/types/database";
+import { OrganizationMembers } from "@/types/database/organizations";
 import { NetworkError } from "@/types/errors";
-
-type OrgMember = Database["public"]["Tables"]["organization_members"]["Row"];
 
 type QueryResult<T> = {
   data: T[];
@@ -17,7 +15,9 @@ type QueryResult<T> = {
 };
 
 // 사용자가 속한 모든 조직 멤버십 조회 (네비바의 조직 목록용)
-export const useAllOrganizationMembers = <T = OrgMember>(select?: string): QueryResult<T> => {
+export const useAllOrganizationMembers = <T = OrganizationMembers>(
+  select?: string
+): QueryResult<T> => {
   const result = useQuery({
     queryKey: ["organizationMembers", "user", select || "*"],
     queryFn: () => getAllOrganizationMembers(select),
@@ -39,7 +39,7 @@ export const useAllOrganizationMembers = <T = OrgMember>(select?: string): Query
 };
 
 // 관리자 권한이 필요한 조직 멤버 목록 조회
-export const useAdminOrganizationMembers = <T = OrgMember>(
+export const useAdminOrganizationMembers = <T = OrganizationMembers>(
   orgId: string,
   requiredRoles: ("owner" | "admin")[],
   select = "*",

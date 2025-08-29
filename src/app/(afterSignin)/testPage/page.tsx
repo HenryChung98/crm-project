@@ -1,115 +1,55 @@
-// "use client";
-// import React, { useState } from "react";
-// import { Button } from "@/components/ui/Button";
-// import { useAuth } from "@/contexts/AuthContext";
-// import { useSearchParams } from "next/navigation";
-// import { usePlanByUser, usePlanByOrg } from "@/hooks/tanstack/usePlan";
+"use client";
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/Button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSearchParams } from "next/navigation";
 
-// export default function TestPage() {
-//   const { user, supabase } = useAuth();
-//   const searchParams = useSearchParams();
-//   const currentOrgId = searchParams.get("org") ?? "";
+export default function TestPage() {
+  const { user, supabase } = useAuth();
+  const searchParams = useSearchParams();
+  const currentOrgId = searchParams.get("org") ?? "";
 
-//   // 사용자 레벨 훅 (조직 관리)
-//   const userPlan = usePlanByUser();
+  const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
+  const [endsAt, setEndsAt] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [error, setError] = useState<any>(null);
 
-//   // 조직 레벨 훅 (사용자/고객 관리) - orgId가 있을 때만
-//   const orgPlan = usePlanByOrg(currentOrgId);
+  useEffect(() => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
 
-//   if (userPlan.isLoading || orgPlan.isLoading) {
-//     return <div>Loading plan data...</div>;
-//   }
+    const fetchSubscription = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("*") // Assuming we need more than just 'id' now
+        .eq("user_id", user.id)
+        .single();
 
-//   if (userPlan.error) {
-//     return <div>User Plan Error: {userPlan.error.message}</div>;
-//   }
+      if (error) {
+        console.error("Error fetching subscription:", error);
+        setError(error);
+      } else if (data) {
+        setSubscriptionId(data.id);
+        setEndsAt(data.ends_at); // Make sure the column name is correct
+      }
+      setLoading(false);
+    };
 
-//   if (orgPlan.error) {
-//     return <div>Org Plan Error: {orgPlan.error.message}</div>;
-//   }
+    fetchSubscription();
+  }, [user?.id, supabase]);
 
-//   return (
-//     <>
-//       <div>Test Page - Plan & Usage Management</div>
-
-//       {/* 사용자 레벨 정보 */}
-//       <div>
-//         <h2>User Plan Info</h2>
-//         {userPlan.limits && (
-//           <>
-//             <p>Plan Name: {userPlan.limits.planName}</p>
-//             <p>Plan ID: {userPlan.limits.planId}</p>
-//             <p>Max Organizations: {userPlan.limits.maxOrganizations}</p>
-//           </>
-//         )}
-//       </div>
-
-//       {/* 사용자 레벨 - 조직 관리 */}
-//       <div>
-//         <h3>Organization Management (User Level)</h3>
-//         <p>Current Usage: {userPlan.currentUsage?.orgTotal || 0}</p>
-
-//         <p>Remaining: {userPlan.getRemainingQuota("organizations")}</p>
-//       </div>
-//       <div>
-//         ========================================================================================
-//       </div>
-//       {/* 조직 레벨 정보 */}
-//       {currentOrgId && (
-//         <>
-//           <div>
-//             <h2>Organization Plan Info (Org ID: {currentOrgId})</h2>
-//             {orgPlan.limits && (
-//               <>
-//                 <p>Plan Name: {orgPlan.limits.planName}</p>
-//                 <p>Max Customers: {orgPlan.limits.maxCustomers}</p>
-//                 <p>Max Users: {orgPlan.limits.maxUsers}</p>
-//               </>
-//             )}
-//           </div>
-
-//           {/* 조직 레벨 - 고객 관리 */}
-//           <div>
-//             <h3>Customer Management (Org Level)</h3>
-//             <p>Current Usage: {orgPlan.currentUsage?.customerTotal || 0}</p>
-//             <p>Remaining: {orgPlan.getRemainingQuota("customers")}</p>
-//           </div>
-
-//           {/* 조직 레벨 - 사용자 관리 */}
-//           <div>
-//             <h3>User Management (Org Level)</h3>
-//             <p>Current Usage: {orgPlan.currentUsage?.userTotal || 0}</p>
-
-//             <p>Remaining: {orgPlan.getRemainingQuota("users")}</p>
-//           </div>
-//         </>
-//       )}
-
-//       <div>
-//         ========================================================================================
-//       </div>
-//       {/* 디버그 정보 */}
-//       <div>
-//         <h3>Debug Info</h3>
-//         <pre>
-//           {JSON.stringify(
-//             {
-//               userPlan: {
-//                 limits: userPlan.limits,
-//                 currentUsage: userPlan.currentUsage,
-//               },
-//               orgPlan: currentOrgId
-//                 ? {
-//                     limits: orgPlan.limits,
-//                     currentUsage: orgPlan.currentUsage,
-//                   }
-//                 : "No org selected",
-//             },
-//             null,
-//             2
-//           )}
-//         </pre>
-//       </div>
-//     </>
-//   );
-// }
+  return (
+    <>
+      <div>Test Page - Plan & Usage Management</div>
+      {loading && <p>Loading subscription...</p>}
+      {error && <p>Error: {error.message}</p>}
+      {subscriptionId && <p>Subscription ID: {subscriptionId}</p>}
+      {endsAt && <p>ends at: {new Date(endsAt).toISOString()}</p>}
+      {new Date(endsAt!) < new Date() && <p className="text-red-500">expired</p>}
+    </>
+  );
+}

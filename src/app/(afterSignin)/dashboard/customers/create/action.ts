@@ -34,7 +34,7 @@ export async function createCustomer(formData: FormData) {
   }
 
   try {
-    const { user, orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin"]);
+    const { orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin"]);
     // check all fields
     if (!orgId || !firstName || !lastName || !source || !email) {
       return { error: "Customer's name, email and source are required." };

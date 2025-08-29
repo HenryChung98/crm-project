@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { PlanName, SubscriptionStatus, PaymentStatus } from "@/types/plan";
+import { PlanName, SubscriptionStatus, PaymentStatus } from "@/types/database/plan";
 
 export interface SubscriptionData {
   user_id: string;
@@ -26,9 +26,10 @@ export interface SubscriptionInfo {
 export const getCurrentSubscription = async (
   supabase: SupabaseClient,
   userId: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<{ subscription: any; plan: any } | null> => {
   try {
-    let query = supabase
+    const query = supabase
       .from("subscriptions")
       .select(
         `
@@ -147,7 +148,7 @@ export const createSubscription = async (
 // 구독 상태 확인
 export const getSubscriptionStatus = async (
   supabase: SupabaseClient,
-  userId: string,
+  userId: string
 ): Promise<SubscriptionInfo> => {
   try {
     const subscriptionData = await getCurrentSubscription(supabase, userId);
@@ -173,10 +174,10 @@ export const getSubscriptionStatus = async (
 export const updatePaymentStatus = async (
   supabase: SupabaseClient,
   userId: string,
-  paymentStatus: PaymentStatus,
+  paymentStatus: PaymentStatus
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    let query = supabase
+    const query = supabase
       .from("subscriptions")
       .update({ payment_status: paymentStatus })
       .eq("user_id", userId)

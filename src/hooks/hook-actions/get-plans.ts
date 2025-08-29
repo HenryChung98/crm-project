@@ -1,6 +1,6 @@
 "use server";
 
-import { SubscribedPlan } from "@/types/plan";
+import { SubscribedPlan } from "@/types/database/plan";
 import { createClient } from "@/utils/supabase/server";
 
 export async function getPlanByUser(): Promise<SubscribedPlan> {
@@ -23,7 +23,7 @@ export async function getPlanByUser(): Promise<SubscribedPlan> {
 
   if (userError) {
     // PGRST116 에러는 데이터가 없는 경우이므로 별도 처리
-    if (userError.code === 'PGRST116') {
+    if (userError.code === "PGRST116") {
       throw new Error("No subscription found for user");
     }
     throw userError;
@@ -74,7 +74,7 @@ export async function getPlanByOrg(orgId?: string): Promise<SubscribedPlan | nul
     .single();
 
   if (orgFetchError) {
-    if (orgFetchError.code === 'PGRST116') {
+    if (orgFetchError.code === "PGRST116") {
       throw new Error("Organization not found");
     }
     throw new Error(`Failed to fetch organization: ${orgFetchError.message}`);
@@ -92,7 +92,7 @@ export async function getPlanByOrg(orgId?: string): Promise<SubscribedPlan | nul
     .single();
 
   if (orgError) {
-    if (orgError.code === 'PGRST116') {
+    if (orgError.code === "PGRST116") {
       throw new Error("No subscription found for organization owner");
     }
     throw orgError;

@@ -2,9 +2,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCustomerLogs } from "@/hooks/tanstack/useCustomerLogs";
-import { Database } from "@/types/database";
-
-type CustomerLog = Database["public"]["Tables"]["customer_logs"]["Row"];
+import { CustomerLogs } from "@/types/database/customers";
 
 interface ChangedData {
   note?: string;
@@ -20,7 +18,7 @@ interface ChangedData {
 }
 
 interface LogItemProps {
-  log: CustomerLog;
+  log: CustomerLogs;
 }
 
 const LogItem: React.FC<LogItemProps> = ({ log }) => {
@@ -50,59 +48,59 @@ const LogItem: React.FC<LogItemProps> = ({ log }) => {
                 log.changed_data !== null &&
                 !Array.isArray(log.changed_data) && (
                   <>
-                    {(log.changed_data as ChangedData).first_name && (
+                    {(log.changed_data as unknown as ChangedData).first_name && (
                       <p className="text-sm">
                         <span className="font-medium">First Name:</span>{" "}
-                        {(log.changed_data as ChangedData).first_name}
+                        {(log.changed_data as unknown as ChangedData).first_name}
                       </p>
                     )}
-                    {(log.changed_data as ChangedData).last_name && (
+                    {(log.changed_data as unknown as ChangedData).last_name && (
                       <p className="text-sm">
                         <span className="font-medium">Last Name:</span>{" "}
-                        {(log.changed_data as ChangedData).last_name}
+                        {(log.changed_data as unknown as ChangedData).last_name}
                       </p>
                     )}
-                    {(log.changed_data as ChangedData).email && (
+                    {(log.changed_data as unknown as ChangedData).email && (
                       <p className="text-sm">
                         <span className="font-medium">Email:</span>{" "}
-                        {(log.changed_data as ChangedData).email}
+                        {(log.changed_data as unknown as ChangedData).email}
                       </p>
                     )}
-                    {(log.changed_data as ChangedData).phone && (
+                    {(log.changed_data as unknown as ChangedData).phone && (
                       <p className="text-sm">
                         <span className="font-medium">Phone:</span>{" "}
-                        {(log.changed_data as ChangedData).phone}
+                        {(log.changed_data as unknown as ChangedData).phone}
                       </p>
                     )}
-                    {(log.changed_data as ChangedData).status && (
+                    {(log.changed_data as unknown as ChangedData).status && (
                       <p className="text-sm">
                         <span className="font-medium">Status:</span>{" "}
-                        {(log.changed_data as ChangedData).status}
+                        {(log.changed_data as unknown as ChangedData).status}
                       </p>
                     )}
-                    {(log.changed_data as ChangedData).tag && (
+                    {(log.changed_data as unknown as ChangedData).tag && (
                       <p className="text-sm">
                         <span className="font-medium">Tag:</span>{" "}
-                        {(log.changed_data as ChangedData).tag}
+                        {(log.changed_data as unknown as ChangedData).tag}
                       </p>
                     )}
-                    {(log.changed_data as ChangedData).source && (
+                    {(log.changed_data as unknown as ChangedData).source && (
                       <p className="text-sm">
                         <span className="font-medium">Source:</span>{" "}
-                        {(log.changed_data as ChangedData).source}
+                        {(log.changed_data as unknown as ChangedData).source}
                       </p>
                     )}
-                    {(log.changed_data as ChangedData).note && (
+                    {(log.changed_data as unknown as ChangedData).note && (
                       <p className="text-sm">
                         <span className="font-medium">Note:</span>{" "}
-                        {(log.changed_data as ChangedData).note}
+                        {(log.changed_data as unknown as ChangedData).note}
                       </p>
                     )}
 
                     {/* 다른 모든 필드들 */}
                     <div className="mt-2">
                       <p className="text-xs font-medium text-gray-500 mb-1">Other changes:</p>
-                      {Object.entries(log.changed_data as ChangedData)
+                      {Object.entries(log.changed_data as unknown as ChangedData)
                         .filter(
                           ([key]) =>
                             ![
@@ -153,7 +151,7 @@ export default function CustomerLogPage() {
 
   return (
     <>
-    customer log page
+      customer log page
       {logs?.map((log) => (
         <LogItem key={log.id} log={log} />
       ))}

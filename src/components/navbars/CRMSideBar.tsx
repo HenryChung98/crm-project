@@ -10,15 +10,8 @@ import OrganizationSwitcher from "./OrganizationSwitcher";
 import { useSupabase } from "@/hooks/useSupabase";
 import { AuthUserType } from "@/types/authuser";
 
-type OrgMember = {
-  id: string;
-  organization_id: string;
-  role: string;
-  created_at: string;
-  organizations: {
-    name: string;
-  } | null;
-};
+// type
+import { OrganizationMembers } from "@/types/database/organizations";
 
 interface NavItemProps {
   item: CRMNavItemType;
@@ -28,7 +21,7 @@ interface NavItemProps {
 }
 
 interface CRMSidebarProps {
-  organizations: OrgMember[];
+  organizations: OrganizationMembers[];
   currentOrg: string;
   onOrgChange: (orgId: string) => void;
 }

@@ -1,6 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { PlanName } from "@/types/plan";
-
+import { PlanName } from "@/types/database/plan";
 
 export interface PlanLimits {
   maxOrganizations: number;

@@ -1,13 +1,11 @@
 import type { User } from "@supabase/supabase-js";
 import { AuthUserType } from "@/types/authuser";
 import { createClient } from "@/utils/supabase/server";
-import { Database } from "@/types/database";
-
-type OrgMember = Database["public"]["Tables"]["organization_members"]["Row"];
+import { OrganizationMembers } from "@/types/database/organizations";
 
 export interface AuthContext {
   user: User;
-  orgMember: OrgMember;
+  orgMember: OrganizationMembers;
   supabase: Awaited<ReturnType<typeof createClient>>;
 }
 

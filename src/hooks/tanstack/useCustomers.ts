@@ -1,9 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { NetworkError } from "@/types/errors";
-import { Database } from "@/types/database";
+import { Customers } from "@/types/database/customers";
 import { getCustomers } from "../hook-actions/customers";
-
-type Customers = Database["public"]["Tables"]["customers"]["Row"];
 
 type QueryResult<T> = {
   data: T[];

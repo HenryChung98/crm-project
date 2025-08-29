@@ -1,18 +1,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { FiChevronDown, FiCheck } from "react-icons/fi";
+import { OrganizationMembers } from "@/types/database/organizations";
 
-type OrgMember = {
-  id: string;
-  organization_id: string;
-  role: string;
-  created_at: string;
-  organizations: {
-    name: string;
-  } | null;
-};
 interface OrganizationSwitcherProps {
-  organizations: OrgMember[];
+  organizations: OrganizationMembers[];
   currentOrg: string;
   onOrgChange: (orgId: string) => void;
 }

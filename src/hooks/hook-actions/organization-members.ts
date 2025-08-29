@@ -1,13 +1,11 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
-import { Database } from "@/types/database";
+import { OrganizationMembers } from "@/types/database/organizations";
 import { SupabaseError } from "@/types/errors";
 
-type OrgMember = Database["public"]["Tables"]["organization_members"]["Row"];
-
 // 사용자가 속한 모든 조직 멤버십 조회 (네비바의 조직 목록용)
-export async function getAllOrganizationMembers(select?: string): Promise<OrgMember[]> {
+export async function getAllOrganizationMembers(select?: string): Promise<OrganizationMembers[]> {
   const supabase = await createClient();
 
   // 사용자 인증 확인
@@ -25,7 +23,7 @@ export async function getAllOrganizationMembers(select?: string): Promise<OrgMem
     .select(select || "*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })) as {
-    data: OrgMember[] | null;
+    data: OrganizationMembers[] | null;
     error: SupabaseError;
   };
 
@@ -38,7 +36,7 @@ export async function getAdminOrganizationMembers(
   orgId: string,
   requiredRoles: ("owner" | "admin")[],
   select = "*"
-): Promise<OrgMember[]> {
+): Promise<OrganizationMembers[]> {
   if (!orgId || requiredRoles.length === 0) {
     throw new Error("Organization ID and required roles are required");
   }
@@ -75,7 +73,7 @@ export async function getAdminOrganizationMembers(
     .select(select)
     .eq("organization_id", orgId)
     .order("created_at", { ascending: false })) as {
-    data: OrgMember[] | null;
+    data: OrganizationMembers[] | null;
     error: SupabaseError;
   };
 

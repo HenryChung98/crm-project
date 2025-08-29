@@ -12,11 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { showError, showSuccess } from "@/utils/feedback";
 // type
 import { EMPTY_ARRAY } from "@/types/customData";
-
-interface OrgMember {
-  organization_id: string;
-  organization_name: string;
-}
+import { OrganizationMembers } from "@/types/database/organizations";
 
 export default function InviteMemberForm() {
   const [loading, setLoading] = useState(false);
@@ -24,7 +20,7 @@ export default function InviteMemberForm() {
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
 
-  const { data: orgMembers = EMPTY_ARRAY } = useAllOrganizationMembers<OrgMember>(`
+  const { data: orgMembers = EMPTY_ARRAY } = useAllOrganizationMembers<OrganizationMembers>(`
     organization_id, organization_name
   `);
 

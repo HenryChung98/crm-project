@@ -12,7 +12,7 @@ import { showSuccess, showError } from "@/utils/feedback";
 
 // type
 import { EMPTY_ARRAY } from "@/types/customData";
-import { OrgMember } from "@/types/plan";
+import { OrganizationMembers } from "@/types/database/organizations";
 
 export default function ManageOrganizationPage() {
   const searchParams = useSearchParams();
@@ -28,7 +28,7 @@ export default function ManageOrganizationPage() {
     error,
     refetch,
     isFetching,
-  } = useAdminOrganizationMembers<OrgMember>(
+  } = useAdminOrganizationMembers<OrganizationMembers>(
     currentOrgId!,
     ["owner"],
     `

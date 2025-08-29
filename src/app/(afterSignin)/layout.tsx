@@ -7,22 +7,10 @@ import { useAllOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembe
 
 // type
 import { EMPTY_ARRAY } from "@/types/customData";
+import { OrganizationMembers } from "@/types/database/organizations";
 
 // ui
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-
-type OrgMember = {
-  id: string;
-  organization_id: string;
-  role: string;
-  created_at: string;
-  organizations: {
-    name: string;
-  } | null;
-  subscriptions: {
-    plan_id: string;
-  };
-};
 
 interface AfterSigninLayoutProps {
   children: React.ReactNode;
@@ -42,7 +30,7 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
     data: orgMembers = EMPTY_ARRAY,
     isLoading: isLoadingOrgMembers,
     error: orgMembersError,
-  } = useAllOrganizationMembers<OrgMember>(`
+  } = useAllOrganizationMembers<OrganizationMembers>(`
     id, organization_id, role, created_at,
     organizations:organization_id(name)
   `);

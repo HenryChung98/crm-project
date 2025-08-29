@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { selectPlan } from "./plan-selection";
-import { PlanName } from "@/types/plan";
+import { PlanName } from "@/types/database/plan";
 
 // ui
 import { showError, showSuccess } from "@/utils/feedback";

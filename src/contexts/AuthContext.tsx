@@ -28,81 +28,49 @@ interface AuthProviderProps {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-/**
- * 인증 상태만 전역으로 관리하는 Context Provider
- * 앱의 최상위에서 감싸서 사용
- */
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<AuthUserType | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = useMemo(() => createClient(), []);
 
-  const refetchUser = useCallback(async () => {
+  // 세션 처리 로직을 하나로 통합
+  const handleSession = useCallback(async (session: Session | null) => {
     setLoading(true);
-    const { data } = await supabase.auth.getSession();
-    if (data.session?.user) {
+
+    if (session?.user) {
       try {
-        const profile = await loadUserProfile(data.session.user);
+        const profile = await loadUserProfile(session.user);
         setUser(profile);
       } catch (err) {
-        console.error("Failed to refetch profile:", err);
+        console.error("Failed to load user profile:", err);
         setUser(null);
-      } finally {
-        setLoading(false);
       }
     } else {
       setUser(null);
-      setLoading(false);
     }
-  }, [supabase]);
-  /**
-   * Supabase 인증 상태 변경을 처리하는 콜백 함수
-   * SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED, INITIAL_SESSION 이벤트를 처리
-   */
+
+    setLoading(false);
+  }, []);
+
+  const refetchUser = useCallback(async () => {
+    const { data } = await supabase.auth.getSession();
+    await handleSession(data.session);
+  }, [supabase, handleSession]);
+
+  // 인증 상태 변경 핸들러
   const handleAuthStateChange = useCallback(
     async (event: AuthChangeEvent, session: Session | null) => {
-      setLoading(true);
-      console.log("Auth state changed:", event);
-      if (session?.user) {
-        try {
-          const profile = await loadUserProfile(session.user);
-          setUser(profile);
-        } catch (err) {
-          console.error("Failed to load profile on auth change:", err);
-          setUser(null);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setUser(null);
-        setLoading(false);
-      }
+      await handleSession(session);
     },
-
-    []
+    [handleSession]
   );
 
-  // Supabase 인증 상태 변경 리스너 등록 및 정리
+  // 초기 세션 로드 및 상태 변경 리스너 등록
   useEffect(() => {
-    setLoading(true);
-    const fetchSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session?.user) {
-        try {
-          const profile = await loadUserProfile(data.session.user);
-          setUser(profile);
-        } catch (err) {
-          console.error("Failed to load initial profile:", err);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setLoading(false);
-      }
-    };
+    // 초기 세션 로드
+    refetchUser();
 
-    fetchSession();
-
+    // 상태 변경 리스너 등록
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(handleAuthStateChange);
@@ -110,9 +78,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [handleAuthStateChange, supabase.auth]);
+  }, [handleAuthStateChange, supabase.auth, refetchUser]);
 
-  // Context에 제공할 값들을 메모이제이션하여 불필요한 리렌더링 방지
   const value = useMemo(
     () => ({
       user,
@@ -127,10 +94,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-/**
- * AuthContext를 사용하는 커스텀 훅
- * Provider 외부에서 사용할 경우 에러를 던짐
- */
 export const useAuth = () => {
   const context = useContext(AuthContext);
 

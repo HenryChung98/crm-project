@@ -12,11 +12,7 @@ import { showSuccess, showError } from "@/utils/feedback";
 
 // type
 import { EMPTY_ARRAY } from "@/types/customData";
-
-interface OrgMember {
-  organization_id: string;
-  organization_name: string;
-}
+import { OrganizationMembers } from "@/types/database/organizations";
 
 interface CustomerFormData {
   orgId: string;
@@ -44,7 +40,7 @@ export default function CreateCustomersPage() {
   });
 
   // fetch customer infos
-  const { data: orgMembers = EMPTY_ARRAY } = useAllOrganizationMembers<OrgMember>(`
+  const { data: orgMembers = EMPTY_ARRAY } = useAllOrganizationMembers<OrganizationMembers>(`
     organization_id, organization_name
     `);
   const currentOrg = orgMembers.find((org) => org.organization_id === currentOrgId);

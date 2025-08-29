@@ -1,10 +1,9 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Database } from "@/types/database";
-
+import { OrganizationInvitations } from "@/types/database/organizations";
 import { getOrganizationInvitationsByEmail } from "../hook-actions/organization-invitations";
 import { NetworkError } from "@/types/errors";
 
-type OrgMember = Database["public"]["Tables"]["organization_invitations"]["Row"]; // 1
+
 
 export type QueryResult<T> = {
   data: T[];
@@ -20,7 +19,7 @@ export type QueryResult<T> = {
 };
 
 // all users can invite people using email
-export const useOrganizationInvitationsByEmail = <T = OrgMember>(): QueryResult<T> => {
+export const useOrganizationInvitationsByEmail = <T = OrganizationInvitations>(): QueryResult<T> => {
   const result = useQuery({
     queryKey: ["organizationInvitations", "user", "id, organization_id, email, organizations(name)"],
     queryFn: async () => getOrganizationInvitationsByEmail(),

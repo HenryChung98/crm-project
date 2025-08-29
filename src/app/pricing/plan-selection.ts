@@ -7,7 +7,7 @@ import {
   getPlanByName,
   SubscriptionData,
 } from "./subscription-management";
-import { PlanName, PaymentStatus } from "@/types/plan";
+import { PlanName, PaymentStatus } from "@/types/database/plan";
 
 export interface PlanActionResult {
   success: boolean;
@@ -28,7 +28,6 @@ const updateSubscription = async (
   targetPlan: PlanName,
   currentPlan?: PlanName
 ): Promise<PlanActionResult> => {
-
   try {
     // 플랜 변경 검증 (다운그레이드인 경우에만)
     if (currentPlan && isDowngrade(currentPlan, targetPlan)) {

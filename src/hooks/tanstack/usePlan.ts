@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { NetworkError } from "@/types/errors";
-import { SubscribedPlan } from "@/types/plan";
+import { SubscribedPlan } from "@/types/database/plan";
 import { getPlanByUser, getPlanByOrg } from "../hook-actions/get-plans";
 import { useMemo, useCallback } from "react";
 import {

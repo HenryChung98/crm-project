@@ -1,9 +1,8 @@
 "use server";
 
-import { Database } from "@/types/database";
+import { CustomerLogs } from "@/types/database/customers";
 import { SupabaseError } from "@/types/errors";
 import { withOrgAuth } from "@/utils/auth";
-type CustomerLogs = Database["public"]["Tables"]["customer_logs"]["Row"];
 
 export async function getCustomerLogs(orgId: string, select?: string): Promise<CustomerLogs[]> {
   if (!orgId) return [];
