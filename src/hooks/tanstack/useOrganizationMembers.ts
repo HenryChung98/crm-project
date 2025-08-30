@@ -4,15 +4,18 @@ import {
   getAdminOrganizationMembers,
 } from "../hook-actions/organization-members";
 import { OrganizationMembers } from "@/types/database/organizations";
-import { NetworkError } from "@/types/errors";
 
-type QueryResult<T> = {
-  data: T[];
-  error: Error | null;
-  isLoading: boolean;
-  isFetching: boolean;
-  refetch: () => void;
-};
+// type
+import { NetworkError } from "@/types/errors";
+import { QueryResult } from "@/types/customData";
+
+// type QueryResult<T> = {
+//   data: T[];
+//   error: Error | null;
+//   isLoading: boolean;
+//   isFetching: boolean;
+//   refetch: () => void;
+// };
 
 // 사용자가 속한 모든 조직 멤버십 조회 (네비바의 조직 목록용)
 export const useAllOrganizationMembers = <T = OrganizationMembers>(

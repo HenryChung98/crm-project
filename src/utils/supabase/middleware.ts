@@ -60,40 +60,49 @@ export async function updateSession(request: NextRequest) {
 
   // ========================= check subscription status =========================
 
-  if (user) {
-    const { data: subscriptions } = await supabase
-      .from("subscriptions")
-      .select(`*, plans (*)`)
-      .eq("user_id", user.id);
+  // if (user) {
+  //   const { data: subscriptions } = await supabase
+  //     .from("subscriptions")
+  //     .select(`*, plans (*)`)
+  //     .eq("user_id", user.id);
+  //   const restrictedPaths = ["/organizations/create"];
 
-    // 구독이 있는 경우에만 처리
-    if (subscriptions && subscriptions.length > 0) {
-      // 가장 최신 구독 또는 활성화된 구독을 찾기
-      const activeSubscription =
-        subscriptions.find((sub) => sub.status !== "free") ||
-        subscriptions.sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )[0];
+  //   // 구독이 있는 경우에만 처리
+  //   if (subscriptions && subscriptions.length > 0) {
+  //     // 가장 최신 구독 또는 활성화된 구독을 찾기
+  //     const activeSubscription =
+  //       subscriptions.find((sub) => sub.status !== "free") ||
+  //       subscriptions.sort(
+  //         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  //       )[0];
 
-      if (activeSubscription?.status !== "free") {
-        const isExpired =
-          activeSubscription?.ends_at && new Date(activeSubscription.ends_at) < new Date();
+  //     if (activeSubscription?.status !== "free") {
+  //       const isExpired =
+  //         activeSubscription?.ends_at && new Date(activeSubscription.ends_at) < new Date();
+  //       // also update status to expired
 
-        if (isExpired) {
-          const pathname = request.nextUrl.pathname;
+  //       if (isExpired) {
+  //         const pathname = request.nextUrl.pathname;
+  //         const isRestrictedPath = restrictedPaths.some((path) => pathname.includes(path));
 
-          const restrictedPaths = ["/organizations/create", "/invite-member"];
-          const isRestrictedPath = restrictedPaths.some((path) => pathname.includes(path));
-
-          if (isRestrictedPath) {
-            const url = request.nextUrl.clone();
-            url.pathname = "/pricing";
-            return NextResponse.redirect(url);
-          }
-        }
-      }
-    }
-  }
+  //         if (isRestrictedPath) {
+  //           const url = request.nextUrl.clone();
+  //           url.pathname = "/pricing";
+  //           return NextResponse.redirect(url);
+  //         }
+  //       }
+  //       if (activeSubscription?.payment_status !== "paid") {
+  //         const pathname = request.nextUrl.pathname;
+  //         const isRestrictedPath = restrictedPaths.some((path) => pathname.includes(path));
+  //         if (isRestrictedPath) {
+  //           const url = request.nextUrl.clone();
+  //           console.log("payment status is not paid");
+  //           return NextResponse.redirect(url);
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
 
   // ========================= /check subscription status ========================
 

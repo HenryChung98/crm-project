@@ -56,6 +56,19 @@ export async function createOrganization(formData: FormData) {
     };
   }
 
+  // check if expired
+  if (userPlanData.subscription.status !== "free") {
+    const isExpired =
+      userPlanData.subscription.ends_at && new Date(userPlanData.subscription.ends_at) < new Date();
+    if (isExpired) {
+      let errorMessage = `Your current plan is expired.`;
+
+      return {
+        error: errorMessage,
+      };
+    }
+  }
+
   // insert organization data to the table
   const orgData = {
     name: orgName,

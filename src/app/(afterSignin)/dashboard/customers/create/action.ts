@@ -13,28 +13,50 @@ export async function createCustomer(formData: FormData) {
   const phone = formData.get("phone")?.toString().trim();
   const note = formData.get("note")?.toString().trim();
 
-  // get user's current plan using existing action
-  const orgPlanData = await getPlanByOrg(orgId);
-  if (!orgPlanData?.plans) {
-    return { error: "Failed to get user plan data" };
-  }
-
-  // get current usage using existing action
-  const customerUsage = await getUsageForOrg(orgId ?? "");
-  if (!customerUsage) {
-    return { error: "Failed to get current usage data" };
-  }
-
-  // check if user can create more organizations
-  const maxCustomers = orgPlanData.plans.max_customers || 0;
-  if (customerUsage.customerTotal >= maxCustomers) {
-    return {
-      error: `User limit reached. Your current plan allows up to ${maxCustomers} users.`,
-    };
-  }
-
   try {
     const { orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin"]);
+
+    // get user's current plan using existing action
+    const orgPlanData = await getPlanByOrg(orgId);
+    if (!orgPlanData?.plans) {
+      return { error: "Failed to get user plan data" };
+    }
+
+    // get current usage using existing action
+    const customerUsage = await getUsageForOrg(orgId ?? "");
+    if (!customerUsage) {
+      return { error: "Failed to get current usage data" };
+    }
+
+    // check if user can create more customer
+    const maxCustomers = orgPlanData.plans.max_customers || 0;
+    if (customerUsage.customerTotal >= maxCustomers) {
+      let errorMessage = `User limit reached. Your current plan allows up to ${maxCustomers} users.`;
+
+      if (orgMember?.role === "owner") {
+        errorMessage += `\n\nAs the owner, you can upgrade your plan to increase the limit.`;
+      }
+      return {
+        error: errorMessage,
+      };
+    }
+
+    // check if expired
+    if (orgPlanData.subscription.status !== "free") {
+      const isExpired =
+        orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
+      if (isExpired) {
+        let errorMessage = `Your current organization plan is expired.`;
+
+        if (orgMember?.role === "owner") {
+          errorMessage += `\n\nAs the owner, you can renew your plan.`;
+        }
+        return {
+          error: errorMessage,
+        };
+      }
+    }
+
     // check all fields
     if (!orgId || !firstName || !lastName || !source || !email) {
       return { error: "Customer's name, email and source are required." };

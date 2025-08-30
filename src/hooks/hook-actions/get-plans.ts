@@ -15,40 +15,39 @@ export async function getPlanByUser(): Promise<SubscribedPlan> {
     throw new Error("Unauthorized");
   }
 
-  const { data: userData, error: userError } = await supabase
+  const { data: subscriptionData, error: subscriptionError } = await supabase
     .from("subscriptions")
     .select(`*, plans (*)`)
     .eq("user_id", user.id)
     .single();
 
-  if (userError) {
+  if (subscriptionError) {
     // PGRST116 에러는 데이터가 없는 경우이므로 별도 처리
-    if (userError.code === "PGRST116") {
+    if (subscriptionError.code === "PGRST116") {
       throw new Error("No subscription found for user");
     }
-    throw userError;
+    throw subscriptionError;
   }
 
-  if (!userData) {
+  if (!subscriptionData) {
     throw new Error("No subscription found for user");
   }
 
   // plans 데이터 유효성 검사 추가
-  if (!userData.plans) {
+  if (!subscriptionData.plans) {
     throw new Error("Plan data not found");
   }
 
   // plans가 배열로 반환되므로 첫 번째 요소를 사용
-  const planData = Array.isArray(userData.plans) ? userData.plans[0] : userData.plans;
+  const planData = Array.isArray(subscriptionData.plans) ? subscriptionData.plans[0] : subscriptionData.plans;
 
   if (!planData) {
     throw new Error("Plan details not found");
   }
 
   return {
-    id: userData.id,
-    plan_id: userData.plan_id,
     plans: planData,
+    subscription: subscriptionData,
   } as SubscribedPlan;
 }
 
@@ -85,38 +84,39 @@ export async function getPlanByOrg(orgId?: string): Promise<SubscribedPlan | nul
   }
 
   // 조직 소유자의 구독 정보 조회
-  const { data: orgData, error: orgError } = await supabase
+  const { data: subscriptionData, error: subscriptionError } = await supabase
     .from("subscriptions")
     .select(`*, plans (*)`)
     .eq("user_id", org.created_by)
     .single();
 
-  if (orgError) {
-    if (orgError.code === "PGRST116") {
+  if (subscriptionError) {
+    if (subscriptionError.code === "PGRST116") {
       throw new Error("No subscription found for organization owner");
     }
-    throw orgError;
+    throw subscriptionError;
   }
 
-  if (!orgData) {
+  if (!subscriptionData) {
     throw new Error("No subscription found for organization owner");
   }
 
   // plans 데이터 유효성 검사 추가
-  if (!orgData.plans) {
+  if (!subscriptionData.plans) {
     throw new Error("Plan data not found for organization");
   }
 
   // plans가 배열로 반환되므로 첫 번째 요소를 사용
-  const planData = Array.isArray(orgData.plans) ? orgData.plans[0] : orgData.plans;
+  const planData = Array.isArray(subscriptionData.plans)
+    ? subscriptionData.plans[0]
+    : subscriptionData.plans;
 
   if (!planData) {
     throw new Error("Plan details not found for organization");
   }
 
   return {
-    id: orgData.id,
-    plan_id: orgData.plan_id,
     plans: planData,
+    subscription: subscriptionData,
   } as SubscribedPlan;
 }

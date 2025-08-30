@@ -26,7 +26,6 @@ export interface SubscriptionInfo {
 export const getCurrentSubscription = async (
   supabase: SupabaseClient,
   userId: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<{ subscription: any; plan: any } | null> => {
   try {
     const query = supabase

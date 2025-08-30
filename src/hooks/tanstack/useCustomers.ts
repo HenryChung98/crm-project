@@ -3,18 +3,8 @@ import { NetworkError } from "@/types/errors";
 import { Customers } from "@/types/database/customers";
 import { getCustomers } from "../hook-actions/customers";
 
-type QueryResult<T> = {
-  data: T[];
-  error: Error | null;
-  isLoading: boolean;
-  isFetching: boolean;
-  // isRefetching: boolean;
-  // isSuccess: boolean;
-  // isError: boolean;
-  // isStale: boolean;
-  // status: "idle" | "loading" | "error" | "success";
-  refetch: () => void;
-};
+// type
+import { QueryResult } from "@/types/customData";
 
 export const useCustomers = <T = Customers>(
   organizationId: string,

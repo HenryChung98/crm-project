@@ -22,8 +22,11 @@
 - [vercel](https://vercel.com/)
 
 
-### ref
+### restricted service
 
--[ref](https://www.figma.com/design/OHTNYn9fkZOJj5WFHiqkRz/Venture---CRM-Dashboard---Landing-page-UI-Kit--Preview-?node-id=1029-91074&p=f&t=KdYKXHFrP0QEwTGD-0)
+##### user
+- create organization
 
-
+##### organization
+- invite user
+- add customer
