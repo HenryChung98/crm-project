@@ -61,10 +61,8 @@ export async function createOrganization(formData: FormData) {
     const isExpired =
       userPlanData.subscription.ends_at && new Date(userPlanData.subscription.ends_at) < new Date();
     if (isExpired) {
-      let errorMessage = `Your current plan is expired.`;
-
       return {
-        error: errorMessage,
+        error: `Your current plan is expired.`,
       };
     }
   }

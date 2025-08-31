@@ -1,6 +1,5 @@
 "use client";
 
-import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 
 // ui
@@ -12,11 +11,7 @@ import { Button } from "@/components/ui/Button";
 // delete
 // when readonly, enable delete / disable update insert create
 
-import { createClient } from "@/utils/supabase/client";
-
 export default function BillingPage() {
-  const { user } = useAuth();
-
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
       <PageHeader title="Billing" />

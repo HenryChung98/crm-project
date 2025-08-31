@@ -18,28 +18,51 @@ export interface SubscriptionInfo {
   subscriptionEndsAt?: string;
 }
 
+
+interface Plan {
+  created_at: string;
+  description: string;
+  id: string;
+  max_customers: number;
+  max_organization_num: number;
+  max_users: number;
+  name: string;
+  price_monthly: number;
+  price_yearly: number;
+  updated_at: string;
+}
+
+interface Subscription {
+  id: string;
+  user_id: string;
+  plan_id: string;
+  status: "free" | "active" | "inactive" | "expired" | "canceled";
+  starts_at: string;
+  ends_at: string;
+  payment_status: "paid" | "pending" | "failed" | "refunded";
+}
+
+
 // =============================================================================
 // 구독 조회 함수들
 // =============================================================================
 
 // 현재 활성 구독 조회
+interface SubscriptionWithPlan extends Subscription {
+  plans: Plan;
+}
+
 export const getCurrentSubscription = async (
   supabase: SupabaseClient,
-  userId: string
-): Promise<{ subscription: any; plan: any } | null> => {
+  userId: string  
+): Promise<{ subscription: Subscription; plan: Plan } | null> => {
   try {
     const query = supabase
       .from("subscriptions")
       .select(
         `
         *,
-        plans:plan_id (
-          id,
-          name,
-          max_users,
-          max_customers,
-          max_organization_num
-        )
+        plans:plan_id (*)
       `
       )
       .eq("user_id", userId)
@@ -159,9 +182,9 @@ export const getSubscriptionStatus = async (
     return {
       hasActiveSubscription: true,
       currentPlan: subscriptionData.plan.name as PlanName,
-      subscriptionStatus: subscriptionData.subscription.subscription_status,
+      subscriptionStatus: subscriptionData.subscription.status,
       paymentStatus: subscriptionData.subscription.payment_status,
-      subscriptionEndsAt: subscriptionData.subscription.subscription_ends_at,
+      subscriptionEndsAt: subscriptionData.subscription.ends_at,
     };
   } catch (error) {
     console.error("Error in getSubscriptionStatus:", error);

@@ -36,6 +36,7 @@ export default function Home() {
         <Link href={user ? "/dashboard" : "/auth/signin"} className="pr-5">
           dashboard / signin
         </Link>
+
         <button onClick={signOut}>sign out</button>
       </main>
 

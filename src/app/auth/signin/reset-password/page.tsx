@@ -45,7 +45,7 @@ export default function UpdatePasswordPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/");
+      router.replace("/");
     }
   }, [isAuthenticated, router]);
 
