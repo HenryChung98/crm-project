@@ -91,7 +91,7 @@ export default function SigninPage() {
             <Button type="button" onClick={signInWithGoogle} variant="secondary">
               Continue with Google
             </Button>
-            <p className="text-sm text-center mt-5 border-t pt-2">Don't have an account?</p>
+            <p className="text-sm text-center mt-5 border-t pt-2">Don&apos;t have an account?</p>
             <Button type="button" onClick={() => router.push("/auth/signup")}>
               Sign up
             </Button>
