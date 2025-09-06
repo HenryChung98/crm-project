@@ -7,6 +7,9 @@ import { signInWithGoogle } from "./signInWIthGoogle";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
+// icons
+import { BiShow, BiHide } from "react-icons/bi";
+
 // ui
 import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
@@ -53,36 +56,46 @@ export default function SigninPage() {
     <>
       <Form action={handleSubmit} formTitle="Sign in">
         <FormField
-          label="Email"
           type="email"
+          placeholder="Email"
           name="email"
           required
           value={formData.email}
           onChange={handleChange}
         />
         <FormField
-          label="Password"
           type={showPassword ? "text" : "password"}
+          placeholder="Password"
           name="password"
           value={formData.password}
           onChange={handleChange}
           required
         />
         {error && <p className="text-red-500 text-sm">{error}</p>}
-        <Button onClick={() => setShowPassword(!showPassword)}>show passwords</Button>
-        <div className="space-y-2">
-          <div>
+        <div className="mt-4 space-y-4">
+          <div className="flex justify-between items-center text-sm">
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-sm px-2 py-1"
+            >
+              {showPassword ? <BiShow size={20} /> : <BiHide size={20} />}
+            </button>
+            <Link href="/auth/signin/reset-password" className="text-blue-500 hover:underline">
+              reset password?
+            </Link>
+          </div>
+
+          <div className="flex flex-col gap-5">
             <Button type="submit">Sign in</Button>
-            <Button type="button" onClick={signInWithGoogle}>
+            <Button type="button" onClick={signInWithGoogle} variant="secondary">
               Continue with Google
             </Button>
+            <p className="text-sm text-center mt-5 border-t pt-2">Don't have an account?</p>
+            <Button type="button" onClick={() => router.push("/auth/signup")}>
+              Sign up
+            </Button>
           </div>
-          <Button type="submit">
-            <Link href="/auth/signup">sign up</Link>
-          </Button>
-          <Button>
-            <Link href="/auth/signin/reset-password">reset password?</Link>
-          </Button>
         </div>
       </Form>
     </>

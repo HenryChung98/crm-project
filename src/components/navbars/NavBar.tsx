@@ -175,7 +175,7 @@ const SearchOverlay = ({
           <input
             type="text"
             placeholder="Search for products"
-            className="w-full py-3 pl-4 pr-16 bg-gray-200 rounded outline-none"
+            className="w-full py-3 pl-4 pr-16 bg-gray-200 border rounded outline-none placeholder-gray-400"
             autoFocus
           />
           <button

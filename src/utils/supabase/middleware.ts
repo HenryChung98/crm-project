@@ -37,6 +37,18 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  if (
+    user &&
+    (request.nextUrl.pathname === "/auth/signin" ||
+      request.nextUrl.pathname === "/auth/signup" ||
+      request.nextUrl.pathname === "/auth" ||
+      request.nextUrl.pathname === "/")
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
   // 디버깅을 위한 로그
   console.log("Middleware - Current path:", request.nextUrl.pathname);
   console.log("Middleware - User:", user ? "Logged in" : "Not logged in");

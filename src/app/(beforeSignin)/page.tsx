@@ -1,46 +1,39 @@
-"use client";
-// import { createClient } from "@/utils/supabase/client";
-// import { useEffect } from "react";
-import Link from "next/link";
-import { useAuth } from "@/contexts/AuthContext";
-import { useSupabase } from "@/hooks/useSupabase";
-
 export default function Home() {
-  const { user, loading } = useAuth();
-  const { signOut } = useSupabase();
-  // const supabase = createClient();
-  // useEffect(() => {
-  //   const getSession = async () => {
-  //     const {
-  //       data: { session },
-  //     } = await supabase.auth.getSession();
-
-  //     if (session?.user) {
-  //       console.log(session);
-  //     }
-  //   };
-
-  //   getSession();
-  // }, []);
-  console.log(user);
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        {loading ? (
-          <span className="text-gray-400">Checking auth...</span>
-        ) : user ? (
-          <span className="text-green-700">{user.email}</span>
-        ) : (
-          <span className="text-gray-500">Guest</span>
-        )}
-        <Link href={user ? "/dashboard" : "/auth/signin"} className="pr-5">
-          dashboard / signin
-        </Link>
+    <div className="">
+      <section className="relative min-h-screen flex items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800"></div>
 
-        <button onClick={signOut}>sign out</button>
-      </main>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
+            Start Simply
+            <span className="block bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+              Grow Faster
+            </span>
+          </h1>
 
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center"></footer>
+          <p className="text-xl md:text-2xl mb-8 max-w-4xl mx-auto opacity-90">
+            Transform customer relationships and accelerate business growth with us
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <button className="group bg-white text-blue-600 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105 flex items-center gap-2">
+              Start for free
+            </button>
+
+            <button className="group flex items-center gap-2 px-8 py-4 border-2 border-white text-white rounded-full text-lg font-semibold hover:bg-white hover:text-blue-600 transition-all">
+              View demo
+            </button>
+          </div>
+
+          <div className="mt-16 text-sm opacity-75">
+            <p>Credit card is not required • Cancellation available at any time</p>
+          </div>
+          <button className="group bg-white text-blue-600 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105 flex items-center gap-2">
+            Sales consulting service
+          </button>
+        </div>
+      </section>
     </div>
   );
 }

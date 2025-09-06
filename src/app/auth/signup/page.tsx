@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { signUp } from "./action";
+import { BiShow, BiHide } from "react-icons/bi";
 
 // ui
 import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
+import { showSuccess, showError } from "@/utils/feedback";
 
 interface SignupFormData {
   firstName: string;
@@ -24,23 +26,20 @@ export default function SignUpPage() {
     password: "",
     confirmPassword: "",
   });
-  const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-
-    if (error) {
-      setError(null);
-    }
   };
 
   const handleSubmit = async (formData: FormData) => {
     const res = await signUp(formData);
 
     if (res?.error) {
-      setError(res.error);
+      showError(res.error);
+    } else {
+      showSuccess("Sign up successful");
     }
   };
 
@@ -48,7 +47,6 @@ export default function SignUpPage() {
     <>
       <Form action={handleSubmit} formTitle="Sign up">
         <FormField
-          label="First Name"
           name="firstName"
           type="text"
           placeholder="First Name"
@@ -57,7 +55,6 @@ export default function SignUpPage() {
           required
         />
         <FormField
-          label="Last Name"
           name="lastName"
           type="text"
           placeholder="Last Name"
@@ -66,7 +63,6 @@ export default function SignUpPage() {
           required
         />
         <FormField
-          label="Email"
           name="email"
           type="email"
           placeholder="Email"
@@ -75,7 +71,6 @@ export default function SignUpPage() {
           required
         />
         <FormField
-          label="Password"
           name="password"
           type={showPassword ? "text" : "password"}
           placeholder="Password"
@@ -84,7 +79,6 @@ export default function SignUpPage() {
           required
         />
         <FormField
-          label="Confirm Password"
           name="confirmPassword"
           type={showPassword ? "text" : "password"}
           placeholder="Confirm Password"
@@ -92,9 +86,16 @@ export default function SignUpPage() {
           onChange={handleChange}
           required
         />
-        <Button type="submit"> Sign Up</Button>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        <Button onClick={() => setShowPassword(!showPassword)}>show passwords</Button>
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="text-sm px-2 py-1"
+        >
+          {showPassword ? <BiShow size={20} /> : <BiHide size={20} />}
+        </button>
+        <div className="flex flex-col gap-5">
+          <Button type="submit"> Sign Up</Button>
+        </div>
       </Form>
     </>
   );

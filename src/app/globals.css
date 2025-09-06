@@ -131,7 +131,7 @@ px-section, py-container, bg-accent, text-success-foreground, shadow-base */
   --input: #1e293b;
   --ring: #93c5fd;
 
-  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
 }
 
 /* remove it later */

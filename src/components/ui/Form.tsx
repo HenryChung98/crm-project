@@ -7,12 +7,14 @@ interface FormProps extends React.FormHTMLAttributes<HTMLFormElement> {
 
 export function Form({ children, formTitle, className = "", ...props }: FormProps) {
   return (
-    <form
-      className={`w-1/3 m-auto space-y-4 p-4 bg-var(--background) text-var(--foreground) border rounded-lg shadow-sm ${className}`}
-      {...props}
-    >
-      <h3 className="text-xl font-semibold">{formTitle}</h3>
-      {children}
-    </form>
+    <div className="flex justify-center items-center min-h-screen">
+      <form
+        className={`w-1/4 m-auto space-y-4 p-10 bg-var(--background) text-var(--foreground) rounded-lg shadow-sm border ${className}`}
+        {...props}
+      >
+        <h3 className="text-xl font-semibold text-center">{formTitle}</h3>
+        {children}
+      </form>
+    </div>
   );
 }
