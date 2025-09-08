@@ -9,7 +9,7 @@ import { PlanName } from "@/types/database/plan";
 // ui
 import { showError, showSuccess } from "@/utils/feedback";
 
-export default function PricingPage() {
+export default function SubscriptionPage() {
   const { user, supabase } = useAuth();
   const [loading, setLoading] = useState(false);
   const router = useRouter();

@@ -64,7 +64,7 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
   useEffect(() => {
     if (!planLoading && plan && !plan.subscription && !hasRedirected) {
       setHasRedirected(true);
-      router.replace("/pricing");
+      router.replace("/subscription");
     }
   }, [planLoading, plan, router, hasRedirected]);
 

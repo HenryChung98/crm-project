@@ -15,7 +15,7 @@ export default function BillingPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
       <PageHeader title="Billing" />
-      <Link href="/pricing">change plan</Link>
+      <Link href="/subscription">change plan</Link>
       <div className="space-y-4 mt-8">
         <Button className="bg-green-600 hover:bg-green-700">Subscribe (Active)</Button>
 

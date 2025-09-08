@@ -52,6 +52,9 @@
 
 /* e.g.
 px-section, py-container, bg-accent, text-success-foreground, shadow-base */
+* {
+  transition: all 0.3s ease;
+}
 
 :root {
   --container-padding: 1rem;
@@ -94,6 +97,13 @@ px-section, py-container, bg-accent, text-success-foreground, shadow-base */
   --ring: #3b82f6;
 
   --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  --banner-from: #1e293b;
+  --banner-from-foreground: #ecfeff;
+  --banner-via: #1e3a8a;
+  --banner-via-foreground: #dbeafe;
+  --banner-to: #3730a3;
+  --banner-to-foreground: #c7d2fe;
 }
 
 .dark {
@@ -132,13 +142,13 @@ px-section, py-container, bg-accent, text-success-foreground, shadow-base */
   --ring: #93c5fd;
 
   --box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+
 }
 
 /* remove it later */
 body {
   background: var(--background);
   color: var(--foreground);
-  transition: 0.3s;
 }
 
 button {

@@ -79,8 +79,8 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // /pricing 경로에 대한 특별 처리
-  if (request.nextUrl.pathname.startsWith("/pricing")) {
+  // /subscription 경로에 대한 특별 처리
+  if (request.nextUrl.pathname.startsWith("/subscription")) {
     if (!user) {
       console.log("Middleware - Redirecting to /auth/signin");
       // 로그인되지 않은 사용자는 로그인 페이지로 리다이렉트
