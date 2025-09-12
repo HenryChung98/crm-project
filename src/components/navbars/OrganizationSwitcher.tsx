@@ -27,18 +27,18 @@ export default function OrganizationSwitcher({
       {/* main button */}
       <button
         onClick={toggleDropdown}
-        className="w-full p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between hover:bg-gray-100 transition-colors"
+        className="w-full p-3 bg-navbar-comp rounded-lg flex items-center justify-between hover:opacity-50 transition-colors"
       >
         <div className="flex items-center">
           <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center text-white text-sm font-medium mr-3">
             {currentOrgName.charAt(0).toUpperCase()}
           </div>
           <div className="text-left">
-            <p className="text-sm font-medium text-gray-900 truncate">{currentOrgName}</p>
+            <p className="text-sm font-medium truncate">{currentOrgName}</p>
           </div>
         </div>
         <FiChevronDown
-          className={`transition-transform text-black ${isOpen ? "rotate-180" : ""}`}
+          className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -53,7 +53,7 @@ export default function OrganizationSwitcher({
                 onOrgChange(org.organization_id);
                 closeDropdown();
               }}
-              className="w-full p-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+              className="w-full p-3 flex items-center justify-between hover:opacity-50 transition-colors"
             >
               <div className="flex items-center">
                 <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center text-white text-sm font-medium mr-3">

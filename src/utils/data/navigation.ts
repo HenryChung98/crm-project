@@ -1,5 +1,11 @@
-import { SiMinetest } from "react-icons/si";
 import React from "react";
+import { 
+  RiDashboardLine,    
+  RiGroupLine,        
+  RiLineChartLine,    
+  RiFileTextLine,    
+  RiSettings3Line    
+} from 'react-icons/ri';
 
 export interface NavItemType {
   label: string;
@@ -29,13 +35,13 @@ export function createCrmNavItems(searchParams: URLSearchParams): CRMNavItemType
     {
       label: "Dashboard",
       href: `/dashboard${queryParam}`,
-      icon: React.createElement(SiMinetest),
+      icon: React.createElement(RiDashboardLine),
       children: undefined,
     },
     {
       label: "Customers",
       href: `#`,
-      icon: React.createElement(SiMinetest),
+      icon: React.createElement(RiGroupLine),
       children: [
         { label: "All Customers", href: `/dashboard/customers${queryParam}` },
         { label: "Add Customer", href: `/dashboard/customers/create${queryParam}` },
@@ -45,7 +51,7 @@ export function createCrmNavItems(searchParams: URLSearchParams): CRMNavItemType
     {
       label: "Sales",
       href: `#`,
-      icon: React.createElement(SiMinetest),
+      icon: React.createElement(RiLineChartLine),
       children: [
         { label: "All Leads", href: `#` },
         { label: "Opportunities", href: `#` },
@@ -56,7 +62,7 @@ export function createCrmNavItems(searchParams: URLSearchParams): CRMNavItemType
     {
       label: "Reports",
       href: `#`,
-      icon: React.createElement(SiMinetest),
+      icon: React.createElement(RiFileTextLine),
       children: [
         { label: "Sales Reports", href: `#` },
         { label: "Customer Reports", href: `#` },
@@ -66,7 +72,7 @@ export function createCrmNavItems(searchParams: URLSearchParams): CRMNavItemType
     {
       label: "Settings",
       href: `#`,
-      icon: React.createElement(SiMinetest),
+      icon: React.createElement(RiSettings3Line),
       children: [
         { label: "Profile", href: `/dashboard/settings/profile${queryParam}` },
         { label: "Team", href: `#` },

@@ -4,6 +4,10 @@
   /* 기본 배경 및 텍스트 */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-text-secondary: var(--text-secondary);
+
+  --color-navbar: var(--navbar);
+  --color-navbar-comp: var(--navbar-comp);
 
   /* 카드/팝오버 같은 컨테이너 */
   --color-card: var(--card); /* 카드 컴포넌트 배경 */
@@ -63,7 +67,11 @@ px-section, py-container, bg-accent, text-success-foreground, shadow-base */
 
 .light {
   --background: #ffffff;
-  --foreground: #0f172a;
+  --foreground: #1e293b;
+  --text-secondary: #64748b;
+
+  --navbar: #f8fafc;
+  --navbar-comp: #e2e8f0;
 
   --card: #ffffff;
   --popover: #f9fafb;
@@ -97,18 +105,15 @@ px-section, py-container, bg-accent, text-success-foreground, shadow-base */
   --ring: #3b82f6;
 
   --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-
-  --banner-from: #1e293b;
-  --banner-from-foreground: #ecfeff;
-  --banner-via: #1e3a8a;
-  --banner-via-foreground: #dbeafe;
-  --banner-to: #3730a3;
-  --banner-to-foreground: #c7d2fe;
 }
 
 .dark {
   --background: #0f172a;
-  --foreground: #f8fafc;
+  --foreground: #f1f5f9;
+  --text-secondary: #cbd5e1;
+
+  --navbar: #1e293b;
+  --navbar-comp: #475569;
 
   --card: #1e293b;
   --popover: #1e293b;
@@ -142,7 +147,6 @@ px-section, py-container, bg-accent, text-success-foreground, shadow-base */
   --ring: #93c5fd;
 
   --box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
-
 }
 
 /* remove it later */

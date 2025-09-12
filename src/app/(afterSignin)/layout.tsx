@@ -132,7 +132,8 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
         currentOrg={currentOrganizationId}
         onOrgChange={handleOrganizationSwitch}
       />
-      <div className="pl-64">{children}</div>
+      {/* <div className="pl-64">{children}</div> */}
+      <div>{children}</div>
     </>
   );
 }
