@@ -4,6 +4,10 @@ import { withOrgAuth } from "@/utils/auth";
 import { getUsageForOrg } from "@/hooks/hook-actions/get-usage";
 import { getPlanByOrg } from "@/hooks/hook-actions/get-plans";
 
+// resend
+import { Resend } from "resend";
+import { WelcomeEmail } from "@/components/resend-components/templates/WelcomeEmail";
+
 export async function createCustomer(formData: FormData) {
   const orgId = formData.get("orgId")?.toString().trim();
   const firstName = formData.get("firstName")?.toString().trim();
@@ -116,7 +120,43 @@ export async function createCustomer(formData: FormData) {
       return { error: customerLogError.message };
     }
 
-    return { success: true };
+    // resend logic
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    const { data: orgData } = await supabase
+      .from("organizations")
+      .select("name, email, phone")
+      .eq("id", orgId)
+      .single();
+
+    if (email && process.env.RESEND_API_KEY) {
+      try {
+        const fromEmail =
+          `${orgData?.name}@${process.env.RESEND_DOMAIN}` || process.env.DEFAULT_FROM_EMAIL;
+        const fromName = orgData?.name || "CRM-Project";
+        // const orgEmail = orgData?.email || "this guy has no email";
+        // const orgPhone = orgData?.phone || "this guy has no phone";
+
+        await resend.emails.send({
+          from: `${fromName} <${fromEmail}>`,
+          to: [email],
+          subject: `Welcome to ${fromName}!`,
+          html: WelcomeEmail({
+            firstName,
+            orgName: fromName,
+            orgEmail: orgData?.email,
+            orgPhone: orgData?.phone,
+          }),
+        });
+      } catch (emailError) {
+        return {
+          success: false,
+          error: emailError instanceof Error ? emailError.message : "Unknown email error occured",
+        };
+      }
+    }
+
+    return { success: true, customerId: customerInsertData.id };
   } catch (error) {
     return {
       success: false,

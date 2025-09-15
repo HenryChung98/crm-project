@@ -24,6 +24,7 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [hasRedirected, setHasRedirected] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // URL에서 현재 조직 ID 가져오기
   const currentOrganizationId = useMemo(() => searchParams.get("org") || "", [searchParams]);
@@ -131,9 +132,10 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
         organizations={orgMembers}
         currentOrg={currentOrganizationId}
         onOrgChange={handleOrganizationSwitch}
+        onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
-      {/* <div className="pl-64">{children}</div> */}
-      <div>{children}</div>
+      <div className={isSidebarCollapsed ? "" : "pl-64"}>{children}</div>
+      {/* <div>{children}</div> */}
     </>
   );
 }

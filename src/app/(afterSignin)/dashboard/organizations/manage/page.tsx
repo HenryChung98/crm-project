@@ -53,7 +53,6 @@ export default function ManageOrganizationPage() {
 
           if (result.success) {
             showSuccess("Role updated successfully!");
-
             refetch();
           } else {
             showError(`Failed to update role: ${result.error}`);
@@ -112,62 +111,79 @@ export default function ManageOrganizationPage() {
     );
   };
 
+  // Filter out current user's member data
+  const otherMembers = orgMembers.filter((member) => member.user_id !== user?.id);
+
   if (isLoading) {
-    return <div>Loading organization members...</div>;
+    return <div className="p-6">Loading organization members...</div>;
   }
 
   if (error) {
     if (error.message.includes("User not authenticated")) {
-      return <div>Please log in to view this page.</div>;
+      return <div className="p-6">Please log in to view this page.</div>;
     }
     if (error.message.includes("permission required")) {
-      return <div>Access denied - Owner role required</div>;
+      return <div className="p-6">Access denied - Owner role required</div>;
     }
-    return <div>Error loading members: {error.message}</div>;
+    return <div className="p-6">Error loading members: {error.message}</div>;
   }
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">
-        Manage {orgMembers[0]?.organizations?.name || currentOrgId}
-      </h1>
-      <button className="border rounded p-2 m-2" onClick={refetch}>
-        {isFetching ? "loading.." : "refresh"}
-      </button>
-      <div className="grid gap-4">
-        {orgMembers.map((member) =>
-          member.user_id !== user?.id ? (
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold mb-2">
+          Manage {orgMembers[0]?.organizations?.name || currentOrgId}
+        </h1>
+        <button className="border rounded p-2" onClick={refetch} disabled={isFetching}>
+          {isFetching ? "Loading..." : "Refresh"}
+        </button>
+      </div>
+
+      {otherMembers.length === 0 ? (
+        <div className="text-center py-8">
+          <div className="mb-2">
+            <h3 className="text-lg font-medium mb-2">No other members</h3>
+            <p className="text-text-secondary">
+              You are currently the only member in this organization. Invite others to collaborate.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {otherMembers.map((member) => (
             <div key={member.id} className="p-4 border rounded">
               <h3 className="font-semibold">User: {member.user_id}</h3>
-              <h3 className="font-semibold">email: {member.user_email}</h3>
-              <p className="text-gray-600">Role: {member.role}</p>
+              <h3 className="font-semibold">Email: {member.user_email}</h3>
+              <p className="mb-3">Role: {member.role}</p>
 
-              <div className="flex items-center gap-2">
-                <select
-                  value={member.role}
-                  onChange={(e) => handleUpdateRole(member.id, e.target.value)}
-                  disabled={pendingActions[member.id] === "updating"}
-                  className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <select
+                    value={member.role}
+                    onChange={(e) => handleUpdateRole(member.id, e.target.value)}
+                    disabled={pendingActions[member.id] === "updating"}
+                    className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+                  >
+                    <option value="member">Member</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                  {pendingActions[member.id] === "updating" && (
+                    <span className="text-sm">Updating...</span>
+                  )}
+                </div>
+
+                <Button
+                  variant="danger"
+                  onClick={() => handleRemove(member.id)}
+                  disabled={pendingActions[member.id] === "removing"}
                 >
-                  <option value="member">Member</option>
-                  <option value="admin">Admin</option>
-                </select>
-                {pendingActions[member.id] === "updating" && (
-                  <span className="text-sm text-gray-500">Updating...</span>
-                )}
+                  {pendingActions[member.id] === "removing" ? "Deleting..." : "Delete"}
+                </Button>
               </div>
-
-              <Button
-                variant="danger"
-                onClick={() => handleRemove(member.id)}
-                disabled={pendingActions[member.id] === "removing"}
-              >
-                {pendingActions[member.id] === "removing" ? "deleting..." : "delete"}
-              </Button>
             </div>
-          ) : null
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
       <ConfirmModal />
     </div>

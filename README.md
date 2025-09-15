@@ -22,6 +22,11 @@
 - [vercel](https://vercel.com/)
 
 
+### etc
+
+- [Resend](https://resend.com/)
+- [React Email](https://react.email/) npm install @react-email/components
+
 ### restricted service
 
 ##### user
