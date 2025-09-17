@@ -3,7 +3,7 @@
 import { SubscribedPlan } from "@/types/database/plan";
 import { createClient } from "@/utils/supabase/server";
 
-export async function getPlanByUser(): Promise<SubscribedPlan> {
+export async function hasSubscription(): Promise<boolean> {
   const supabase = await createClient();
 
   const {
@@ -15,40 +15,23 @@ export async function getPlanByUser(): Promise<SubscribedPlan> {
     throw new Error("Unauthorized");
   }
 
-  const { data: subscriptionData, error: subscriptionError } = await supabase
+  const { data, error } = await supabase
     .from("subscriptions")
-    .select(`*, plans (*)`)
+    .select("id")
     .eq("user_id", user.id)
-    .single();
+    .in("status", ["active", "free"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  if (subscriptionError) {
-    // PGRST116 에러는 데이터가 없는 경우이므로 별도 처리
-    if (subscriptionError.code === "PGRST116") {
-      throw new Error("No subscription found for user");
+  if (error) {
+    if (error.code === "PGRST116") {
+      return false;
     }
-    throw subscriptionError;
+    throw error;
   }
 
-  if (!subscriptionData) {
-    throw new Error("No subscription found for user");
-  }
-
-  // plans 데이터 유효성 검사 추가
-  if (!subscriptionData.plans) {
-    throw new Error("Plan data not found");
-  }
-
-  // plans가 배열로 반환되므로 첫 번째 요소를 사용
-  const planData = Array.isArray(subscriptionData.plans) ? subscriptionData.plans[0] : subscriptionData.plans;
-
-  if (!planData) {
-    throw new Error("Plan details not found");
-  }
-
-  return {
-    plans: planData,
-    subscription: subscriptionData,
-  } as SubscribedPlan;
+  return !!data;
 }
 
 export async function getPlanByOrg(orgId?: string): Promise<SubscribedPlan | null> {
@@ -88,7 +71,9 @@ export async function getPlanByOrg(orgId?: string): Promise<SubscribedPlan | nul
     .from("subscriptions")
     .select(`*, plans (*)`)
     .eq("user_id", org.created_by)
-    .single();
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   if (subscriptionError) {
     if (subscriptionError.code === "PGRST116") {

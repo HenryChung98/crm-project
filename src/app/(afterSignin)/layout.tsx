@@ -5,7 +5,6 @@ import CRMSideBar from "../../components/navbars/CRMSideBar";
 
 // hook
 import { useAllOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
-import { usePlanByUser } from "@/hooks/tanstack/usePlan";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 // type
@@ -23,13 +22,10 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const [hasRedirected, setHasRedirected] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // URL에서 현재 조직 ID 가져오기
   const currentOrganizationId = useMemo(() => searchParams.get("org") || "", [searchParams]);
-
-  const { data: plan, isLoading: planLoading } = usePlanByUser();
 
   // 조직 멤버 데이터 가져오기
   const {
@@ -61,36 +57,21 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
     [searchParams, router]
   );
 
-  // 플랜 검사 (별도 useEffect)
-  useEffect(() => {
-    if (!planLoading && plan && !plan.subscription && !hasRedirected) {
-      setHasRedirected(true);
-      router.replace("/subscription");
-    }
-  }, [planLoading, plan, router, hasRedirected]);
+
 
   // 조직 유효성 검사 및 리다이렉트 (별도 useEffect)
   useEffect(() => {
-    if (
-      isLoadingOrgMembers ||
-      !orgMembers?.length ||
-      hasRedirected ||
-      planLoading // 플랜 로딩 중이면 대기
-    ) {
-      return;
-    }
+    if (isLoadingOrgMembers || !orgMembers?.length) return;
 
     // 현재 조직 ID가 유효하지 않은 경우 기본 조직으로 리다이렉트
     if (currentOrganizationId && !validOrganizationIds.has(currentOrganizationId)) {
       if (defaultOrganizationId) {
-        setHasRedirected(true);
         const params = new URLSearchParams(searchParams.toString());
         params.set("org", defaultOrganizationId);
         router.replace(`${pathname}?${params.toString()}`);
       }
     } else if (!currentOrganizationId && defaultOrganizationId) {
       // org 파라미터가 없는 경우 기본 조직으로 리다이렉트
-      setHasRedirected(true);
       const params = new URLSearchParams(searchParams.toString());
       params.set("org", defaultOrganizationId);
       router.replace(`${pathname}?${params.toString()}`);
@@ -101,8 +82,6 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
     currentOrganizationId,
     validOrganizationIds,
     defaultOrganizationId,
-    hasRedirected,
-    planLoading,
     searchParams,
     pathname,
     router,
@@ -122,7 +101,7 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
     );
   }
 
-  if (isLoadingOrgMembers || planLoading) {
+  if (isLoadingOrgMembers) {
     return <LoadingSpinner />;
   }
 

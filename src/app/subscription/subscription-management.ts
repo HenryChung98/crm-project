@@ -24,7 +24,6 @@ interface Plan {
   description: string;
   id: string;
   max_customers: number;
-  max_organization_num: number;
   max_users: number;
   name: string;
   price_monthly: number;

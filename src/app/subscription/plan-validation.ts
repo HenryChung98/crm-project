@@ -2,13 +2,12 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { PlanName } from "@/types/database/plan";
 
 export interface PlanLimits {
-  maxOrganizations: number;
   maxMembersPerOrg: number;
   maxCustomersPerOrg: number;
 }
 
 export interface ValidationViolation {
-  type: "organizations" | "members" | "customers";
+  type: "members" | "customers";
   orgId?: string;
   current: number;
   limit: number;
@@ -19,7 +18,6 @@ export interface ValidationResult {
   isValid: boolean;
   violations: ValidationViolation[];
   currentUsage: {
-    organizations: number;
     totalMembers: number;
     totalCustomers: number;
   };
@@ -33,7 +31,7 @@ export const getPlanLimits = async (
   try {
     const { data: plan, error } = await supabase
       .from("plans")
-      .select("max_users, max_customers, max_organization_num")
+      .select("max_users, max_customers")
       .eq("name", planName)
       .single();
 
@@ -43,7 +41,6 @@ export const getPlanLimits = async (
     }
 
     return {
-      maxOrganizations: plan.max_organization_num || 0,
       maxMembersPerOrg: plan.max_users || 0,
       maxCustomersPerOrg: plan.max_customers || 0,
     };
@@ -83,22 +80,6 @@ export const validatePlanChange = async (
 
   if (orgError) {
     throw new Error("Unable to retrieve organization.");
-  }
-
-  const currentOrgCount = organizations?.length || 0;
-
-  // 조직 수 검증 (다운그레이드 시에만)
-  if (currentPlan && isDowngrade(currentPlan, targetPlan)) {
-    if (currentOrgCount > limits.maxOrganizations) {
-      violations.push({
-        type: "organizations",
-        current: currentOrgCount,
-        limit: limits.maxOrganizations,
-        message: `Currently you have ${currentOrgCount} organizations.\n${targetPlan.toUpperCase()} plan allows up to ${
-          limits.maxOrganizations
-        } organizations.`,
-      });
-    }
   }
 
   let totalMembers = 0;
@@ -162,7 +143,6 @@ export const validatePlanChange = async (
     isValid: violations.length === 0,
     violations,
     currentUsage: {
-      organizations: currentOrgCount,
       totalMembers,
       totalCustomers,
     },

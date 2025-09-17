@@ -33,7 +33,6 @@ const createQueryClient = () =>
       mutations: {
         onError: (error) => {
           console.error("Mutation error:", error);
-          // 여기에 전역 에러 토스트 로직 추가 가능
         },
       },
     },

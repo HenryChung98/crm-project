@@ -1,14 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createOrganization } from "./action";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query"; // 추가
+
+import { useSubscriptionCheck } from "@/hooks/tanstack/usePlan";
 
 // ui
 import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
 import { Dropdown } from "@/components/ui/Dropdown";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner"; // 추가
 import { showSuccess, showError } from "@/utils/feedback";
 
 interface OrganizationFormData {
@@ -19,7 +23,7 @@ interface OrganizationFormData {
 }
 
 interface Country {
-  iso: string; // ISO Alpha‑2 code ("US", "CA")
+  iso: string;
   name: string;
   hasPostalCodes: boolean;
   region: string;
@@ -34,12 +38,22 @@ const sortedCountries = countries.sort((a: Country, b: Country) => a.name.locale
 
 export default function CreateOrganizationPage() {
   const router = useRouter();
-  // const [country, setCountry] = useState<string>("");
+  const queryClient = useQueryClient(); // 추가
   const [noProvince, setNoProvince] = useState<boolean>(false);
 
-  // const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-  //   setFormData.orgCountry(e.target.value);
-  // };
+  // check subscription
+  const { hasSubscription, isLoading: isLoadingSubscription } = useSubscriptionCheck();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (isLoadingSubscription) return;
+    if (pathname === "/subscription") return;
+
+    if (hasSubscription === false) {
+      router.replace("/subscription");
+      return;
+    }
+  }, [hasSubscription, isLoadingSubscription, pathname, router]);
 
   const [formData, setFormData] = useState<OrganizationFormData>({
     orgName: "",
@@ -64,10 +78,25 @@ export default function CreateOrganizationPage() {
     if (res?.error) {
       showError(`Error: ${res.error}`);
     } else {
+      // 🟢 조직 생성 후 관련 쿼리 캐시 무효화
+      await queryClient.invalidateQueries({
+        queryKey: ["organizationMembers"],
+      });
+
       showSuccess("Organization successfully created");
       router.replace("/dashboard");
     }
   };
+
+  // 🟢 로딩 중이면 스피너 표시
+  if (isLoadingSubscription) {
+    return <LoadingSpinner />;
+  }
+
+  // 🟢 구독이 없으면 빈 화면 (리다이렉트 중)
+  if (hasSubscription === false) {
+    return null;
+  }
 
   return (
     <div>
@@ -127,22 +156,6 @@ export default function CreateOrganizationPage() {
 
         <Button type="submit">Start</Button>
       </Form>
-      {/* <form className="space-y-4 border w-1/3 m-auto p-4 rounded">
-        <select
-          name="orgCountry"
-          value={formData.orgCountry}
-          onChange={handleChange}
-          required
-          className="border w-full p-2 text-black"
-        >
-          <option value="">Select Country</option>
-          {sortedCountries.map((c: Country) => (
-            <option key={c.iso} value={c.iso}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </form> */}
     </div>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useAllOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
 import { createCustomer } from "./action";
 
 // ui
@@ -10,15 +9,11 @@ import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
 import { showSuccess, showError } from "@/utils/feedback";
 
-// type
-import { EMPTY_ARRAY } from "@/types/customData";
-import { OrganizationMembers } from "@/types/database/organizations";
 
 interface CustomerFormData {
   orgId: string;
   firstName: string;
   lastName: string;
-  source: string;
   email: string;
   phone?: string | null;
   note?: string | null;
@@ -33,17 +28,10 @@ export default function CreateCustomersPage() {
     orgId: "",
     firstName: "",
     lastName: "",
-    source: "",
     email: "",
     phone: "",
     note: "",
   });
-
-  // fetch customer infos
-  const { data: orgMembers = EMPTY_ARRAY } = useAllOrganizationMembers<OrganizationMembers>(`
-    organization_id, organization_name
-    `);
-  const currentOrg = orgMembers.find((org) => org.organization_id === currentOrgId);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -72,7 +60,7 @@ export default function CreateCustomersPage() {
   };
   return (
     <>
-      <Form action={handleSubmit} formTitle={`add customer to ${currentOrg?.organization_name}`}>
+      <Form action={handleSubmit} formTitle={`add customer`}>
         <input type="hidden" name="orgId" value={currentOrgId} />
         <FormField
           label="First Name"
@@ -89,15 +77,6 @@ export default function CreateCustomersPage() {
           type="text"
           placeholder="Doe"
           value={formData.lastName}
-          onChange={handleChange}
-          required
-        />
-        <FormField
-          label="Source"
-          name="source"
-          type="text"
-          placeholder="By SNS"
-          value={formData.source}
           onChange={handleChange}
           required
         />

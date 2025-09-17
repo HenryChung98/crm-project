@@ -9,6 +9,7 @@
 - [typed-countries](https://www.npmjs.com/package/typed-countries)
 - [Tanstack Query + devtools](https://tanstack.com/query/v5/docs/framework/react/installation)
 - [React Hot Toast](https://react-hot-toast.com/)
+
 ### OAuth Provider
 
 - [Google](https://console.cloud.google.com/)
@@ -21,17 +22,20 @@
 
 - [vercel](https://vercel.com/)
 
-
 ### etc
 
 - [Resend](https://resend.com/)
-- [React Email](https://react.email/) npm install @react-email/components
 
 ### restricted service
 
-##### user
+<!-- ##### user
+
 - create organization
 
-##### organization
-- invite user
-- add customer
+##### organization -->
+
+- max invite user
+- max add customer
+- email sender
+- customer status
+- customer link

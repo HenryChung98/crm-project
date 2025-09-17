@@ -1,8 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
-import { getUsageForUser } from "@/hooks/hook-actions/get-usage";
-import { getPlanByUser } from "@/hooks/hook-actions/get-plans";
+import { hasSubscription } from "@/hooks/hook-actions/get-plans";
 
 export async function createOrganization(formData: FormData) {
   const supabase = await createClient();
@@ -15,6 +14,11 @@ export async function createOrganization(formData: FormData) {
   // check all fields
   if (!orgName || !orgCountry || !orgCity) {
     return { error: "Organization's name, country, and city are required." };
+  }
+
+  const checkSubscription = await hasSubscription();
+  if (!checkSubscription) {
+    return { error: "You are fucking cheating now." };
   }
 
   // province validation
@@ -36,37 +40,6 @@ export async function createOrganization(formData: FormData) {
     return { error: "Unauthorized" };
   }
 
-  // get user's current plan using existing action
-  const userPlanData = await getPlanByUser();
-  if (!userPlanData?.plans) {
-    return { error: "Failed to get user plan data" };
-  }
-
-  // get current usage using existing action
-  const currentUsage = await getUsageForUser();
-  if (!currentUsage) {
-    return { error: "Failed to get current usage data" };
-  }
-
-  // check if user can create more organizations
-  const maxOrganizations = userPlanData.plans.max_organization_num || 0;
-  if (currentUsage.orgTotal >= maxOrganizations) {
-    return {
-      error: `Organization limit reached. Your current plan allows up to ${maxOrganizations} organizations.`,
-    };
-  }
-
-  // check if expired
-  if (userPlanData.subscription.status !== "free") {
-    const isExpired =
-      userPlanData.subscription.ends_at && new Date(userPlanData.subscription.ends_at) < new Date();
-    if (isExpired) {
-      return {
-        error: `Your current plan is expired.`,
-      };
-    }
-  }
-
   // insert organization data to the table
   const orgData = {
     name: orgName,
@@ -75,6 +48,19 @@ export async function createOrganization(formData: FormData) {
     city: orgCity,
     created_by: user.id,
   };
+
+  const { data: organizationExist } = await supabase
+    .from("organizations")
+    .select("id")
+    .eq("created_by", user.id)
+    .maybeSingle();
+
+  if (organizationExist) {
+    return {
+      success: false,
+      error: "You already have an organization. Only one organization per user is allowed.",
+    };
+  }
 
   const { data: orgInsertData, error: orgDataError } = await supabase
     .from("organizations")

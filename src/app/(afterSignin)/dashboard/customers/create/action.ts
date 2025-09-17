@@ -12,7 +12,6 @@ export async function createCustomer(formData: FormData) {
   const orgId = formData.get("orgId")?.toString().trim();
   const firstName = formData.get("firstName")?.toString().trim();
   const lastName = formData.get("lastName")?.toString().trim();
-  const source = formData.get("source")?.toString().trim();
   const email = formData.get("email")?.toString().trim();
   const phone = formData.get("phone")?.toString().trim();
   const note = formData.get("note")?.toString().trim();
@@ -62,8 +61,8 @@ export async function createCustomer(formData: FormData) {
     }
 
     // check all fields
-    if (!orgId || !firstName || !lastName || !source || !email) {
-      return { error: "Customer's name, email and source are required." };
+    if (!orgId || !firstName || !lastName || !email) {
+      return { error: "Customer's name, and email are required." };
     }
 
     // check duplicate
@@ -85,7 +84,7 @@ export async function createCustomer(formData: FormData) {
       organization_id: orgId,
       first_name: firstName,
       last_name: lastName,
-      source: source,
+      source: `By ${orgMember.user_email}`,
       email: email ?? null,
       phone: phone ?? null,
       status: "new",

@@ -3,48 +3,45 @@
 import { useQuery } from "@tanstack/react-query";
 import { NetworkError } from "@/types/errors";
 import { SubscribedPlan } from "@/types/database/plan";
-import { getPlanByUser, getPlanByOrg } from "../hook-actions/get-plans";
+import { hasSubscription, getPlanByOrg } from "../hook-actions/get-plans";
 import { useMemo, useCallback } from "react";
 import {
   getUsageForOrg,
-  getUsageForUser,
-  type UsageByUser,
   type UsageByOrganization,
 } from "../hook-actions/get-usage";
 
-// 설정 분리
-const QUERY_CONFIG = {
-  PLAN_STALE_TIME: 1000 * 60 * 5, // 5분
-  USAGE_STALE_TIME: 1000 * 30, // 30초
-  MAX_RETRY_COUNT: 3,
-} as const;
+type SubscriptionResult = {
+  hasSubscription: boolean | undefined;
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => void;
+};
 
-// 기본 제한 타입
+export const useSubscriptionCheck = (): SubscriptionResult => {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["subscription", "check"],
+    queryFn: hasSubscription,
+    staleTime: 1000 * 60 * 5, // 5분간 캐시 
+    refetchOnWindowFocus: false, 
+  });
+
+  return {
+    hasSubscription: data,
+    isLoading,
+    error,
+    refetch,
+  };
+};
+
+
+type OrgQuotaType = "customers" | "users";
+
 type BaseLimits = {
   maxCustomers: number;
   maxOrganizations: number;
   maxUsers: number;
   planName: string;
   planId: string;
-};
-
-// 사용자 플랜 제한 타입 (조직만 해당)
-type UserLimits = Pick<BaseLimits, "maxOrganizations" | "planName" | "planId">;
-
-// 쿼터 타입 정의
-type UserQuotaType = "organizations";
-type OrgQuotaType = "customers" | "users";
-
-type UserPlanResult = {
-  data: SubscribedPlan | undefined;
-  error: Error | null;
-  isLoading: boolean;
-  isFetching: boolean;
-  refetch: () => void;
-  limits: UserLimits | null;
-  currentUsage: UsageByUser | null | undefined;
-  canAddOrganization: () => boolean;
-  getRemainingQuota: (type: UserQuotaType) => number;
 };
 
 type OrgPlanResult = {
@@ -60,89 +57,23 @@ type OrgPlanResult = {
   getRemainingQuota: (type: OrgQuotaType) => number;
 };
 
-// 공통 쿼리 옵션 팩토리
-const createQueryOptions = (staleTime: number) => ({
-  staleTime,
-  refetchOnWindowFocus: true,
-  retry: (failureCount: number, error: NetworkError) => {
-    if (error?.code === "PGRST301") return false;
-    return failureCount < QUERY_CONFIG.MAX_RETRY_COUNT;
-  },
-});
-
-// 공통 할당량 계산 로직
-const calculateRemainingQuota = (limit: number, usage: number): number => {
-  return Math.max(0, limit - usage);
-};
-
-export const usePlanByUser = (): UserPlanResult => {
-  const planResult = useQuery({
-    queryKey: ["plans", "user"],
-    queryFn: getPlanByUser,
-    ...createQueryOptions(QUERY_CONFIG.PLAN_STALE_TIME),
-  });
-
-  const usageResult = useQuery({
-    queryKey: ["usage", "user"],
-    queryFn: getUsageForUser,
-    enabled: !!planResult.data,
-    ...createQueryOptions(QUERY_CONFIG.USAGE_STALE_TIME),
-  });
-
-  // 성능 최적화: planId와 관련 데이터 변경시에만 재계산
-  const limits = useMemo((): UserLimits | null => {
-    if (!planResult.data?.plans) return null;
-
-    const plan = planResult.data.plans;
-    return {
-      maxOrganizations: plan.max_organization_num,
-      planName: plan.name,
-      planId: plan.id,
-    };
-  }, [
-    planResult.data?.plans?.id,
-    planResult.data?.plans?.max_organization_num,
-    planResult.data?.plans?.name,
-  ]);
-
-  const currentUsage = usageResult.data;
-
-  // useCallback으로 함수 메모이제이션
-  const canAddOrganization = useCallback((): boolean => {
-    if (!limits || !currentUsage) return false;
-    return currentUsage.orgTotal < limits.maxOrganizations;
-  }, [limits?.maxOrganizations, currentUsage?.orgTotal]);
-
-  const getRemainingQuota = useCallback(
-    (type: UserQuotaType): number => {
-      if (!limits || !currentUsage) return 0;
-
-      switch (type) {
-        case "organizations":
-          return calculateRemainingQuota(limits.maxOrganizations, currentUsage.orgTotal);
-        default:
-          return 0;
-      }
+const queryOptions = {
+  plan: {
+    staleTime: 1000 * 60 * 5, // 5분
+    refetchOnWindowFocus: true,
+    retry: (failureCount: number, error: NetworkError) => {
+      if (error?.code === "PGRST301") return false;
+      return failureCount < 3;
     },
-    [limits?.maxOrganizations, currentUsage?.orgTotal]
-  );
-
-  const refetch = useCallback(() => {
-    planResult.refetch();
-    usageResult.refetch();
-  }, [planResult.refetch, usageResult.refetch]);
-
-  return {
-    data: planResult.data,
-    error: planResult.error,
-    isLoading: planResult.isLoading || usageResult.isLoading,
-    isFetching: planResult.isFetching || usageResult.isFetching,
-    refetch,
-    limits,
-    currentUsage,
-    canAddOrganization,
-    getRemainingQuota,
-  };
+  },
+  usage: {
+    staleTime: 1000 * 30, // 30초
+    refetchOnWindowFocus: true,
+    retry: (failureCount: number, error: NetworkError) => {
+      if (error?.code === "PGRST301") return false;
+      return failureCount < 3;
+    },
+  },
 };
 
 export const usePlanByOrg = (orgId: string): OrgPlanResult => {
@@ -150,20 +81,19 @@ export const usePlanByOrg = (orgId: string): OrgPlanResult => {
     queryKey: ["plans", "org", orgId],
     queryFn: () => getPlanByOrg(orgId),
     enabled: !!orgId,
-    ...createQueryOptions(QUERY_CONFIG.PLAN_STALE_TIME),
+    ...queryOptions.plan,
   });
 
   const usageResult = useQuery({
     queryKey: ["usage", "org", orgId],
     queryFn: () => getUsageForOrg(orgId),
     enabled: !!orgId && !!planResult.data,
-    ...createQueryOptions(QUERY_CONFIG.USAGE_STALE_TIME),
+    ...queryOptions.usage,
   });
 
-  // 성능 최적화: 관련 데이터 변경시에만 재계산
   const limits = useMemo((): BaseLimits | null => {
     if (!planResult.data?.plans) return null;
-
+    
     const plan = planResult.data.plans;
     return {
       maxCustomers: plan.max_customers,
@@ -172,40 +102,32 @@ export const usePlanByOrg = (orgId: string): OrgPlanResult => {
       planName: plan.name,
       planId: plan.id,
     };
-  }, [
-    planResult.data?.plans?.id,
-    planResult.data?.plans?.max_customers,
-    planResult.data?.plans?.max_organization_num,
-    planResult.data?.plans?.max_users,
-    planResult.data?.plans?.name,
-  ]);
-
-  const currentUsage = usageResult.data;
+  }, [planResult.data?.plans]);
 
   const canAddCustomer = useCallback((): boolean => {
-    if (!limits || !currentUsage) return false;
-    return currentUsage.customerTotal < limits.maxCustomers;
-  }, [limits?.maxCustomers, currentUsage?.customerTotal]);
+    if (!limits || !usageResult.data) return false;
+    return usageResult.data.customerTotal < limits.maxCustomers;
+  }, [limits, usageResult.data]);
 
   const canAddUser = useCallback((): boolean => {
-    if (!limits || !currentUsage) return false;
-    return currentUsage.userTotal < limits.maxUsers;
-  }, [limits?.maxUsers, currentUsage?.userTotal]);
+    if (!limits || !usageResult.data) return false;
+    return usageResult.data.userTotal < limits.maxUsers;
+  }, [limits, usageResult.data]);
 
   const getRemainingQuota = useCallback(
     (type: OrgQuotaType): number => {
-      if (!limits || !currentUsage) return 0;
+      if (!limits || !usageResult.data) return 0;
 
-      switch (type) {
-        case "customers":
-          return calculateRemainingQuota(limits.maxCustomers, currentUsage.customerTotal);
-        case "users":
-          return calculateRemainingQuota(limits.maxUsers, currentUsage.userTotal);
-        default:
-          return 0;
+      const usage = usageResult.data;
+      if (type === "customers") {
+        return Math.max(0, limits.maxCustomers - usage.customerTotal);
       }
+      if (type === "users") {
+        return Math.max(0, limits.maxUsers - usage.userTotal);
+      }
+      return 0;
     },
-    [limits?.maxCustomers, limits?.maxUsers, currentUsage?.customerTotal, currentUsage?.userTotal]
+    [limits, usageResult.data]
   );
 
   const refetch = useCallback(() => {
@@ -220,7 +142,7 @@ export const usePlanByOrg = (orgId: string): OrgPlanResult => {
     isFetching: planResult.isFetching || usageResult.isFetching,
     refetch,
     limits,
-    currentUsage,
+    currentUsage: usageResult.data,
     canAddCustomer,
     canAddUser,
     getRemainingQuota,

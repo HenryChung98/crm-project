@@ -13,7 +13,7 @@ import { CustomerLogs } from "@/types/database/customers";
 import { useOrganizationInvitationsByEmail } from "@/hooks/tanstack/useOrganizationInvitations";
 import { useCustomerLogs } from "@/hooks/tanstack/useCustomerLogs";
 import { useDashboardStats } from "@/hooks/tanstack/useDashboardStats";
-import { usePlanByUser, usePlanByOrg } from "@/hooks/tanstack/usePlan";
+import { usePlanByOrg } from "@/hooks/tanstack/usePlan";
 
 // ui
 import JoinOrganizationButton from "@/components/JoinOrganizationButton";
@@ -52,9 +52,6 @@ export default function DashboardPage() {
     `id, action, organization_members:performed_by(user_email)`
   );
 
-  // get current user's plan
-  const { data: plan, isLoading: planLoading, error: planError } = usePlanByUser();
-
   // get current organization's plan - currentOrgId가 있을 때만 실행
   const {
     data: orgPlan,
@@ -64,7 +61,7 @@ export default function DashboardPage() {
 
   const hasInvitations = useMemo(() => orgInvitations.length > 0, [orgInvitations]);
 
-  const isEssentialLoading = planLoading || (currentOrgId && (isLoading || orgPlanLoading));
+  const isEssentialLoading = (currentOrgId && (isLoading || orgPlanLoading));
 
   if (isEssentialLoading) {
     return (
@@ -78,11 +75,6 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
-        {process.env.NODE_ENV === "development" && (
-          <Link href={`/testPage?org=${currentOrgId}`} className="border">
-            test page
-          </Link>
-        )}
 
         {/* 헤더 섹션 */}
         <div className="mb-8">
@@ -91,9 +83,6 @@ export default function DashboardPage() {
           {/* 플랜 정보 */}
           <div className="p-6 rounded-lg shadow-sm border border-border">
             <div className="text-center">
-              <h2 className="text-xl font-semibold mb-2">
-                Your Plan: <span className="text-blue-600">{plan?.plans.name}</span>
-              </h2>
               {currentOrgId && orgPlan && (
                 <h3 className="text-lg text-text-secondary">
                   Organization Plan: <span className="text-green-600">{orgPlan.plans.name}</span>
@@ -135,9 +124,7 @@ export default function DashboardPage() {
                       <div key={log.id} className="p-4 rounded-lg border border-border">
                         <div className="flex justify-between items-start">
                           <div>
-                            <div className="text-sm font-medium">
-                              Action: {log?.action}
-                            </div>
+                            <div className="text-sm font-medium">Action: {log?.action}</div>
                             <div className="text-xs mt-1 text-text-secondary">
                               By: {log?.organization_members?.user_email || "Unknown"}
                             </div>
