@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
 import { createClient } from "@/utils/supabase/server";
 import { withOrgAuth } from "@/utils/auth";
@@ -118,9 +117,8 @@ export async function inviteUser(formData: FormData) {
     if (inviteError) {
       return { error: inviteError.message };
     }
-
-    // Optional: revalidate a path if needed
-    // revalidatePath("/dashboard/organization");
+    const { data, error } = await supabase.auth.admin.inviteUserByEmail(invitedEmail);
+    // emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/signup`
 
     return { success: true };
   } catch (error) {

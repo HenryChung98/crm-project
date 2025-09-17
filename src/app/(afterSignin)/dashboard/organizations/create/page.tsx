@@ -3,16 +3,16 @@
 import React, { useState, useEffect } from "react";
 import { createOrganization } from "./action";
 import { useRouter, usePathname } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query"; // 추가
+import { useQueryClient } from "@tanstack/react-query";
 
-import { useSubscriptionCheck } from "@/hooks/tanstack/usePlan";
+import { useSubscriptionCheck, useOrganizationCheck } from "@/hooks/tanstack/usePlan";
 
 // ui
 import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
 import { Dropdown } from "@/components/ui/Dropdown";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner"; // 추가
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { showSuccess, showError } from "@/utils/feedback";
 
 interface OrganizationFormData {
@@ -38,19 +38,24 @@ const sortedCountries = countries.sort((a: Country, b: Country) => a.name.locale
 
 export default function CreateOrganizationPage() {
   const router = useRouter();
-  const queryClient = useQueryClient(); // 추가
+  const queryClient = useQueryClient();
   const [noProvince, setNoProvince] = useState<boolean>(false);
 
   // check subscription
-  const { hasSubscription, isLoading: isLoadingSubscription } = useSubscriptionCheck();
+  const { hasData: hasSubscription, isLoading: isLoadingSubscription } = useSubscriptionCheck();
+  const { hasData: hasOrganization, isLoading: isLoadingOrganization } = useOrganizationCheck();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (isLoadingSubscription) return;
+    if (isLoadingSubscription || isLoadingOrganization) return;
     if (pathname === "/subscription") return;
 
     if (hasSubscription === false) {
       router.replace("/subscription");
+      return;
+    }
+    if (hasOrganization === true) {
+      router.replace("/dashboard");
       return;
     }
   }, [hasSubscription, isLoadingSubscription, pathname, router]);
@@ -78,22 +83,19 @@ export default function CreateOrganizationPage() {
     if (res?.error) {
       showError(`Error: ${res.error}`);
     } else {
-      // 🟢 조직 생성 후 관련 쿼리 캐시 무효화
       await queryClient.invalidateQueries({
         queryKey: ["organizationMembers"],
       });
 
       showSuccess("Organization successfully created");
-      router.replace("/dashboard");
+      window.location.href = "/dashboard";
     }
   };
 
-  // 🟢 로딩 중이면 스피너 표시
   if (isLoadingSubscription) {
     return <LoadingSpinner />;
   }
 
-  // 🟢 구독이 없으면 빈 화면 (리다이렉트 중)
   if (hasSubscription === false) {
     return null;
   }

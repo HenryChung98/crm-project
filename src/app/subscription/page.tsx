@@ -6,15 +6,22 @@ import { useRouter } from "next/navigation";
 import { selectPlan } from "./plan-selection";
 import { PlanName } from "@/types/database/plan";
 import { useQueryClient } from "@tanstack/react-query";
-
+import { useOrganizationCheck } from "@/hooks/tanstack/usePlan";
 // ui
 import { showError, showSuccess } from "@/utils/feedback";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export default function SubscriptionPage() {
   const { user, supabase } = useAuth();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  const { hasData, isLoading, error } = useOrganizationCheck();
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
 
   const handlePlanSelect = async (planName: PlanName) => {
     // 인증 체크
@@ -33,7 +40,7 @@ export default function SubscriptionPage() {
             queryKey: ["subscription"],
           });
           showSuccess("Free plan activated successfully");
-          window.location.href = "/dashboard/organizations/create";
+          window.location.href = hasData ? "/dashboard" : "/dashboard/organizations/create";
           // router.replace("/dashboard/organizations/create");
         } else {
           showError(result.error || "Failed to select plan");

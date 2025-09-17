@@ -3,7 +3,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 
-
 export async function signUp(formData: FormData) {
   const supabase = await createClient();
 
@@ -50,8 +49,6 @@ export async function signUp(formData: FormData) {
   if (!authData.user?.id) {
     return { error: "Signup failed: missing user ID." };
   }
-
-  
 
   redirect("/auth/verify");
 }

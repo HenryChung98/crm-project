@@ -3,21 +3,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { NetworkError } from "@/types/errors";
 import { SubscribedPlan } from "@/types/database/plan";
-import { hasSubscription, getPlanByOrg } from "../hook-actions/get-plans";
+import { hasSubscription, getPlanByOrg, hasOrganization } from "../hook-actions/get-plans";
 import { useMemo, useCallback } from "react";
 import {
   getUsageForOrg,
   type UsageByOrganization,
 } from "../hook-actions/get-usage";
 
-type SubscriptionResult = {
-  hasSubscription: boolean | undefined;
+type HasResult = {
+  hasData: boolean | undefined;
   isLoading: boolean;
   error: Error | null;
   refetch: () => void;
 };
 
-export const useSubscriptionCheck = (): SubscriptionResult => {
+export const useSubscriptionCheck = (): HasResult => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["subscription", "check"],
     queryFn: hasSubscription,
@@ -26,7 +26,23 @@ export const useSubscriptionCheck = (): SubscriptionResult => {
   });
 
   return {
-    hasSubscription: data,
+    hasData: data,
+    isLoading,
+    error,
+    refetch,
+  };
+};
+
+export const useOrganizationCheck = (): HasResult => {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["organization", "check"],
+    queryFn: hasOrganization,
+    staleTime: 1000 * 60 * 5, // 5분간 캐시 
+    refetchOnWindowFocus: false, 
+  });
+
+  return {
+    hasData: data,
     isLoading,
     error,
     refetch,

@@ -5,10 +5,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { selectPlan } from "../plan-selection";
 import { PlanName } from "@/types/database/plan";
+import { useOrganizationCheck } from "@/hooks/tanstack/usePlan";
 
 // ui
 import { showError, showSuccess } from "@/utils/feedback";
 import { useQueryClient } from "@tanstack/react-query";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export default function CheckoutPage() {
   const { user, supabase } = useAuth();
@@ -20,6 +22,12 @@ export default function CheckoutPage() {
 
   const plan = searchParams.get("plan") as PlanName;
   const userId = searchParams.get("userId");
+
+  const { hasData, isLoading, error } = useOrganizationCheck();
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
 
   const planPrices = {
     basic: "$9.99",
@@ -48,7 +56,7 @@ export default function CheckoutPage() {
         });
 
         showSuccess("Payment successful! Plan activated.");
-        window.location.href = '/dashboard/organizations/create';
+        window.location.href = hasData ? "/dashboard" : "/dashboard/organizations/create";
         // router.replace("/dashboard/organizations/create");
       } else {
         showError("Payment processed but failed to activate plan");
@@ -80,7 +88,7 @@ export default function CheckoutPage() {
       <div className="max-w-md w-full mx-auto p-6 rounded-lg shadow">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold mb-2">Complete Your Purchase</h1>
-          <p className="text-text-secondary">You're subscribing to the {plan} plan</p>
+          <p className="text-text-secondary">You are subscribing to the {plan} plan</p>
         </div>
 
         {/* Order Summary */}

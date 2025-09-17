@@ -2,6 +2,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { FiChevronDown, FiCheck } from "react-icons/fi";
 import { OrganizationMembers } from "@/types/database/organizations";
+import { useOrganizationCheck } from "@/hooks/tanstack/usePlan";
 
 interface OrganizationSwitcherProps {
   organizations: OrganizationMembers[];
@@ -22,6 +23,8 @@ export default function OrganizationSwitcher({
   const currentOrgData = organizations.find((org) => org.organization_id === currentOrg);
   const currentOrgName = currentOrgData?.organizations?.name || "Select Organization";
 
+  const { hasData, isLoading, error } = useOrganizationCheck();
+
   return (
     <div className="relative mb-6">
       {/* main button */}
@@ -37,9 +40,7 @@ export default function OrganizationSwitcher({
             <p className="text-sm font-medium truncate">{currentOrgName}</p>
           </div>
         </div>
-        <FiChevronDown
-          className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
-        />
+        <FiChevronDown className={`transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       {/* dropdown menu */}
@@ -73,15 +74,17 @@ export default function OrganizationSwitcher({
           ))}
 
           {/* buttons below the list */}
-          <div className="border-t border-gray-100 p-2">
-            <Link
-              href="/dashboard/organizations/create"
-              className="block w-full p-2 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
-              onClick={closeDropdown}
-            >
-              + Create Organization
-            </Link>
-          </div>
+          {hasData || (
+            <div className="border-t border-gray-100 p-2">
+              <Link
+                href="/dashboard/organizations/create"
+                className="block w-full p-2 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                onClick={closeDropdown}
+              >
+                + Create Organization
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </div>
