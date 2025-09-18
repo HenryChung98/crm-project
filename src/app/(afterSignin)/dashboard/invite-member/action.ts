@@ -1,7 +1,7 @@
 "use server";
 
 import { randomUUID } from "crypto";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { withOrgAuth } from "@/utils/auth";
 import { getUsageForOrg } from "@/hooks/hook-actions/get-usage";
 import { getPlanByOrg } from "@/hooks/hook-actions/get-plans";
@@ -11,7 +11,7 @@ export async function inviteUser(formData: FormData) {
   const orgId = formData.get("orgId")?.toString().trim();
 
   try {
-    const { orgMember } = await withOrgAuth(orgId, ["owner", "admin", "member"]);
+    const { orgMember } = await withOrgAuth(orgId, ["owner", "admin"]);
 
     // get user's current plan using existing action
     const orgPlanData = await getPlanByOrg(orgId);
@@ -86,6 +86,7 @@ export async function inviteUser(formData: FormData) {
     }
 
     // Check if user has already been invited to this organization
+
     const { data: existingInvite, error: inviteCheckError } = await supabase
       .from("organization_invitations")
       .select("*")
@@ -117,8 +118,30 @@ export async function inviteUser(formData: FormData) {
     if (inviteError) {
       return { error: inviteError.message };
     }
-    const { data, error } = await supabase.auth.admin.inviteUserByEmail(invitedEmail);
-    // emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/signup`
+
+    // send invitation by admin function
+
+    const { data: orgData, error: orgError } = await supabase
+      .from("organizations")
+      .select("name")
+      .eq("id", orgId)
+      .single();
+
+    if (orgError || !orgData) {
+      return { error: "Failed to get organization details" };
+    }
+
+    const adminSupabase = await createAdminClient();
+    const { data, error: emailError } = await adminSupabase.auth.admin.inviteUserByEmail(
+      invitedEmail,
+      {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/signup`,
+        data: {
+          OrganizationName: orgData.name,
+          AppName: "CRM Project",
+        },
+      }
+    );
 
     return { success: true };
   } catch (error) {

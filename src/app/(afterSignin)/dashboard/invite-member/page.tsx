@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { inviteUser } from "./action";
-import { useAllOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
 import { useSearchParams } from "next/navigation";
 
 // ui
@@ -10,21 +9,12 @@ import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
 import { showError, showSuccess } from "@/utils/feedback";
-// type
-import { EMPTY_ARRAY } from "@/types/customData";
-import { OrganizationMembers } from "@/types/database/organizations";
 
 export default function InviteMemberForm() {
   const [loading, setLoading] = useState(false);
 
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
-
-  const { data: orgMembers = EMPTY_ARRAY } = useAllOrganizationMembers<OrganizationMembers>(`
-    organization_id, organization_name
-  `);
-
-  const currentOrg = orgMembers.find((org) => org.organization_id === currentOrgId);
 
   const handleSubmit = async (formData: FormData) => {
     setLoading(true);
@@ -49,9 +39,10 @@ export default function InviteMemberForm() {
 
   return (
     <>
-      <Form action={handleSubmit} formTitle={`Invite to ${currentOrg?.organization_name}`}>
+      <Form action={handleSubmit} formTitle={`Invite user`}>
         <input type="hidden" name="orgId" value={currentOrgId} />
         <FormField label="Email" type="email" name="email" required />
+
         <Button type="submit" disabled={loading}>
           {loading ? "Sending..." : "Send Invite"}
         </Button>

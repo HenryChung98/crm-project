@@ -21,27 +21,30 @@ export default function OrganizationSwitcher({
   const closeDropdown = () => setIsOpen(false);
 
   const currentOrgData = organizations.find((org) => org.organization_id === currentOrg);
-  const currentOrgName = currentOrgData?.organizations?.name || "Select Organization";
+  const currentOrgName = currentOrgData?.organizations?.name || "";
 
   const { hasData, isLoading, error } = useOrganizationCheck();
 
   return (
     <div className="relative mb-6">
       {/* main button */}
-      <button
-        onClick={toggleDropdown}
-        className="w-full p-3 bg-navbar-comp rounded-lg flex items-center justify-between hover:opacity-50 transition-colors"
-      >
-        <div className="flex items-center">
-          <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center text-white text-sm font-medium mr-3">
-            {currentOrgName.charAt(0).toUpperCase()}
+      {currentOrgName && (
+        <button
+          onClick={toggleDropdown}
+          className="w-full p-3 bg-navbar-comp rounded-lg flex items-center justify-between hover:opacity-50 transition-colors"
+        >
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center text-white text-sm font-medium mr-3">
+              {currentOrgName.charAt(0).toUpperCase()}
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-medium truncate">{currentOrgName}</p>
+            </div>
           </div>
-          <div className="text-left">
-            <p className="text-sm font-medium truncate">{currentOrgName}</p>
-          </div>
-        </div>
-        <FiChevronDown className={`transition-transform ${isOpen ? "rotate-180" : ""}`} />
-      </button>
+
+          <FiChevronDown className={`transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        </button>
+      )}
 
       {/* dropdown menu */}
       {isOpen && (

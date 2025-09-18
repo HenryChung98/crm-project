@@ -28,8 +28,10 @@ export default function SigninPage() {
     password: "",
   });
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
   const { refetchUser } = useAuth();
+
   // handle input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -42,14 +44,29 @@ export default function SigninPage() {
 
   // handle sign in
   const handleSubmit = async (formData: FormData) => {
-    const res = await signIn(formData);
+    setIsLoading(true);
+    setError(null);
 
-    if (res?.error) {
-      setError(res.error);
+    try {
+      const res = await signIn(formData);
+
+      if (res?.error) {
+        setError(res.error);
+        setIsLoading(false);
+        return; // 🔥 에러가 있으면 여기서 중단
+      }
+
+      // 성공한 경우에만 실행
+      if (res?.success) {
+        await refetchUser();
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      console.error("Sign in error:", error);
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-
-    refetchUser();
-    router.push("/dashboard");
   };
 
   return (
@@ -71,7 +88,7 @@ export default function SigninPage() {
           onChange={handleChange}
           required
         />
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-red-500 text-sm whitespace-pre-line">{error}</p>}
         <div className="mt-4 space-y-4">
           <div className="flex justify-between items-center text-sm">
             <button
@@ -87,12 +104,19 @@ export default function SigninPage() {
           </div>
 
           <div className="flex flex-col gap-5">
-            <Button type="submit">Sign in</Button>
-            <Button type="button" onClick={signInWithGoogle} variant="secondary">
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Signing in..." : "Sign in"}
+            </Button>
+            <Button
+              type="button"
+              onClick={signInWithGoogle}
+              variant="secondary"
+              disabled={isLoading}
+            >
               Continue with Google
             </Button>
             <p className="text-sm text-center mt-5 border-t pt-2">Don&apos;t have an account?</p>
-            <Button type="button" onClick={() => router.push("/auth/signup")}>
+            <Button type="button" onClick={() => router.push("/auth/signup")} disabled={isLoading}>
               Sign up
             </Button>
           </div>

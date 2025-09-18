@@ -14,20 +14,19 @@ import { useOrganizationInvitationsByEmail } from "@/hooks/tanstack/useOrganizat
 import { useCustomerLogs } from "@/hooks/tanstack/useCustomerLogs";
 import { useDashboardStats } from "@/hooks/tanstack/useDashboardStats";
 import { usePlanByOrg } from "@/hooks/tanstack/usePlan";
+import { useOrgAuth } from "@/hooks/tanstack/useOrgAuth";
 
 // ui
 import JoinOrganizationButton from "@/components/JoinOrganizationButton";
 import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
-const StatCard = React.memo(({ title, value }: { title: string; value?: number }) => {
-  return (
-    <div className="p-6 border border-border rounded-lg shadow-sm text-center hover:shadow-md transition-shadow">
-      <h3 className="text-sm font-medium uppercase tracking-wide">{title}</h3>
-      <p className="mt-3 text-3xl font-bold">{value ?? 0}</p>
-    </div>
-  );
-});
+const StatCard = React.memo(({ title, value }: { title: string; value?: number }) => (
+  <div className="p-6 border border-border rounded-lg shadow-sm text-center hover:shadow-md transition-shadow">
+    <h3 className="text-sm font-medium uppercase tracking-wide">{title}</h3>
+    <p className="mt-3 text-3xl font-bold">{value ?? 0}</p>
+  </div>
+));
 
 StatCard.displayName = "StatCard";
 
@@ -35,33 +34,22 @@ export default function DashboardPage() {
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") ?? "";
 
-  // get selected organization
+  const { hasRole } = useOrgAuth(currentOrgId);
   const { data, isLoading } = useDashboardStats(currentOrgId);
 
-  // organization invitation
   const { data: orgInvitations = EMPTY_ARRAY, isLoading: isInvitationLoading } =
     useOrganizationInvitationsByEmail<OrganizationInvitations>();
 
-  // customer logs
-  const {
-    data: customerLogs = EMPTY_ARRAY,
-    isLoading: customerLogLoading,
-    error: customerLogError,
-  } = useCustomerLogs<CustomerLogs>(
-    currentOrgId || "",
-    `id, action, organization_members:performed_by(user_email)`
-  );
+  const { data: customerLogs = EMPTY_ARRAY, isLoading: customerLogLoading } =
+    useCustomerLogs<CustomerLogs>(
+      currentOrgId || "",
+      `id, action, organization_members:performed_by(user_email)`
+    );
 
-  // get current organization's plan - currentOrgId가 있을 때만 실행
-  const {
-    data: orgPlan,
-    isLoading: orgPlanLoading,
-    error: orgPlanError,
-  } = usePlanByOrg(currentOrgId);
+  const { data: orgPlan, isLoading: orgPlanLoading } = usePlanByOrg(currentOrgId);
 
   const hasInvitations = useMemo(() => orgInvitations.length > 0, [orgInvitations]);
-
-  const isEssentialLoading = (currentOrgId && (isLoading || orgPlanLoading));
+  const isEssentialLoading = currentOrgId && (isLoading || orgPlanLoading);
 
   if (isEssentialLoading) {
     return (
@@ -75,60 +63,51 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
-
-        {/* 헤더 섹션 */}
+        {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-4">Dashboard</h1>
-
-          {/* 플랜 정보 */}
-          <div className="p-6 rounded-lg shadow-sm border border-border">
-            <div className="text-center">
-              {currentOrgId && orgPlan && (
-                <h3 className="text-lg text-text-secondary">
-                  Organization Plan: <span className="text-green-600">{orgPlan.plans.name}</span>
-                </h3>
-              )}
+          {currentOrgId && orgPlan && (
+            <div className="p-6 rounded-lg shadow-sm border border-border text-center">
+              <h3 className="text-lg text-text-secondary">
+                Organization Plan: <span className="text-green-600">{orgPlan.plans.name}</span>
+              </h3>
             </div>
-          </div>
+          )}
         </div>
 
         {currentOrgId ? (
           <div className="space-y-8">
-            {/* 액션 버튼 */}
-            <div className="flex justify-end">
-              <Button variant="primary">
-                <Link href={`/dashboard/invite-member?org=${currentOrgId}`}>Invite Member</Link>
-              </Button>
-            </div>
+            {/* Owner만 Invite Member 버튼 표시 */}
+            {hasRole("owner") && (
+              <div className="flex justify-end">
+                <Button variant="primary">
+                  <Link href={`/dashboard/invite-member?org=${currentOrgId}`}>Invite Member</Link>
+                </Button>
+              </div>
+            )}
 
-            {/* 통계 카드들 */}
+            {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <StatCard title="Total Customers" value={data?.total} />
               <StatCard title="New Customers (30 days)" value={data?.new} />
               <StatCard title="Activated Customers" value={data?.active} />
             </div>
 
-            {/* 고객 로그 */}
+            {/* Activity Logs */}
             <div className="border border-border rounded-lg shadow-sm">
               <div className="p-6 border-b border-border">
                 <h3 className="text-lg font-semibold">Recent Activity Logs</h3>
               </div>
               <div className="p-6">
                 {customerLogLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="">Loading logs...</div>
-                  </div>
+                  <div className="flex items-center justify-center py-8">Loading logs...</div>
                 ) : customerLogs.length > 0 ? (
                   <div className="space-y-4">
                     {customerLogs.slice(0, 5).map((log) => (
                       <div key={log.id} className="p-4 rounded-lg border border-border">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="text-sm font-medium">Action: {log?.action}</div>
-                            <div className="text-xs mt-1 text-text-secondary">
-                              By: {log?.organization_members?.user_email || "Unknown"}
-                            </div>
-                          </div>
+                        <div className="text-sm font-medium">Action: {log?.action}</div>
+                        <div className="text-xs mt-1 text-text-secondary">
+                          By: {log?.organization_members?.user_email || "Unknown"}
                         </div>
                       </div>
                     ))}
@@ -136,28 +115,25 @@ export default function DashboardPage() {
                 ) : (
                   <div className="text-center py-8 text-gray-500">No recent activity</div>
                 )}
-                {customerLogError && (
-                  <div className="mt-4 p-3 border border-red-200 rounded text-red-600 text-sm">
-                    Error loading logs: {customerLogError.message}
-                  </div>
-                )}
               </div>
             </div>
           </div>
         ) : (
-          <div className="rounded-lg shadow-sm border p-12">
-            <div className="text-center">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                No Organization Selected
-              </h2>
-              <p className="text-gray-600 text-lg">
-                Please select an organization to view the dashboard or join an organization.
-              </p>
-            </div>
+          <div className="rounded-lg shadow-sm border p-12 text-center">
+            <h2 className="text-2xl font-semibold text-text-secondary mb-4">
+              You currently have no organizations
+            </h2>
+            <p className="text-text-secondary text-lg">
+              Please{" "}
+              <Link href="dashboard/organizations/create" className="text-blue-500">
+                create an organization
+              </Link>{" "}
+              or join an organization.
+            </p>
           </div>
         )}
 
-        {/* 초대 목록 */}
+        {/* Invitations */}
         {isInvitationLoading && (
           <div className="mt-8 border border-blue-200 rounded-lg p-6">
             <div className="text-blue-700">Loading invitations...</div>

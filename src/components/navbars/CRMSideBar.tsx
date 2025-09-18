@@ -25,16 +25,6 @@ interface CRMSidebarProps {
   onToggleSidebar: () => void;
 }
 
-// Toggle Button Icons
-const ChevronRightIcon = () => (
-  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M6 3l12 9-12 9" />
-);
-
-const ChevronLeftIcon = () => (
-  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M18 21L6 12l12-9" />
-);
-
-// Toggle Button Component
 const ToggleButton = ({
   isCollapsed,
   onClick,
@@ -49,12 +39,16 @@ const ToggleButton = ({
     className={`bg-background z-50 p-2 border-1 rounded-lg shadow-sm hover:opacity-50 transition-all duration-300 ease-in-out ${className}`}
   >
     <svg className="w-2 h-15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      {isCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={4}
+        d={isCollapsed ? "M6 3l12 9-12 9" : "M18 21L6 12l12-9"}
+      />
     </svg>
   </button>
 );
 
-// Navigation Item Component
 const NavItem = ({ item, isActive, isExpanded, onToggle }: NavItemProps) => {
   const hasChildren = item.children && item.children.length > 0;
 
@@ -63,12 +57,6 @@ const NavItem = ({ item, isActive, isExpanded, onToggle }: NavItemProps) => {
       e.preventDefault();
       onToggle();
     }
-  };
-
-  const handleToggleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onToggle();
   };
 
   return (
@@ -84,7 +72,13 @@ const NavItem = ({ item, isActive, isExpanded, onToggle }: NavItemProps) => {
           <span className="font-medium">{item.label}</span>
         </Link>
         {hasChildren && (
-          <button onClick={handleToggleClick}>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggle();
+            }}
+          >
             {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
           </button>
         )}
@@ -107,7 +101,6 @@ const NavItem = ({ item, isActive, isExpanded, onToggle }: NavItemProps) => {
   );
 };
 
-// User Profile Component
 const UserProfile = ({ user }: { user: AuthUserType | null }) => (
   <div className="absolute top-4 left-4 right-4 p-3 bg-navbar-comp rounded-lg">
     <div className="flex items-center">
@@ -124,33 +117,6 @@ const UserProfile = ({ user }: { user: AuthUserType | null }) => (
   </div>
 );
 
-// Organization Management Button Component
-const OrganizationManagementButton = ({
-  organizations,
-  currentOrg,
-  queryParam,
-}: {
-  organizations: OrganizationMembers[];
-  currentOrg: string;
-  queryParam: string;
-}) => {
-  const currentOrgMembership = organizations.find((org) => org.organization_id === currentOrg);
-
-  if (currentOrgMembership?.role !== "owner") {
-    return null;
-  }
-
-  return (
-    <Link
-      className="border border-border rounded p-2 block text-center"
-      href={`/dashboard/organizations/manage${queryParam}`}
-    >
-      manage organization
-    </Link>
-  );
-};
-
-// Main Sidebar Component
 export default function CRMSidebar({
   organizations,
   currentOrg,
@@ -167,6 +133,9 @@ export default function CRMSidebar({
   const queryString = searchParams.toString();
   const queryParam = queryString ? `?${queryString}` : "";
   const crmNavItems = createCrmNavItems(searchParams);
+
+  // Owner 권한 체크
+  const isOwner = organizations.find((org) => org.organization_id === currentOrg)?.role === "owner";
 
   const toggleItem = (itemLabel: string) => {
     setExpandedItems((prev) => {
@@ -225,10 +194,10 @@ export default function CRMSidebar({
       {/* Sidebar */}
       <nav
         className={`
-          w-64 pt-22 h-screen bg-navbar border-r border-border p-4 fixed left-0 top-0 overflow-y-auto z-40
-          transition-transform duration-300 ease-in-out
-          ${isCollapsed ? "-translate-x-full" : "translate-x-0"}
-        `}
+        w-64 pt-22 h-screen bg-navbar border-r border-border p-4 fixed left-0 top-0 overflow-y-auto z-40
+        transition-transform duration-300 ease-in-out
+        ${isCollapsed ? "-translate-x-full" : "translate-x-0"}
+      `}
       >
         <UserProfile user={user} />
 
@@ -243,11 +212,15 @@ export default function CRMSidebar({
             Sign Out
           </button>
 
-          <OrganizationManagementButton
-            organizations={organizations}
-            currentOrg={currentOrg}
-            queryParam={queryParam}
-          />
+          {/* Owner만 조직 관리 버튼 표시 */}
+          {isOwner && (
+            <Link
+              className="border border-border rounded p-2 block text-center"
+              href={`/dashboard/organizations/manage${queryParam}`}
+            >
+              manage organization
+            </Link>
+          )}
 
           {crmNavItems.map((item) => (
             <NavItem
