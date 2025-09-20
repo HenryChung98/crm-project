@@ -21,11 +21,10 @@ const createQueryClient = () =>
         // notifyOnChangeProps: "all", // 어떤 속성 변경 시 리렌더링할지
 
         retry: (failureCount, error) => {
-          // 401 에러는 재시도하지 않음
           if (error && typeof error === "object" && "status" in error && error.status === 401) {
             return false;
           }
-          // 네트워크 에러는 최대 3회, 기타 에러는 최대 2회
+
           const maxRetries = error?.message?.includes("network") ? 3 : 2;
           return failureCount < maxRetries;
         },

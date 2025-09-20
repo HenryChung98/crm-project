@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
-import { createCrmNavItems, CRMNavItemType } from "@/utils/data/navigation";
+import { createCrmNavItems, NavItemType } from "@/utils/data/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import OrganizationSwitcher from "./OrganizationSwitcher";
 import { useSupabase } from "@/hooks/useSupabase";
@@ -12,7 +12,7 @@ import { AuthUserType } from "@/types/authuser";
 import { OrganizationMembers } from "@/types/database/organizations";
 
 interface NavItemProps {
-  item: CRMNavItemType;
+  item: NavItemType;
   isActive: boolean;
   isExpanded: boolean;
   onToggle: () => void;
@@ -67,10 +67,17 @@ const NavItem = ({ item, isActive, isExpanded, onToggle }: NavItemProps) => {
         }`}
         onClick={handleItemClick}
       >
-        <Link href={item.href} className="flex items-center flex-1">
-          <span className="mr-3 text-lg">{item.icon}</span>
-          <span className="font-medium">{item.label}</span>
-        </Link>
+        {item.href ? (
+          <Link href={item.href} className="flex items-center flex-1">
+            <span className="mr-3 text-lg">{item.icon}</span>
+            <span className="font-medium">{item.label}</span>
+          </Link>
+        ) : (
+          <div className="flex items-center flex-1">
+            <span className="mr-3 text-lg">{item.icon}</span>
+            <span className="font-medium">{item.label}</span>
+          </div>
+        )}
         {hasChildren && (
           <button
             onClick={(e) => {
@@ -86,15 +93,24 @@ const NavItem = ({ item, isActive, isExpanded, onToggle }: NavItemProps) => {
 
       {hasChildren && isExpanded && item.children && (
         <div className="ml-6 mt-1 space-y-1">
-          {item.children.map((child) => (
-            <Link
-              key={child.label}
-              href={child.href}
-              className="block p-2 text-sm text-text-secondary hover:opacity-50 rounded transition-colors"
-            >
-              {child.label}
-            </Link>
-          ))}
+          {item.children.map((child) =>
+            child.href ? (
+              <Link
+                key={child.label}
+                href={child.href}
+                className="block p-2 text-sm text-text-secondary hover:opacity-50 rounded transition-colors"
+              >
+                {child.label}
+              </Link>
+            ) : (
+              <div
+                key={child.label}
+                className="block p-2 text-sm text-text-secondary opacity-50 rounded cursor-not-allowed"
+              >
+                {child.label}
+              </div>
+            )
+          )}
         </div>
       )}
     </div>
@@ -154,9 +170,9 @@ export default function CRMSidebar({
     setIsCollapsed((prev) => !prev);
   };
 
-  const isActiveItem = (item: CRMNavItemType) => {
-    if (pathname === item.href) return true;
-    return item.children?.some((child) => pathname === child.href) ?? false;
+  const isActiveItem = (item: NavItemType) => {
+    if (item.href && pathname === item.href) return true;
+    return item.children?.some((child) => child.href && pathname === child.href) ?? false;
   };
 
   return (
@@ -216,7 +232,7 @@ export default function CRMSidebar({
           {isOwner && (
             <Link
               className="border border-border rounded p-2 block text-center"
-              href={`/dashboard/organizations/manage${queryParam}`}
+              href={`/organizations/manage${queryParam}`}
             >
               manage organization
             </Link>

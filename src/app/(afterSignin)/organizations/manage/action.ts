@@ -25,7 +25,7 @@ export async function updateMemberRole(orgId: string, formData: FormData) {
 
     if (error) throw error;
 
-    revalidatePath("/dashboard/organizations/manage");
+    revalidatePath("/organizations/manage");
     return { success: true, data };
   } catch (error) {
     return {
@@ -70,7 +70,7 @@ export async function removeMember(formData: FormData) {
 
     if (error) throw error;
 
-    revalidatePath("/dashboard/organizations/manage");
+    revalidatePath("/organizations/manage");
     return { success: true };
   } catch (error) {
     return {

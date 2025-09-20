@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import CRMSideBar from "../../components/navbars/CRMSideBar";
-
+import { useAuth } from "@/contexts/AuthContext";
 // hook
 import { useAllOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -14,20 +14,25 @@ import { OrganizationMembers } from "@/types/database/organizations";
 // ui
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
-interface AfterSigninLayoutProps {
-  children: React.ReactNode;
-}
-
-export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
-  // URL에서 현재 조직 ID 가져오기
-  const currentOrganizationId = useMemo(() => searchParams.get("org") || "", [searchParams]);
+  // ===============================================
+  const { user } = useAuth();
+  if (user) {
+    console.log(user);
+  } else {
+    console.log("not logged in");
+  }
+  // ===============================================
 
-  // 조직 멤버 데이터 가져오기
+  // get organization id from current param
+  const currentOrganizationId = searchParams.get("org") || "";
+
+  // get organization member data
   const {
     data: orgMembers = EMPTY_ARRAY,
     isLoading: isLoadingOrgMembers,
@@ -37,16 +42,16 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
     organizations:organization_id(name)
   `);
 
-  // 유효한 조직 ID들을 미리 계산
-  const validOrganizationIds = useMemo(
-    () => new Set(orgMembers?.map((member) => member.organization_id) || []),
-    [orgMembers]
-  );
+  // 유효한 조직 ID들과 기본 조직 ID를 함께 계산
+  const { validOrganizationIds, defaultOrganizationId } = useMemo(() => {
+    const orgIds = orgMembers?.map((member) => member.organization_id) || [];
+    return {
+      validOrganizationIds: new Set(orgIds),
+      defaultOrganizationId: orgIds[0] || "",
+    };
+  }, [orgMembers]);
 
-  // 기본 조직 ID
-  const defaultOrganizationId = useMemo(() => orgMembers?.[0]?.organization_id || "", [orgMembers]);
-
-  // 조직 변경 핸들러 (의존성 최소화)
+  // change organization handler
   const handleOrganizationSwitch = useCallback(
     (orgId: string) => {
       if (!orgId) return;
@@ -57,21 +62,15 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
     [searchParams, router]
   );
 
-
-
-  // 조직 유효성 검사 및 리다이렉트 (별도 useEffect)
+  // 조직 유효성 검사 및 리다이렉트
   useEffect(() => {
     if (isLoadingOrgMembers || !orgMembers?.length) return;
 
-    // 현재 조직 ID가 유효하지 않은 경우 기본 조직으로 리다이렉트
-    if (currentOrganizationId && !validOrganizationIds.has(currentOrganizationId)) {
-      if (defaultOrganizationId) {
-        const params = new URLSearchParams(searchParams.toString());
-        params.set("org", defaultOrganizationId);
-        router.replace(`${pathname}?${params.toString()}`);
-      }
-    } else if (!currentOrganizationId && defaultOrganizationId) {
-      // org 파라미터가 없는 경우 기본 조직으로 리다이렉트
+    const needsRedirect =
+      (currentOrganizationId && !validOrganizationIds.has(currentOrganizationId)) ||
+      (!currentOrganizationId && defaultOrganizationId);
+
+    if (needsRedirect && defaultOrganizationId) {
       const params = new URLSearchParams(searchParams.toString());
       params.set("org", defaultOrganizationId);
       router.replace(`${pathname}?${params.toString()}`);
@@ -87,7 +86,6 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
     router,
   ]);
 
-  // 에러 처리
   if (orgMembersError) {
     console.error("Organization members error:", orgMembersError);
     return (
@@ -114,7 +112,6 @@ export default function AfterSigninLayout({ children }: AfterSigninLayoutProps) 
         onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
       <div className={isSidebarCollapsed ? "" : "pl-64"}>{children}</div>
-      {/* <div>{children}</div> */}
     </>
   );
 }

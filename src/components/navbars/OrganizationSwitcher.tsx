@@ -80,7 +80,7 @@ export default function OrganizationSwitcher({
           {hasData || (
             <div className="border-t border-gray-100 p-2">
               <Link
-                href="/dashboard/organizations/create"
+                href="/organizations/create"
                 className="block w-full p-2 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
                 onClick={closeDropdown}
               >

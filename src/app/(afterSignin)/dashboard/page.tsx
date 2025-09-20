@@ -77,7 +77,6 @@ export default function DashboardPage() {
 
         {currentOrgId ? (
           <div className="space-y-8">
-            {/* Owner만 Invite Member 버튼 표시 */}
             {hasRole("owner") && (
               <div className="flex justify-end">
                 <Button variant="primary">
@@ -124,10 +123,10 @@ export default function DashboardPage() {
               You currently have no organizations
             </h2>
             <p className="text-text-secondary text-lg">
-              Please{" "}
-              <Link href="dashboard/organizations/create" className="text-blue-500">
+              Please
+              <Link href="/organizations/create" className="text-blue-500">
                 create an organization
-              </Link>{" "}
+              </Link>
               or join an organization.
             </p>
           </div>
