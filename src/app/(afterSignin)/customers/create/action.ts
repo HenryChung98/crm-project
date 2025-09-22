@@ -19,6 +19,7 @@ export async function createCustomer(formData: FormData) {
   try {
     const { orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin"]);
 
+    // ========================================== check plan ==========================================
     // get user's current plan using existing action
     const orgPlanData = await getPlanByOrg(orgId);
     if (!orgPlanData?.plans) {
@@ -59,6 +60,7 @@ export async function createCustomer(formData: FormData) {
         };
       }
     }
+    // ========================================== /check plan ==========================================
 
     // check all fields
     if (!orgId || !firstName || !lastName || !email) {

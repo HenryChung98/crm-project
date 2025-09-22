@@ -1,6 +1,6 @@
 "use client";
 import { useSearchParams } from "next/navigation";
-import { useCustomers } from "@/hooks/tanstack/useCustomers";
+import { useCustomers } from "@/app/(afterSignin)/customers/hook/useCustomers";
 import UpdateCustomerStatusButton from "@/components/UpdateCustomerStatusButton";
 
 // ui

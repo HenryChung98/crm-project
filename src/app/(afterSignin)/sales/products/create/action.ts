@@ -1,0 +1,28 @@
+import { withOrgAuth } from "@/utils/auth";
+
+export async function createProduct(formData: FormData) {
+  const orgId = formData.get("orgId")?.toString().trim();
+  const name = formData.get("name")?.toString().trim();
+  const sku = formData.get("sku")?.toString().trim();
+  const description = formData.get("description")?.toString().trim();
+  const type = formData.get("type")?.toString().trim();
+  const price = formData.get("price")?.toString().trim();
+  const cost = formData.get("cost")?.toString().trim();
+  const note = formData.get("note")?.toString().trim();
+
+  try {
+    const { orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin", "member"]);
+
+    if (!orgId || !name || !sku || !description || !type || !price || !cost) {
+      console.log("Required fields are missing.");
+      return { error: "Required fields are missing." };
+    }
+    console.log("it works");
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occured",
+    };
+  }
+}

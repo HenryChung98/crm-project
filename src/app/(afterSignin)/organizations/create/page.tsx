@@ -40,7 +40,6 @@ export default function CreateOrganizationPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [noProvince, setNoProvince] = useState<boolean>(false);
-
   // check subscription
   const { hasData: hasSubscription, isLoading: isLoadingSubscription } = useSubscriptionCheck();
   const { hasData: hasOrganization, isLoading: isLoadingOrganization } = useOrganizationCheck();
@@ -67,6 +66,8 @@ export default function CreateOrganizationPage() {
     orgCity: "",
   });
 
+  // =============================for form=============================
+  const [buttonLoading, setButtonLoading] = useState<boolean>(false);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -78,20 +79,27 @@ export default function CreateOrganizationPage() {
   };
 
   const handleSubmit = async (formData: FormData) => {
-    const res = await createOrganization(formData);
+    setButtonLoading(true);
+    try {
+      const res = await createOrganization(formData);
+      if (res?.error) {
+        showError(`Error: ${res.error}` || "Failed to create organization");
+      } else {
+        await queryClient.invalidateQueries({
+          queryKey: ["organizationMembers"],
+        });
 
-    if (res?.error) {
-      showError(`Error: ${res.error}`);
-    } else {
-      await queryClient.invalidateQueries({
-        queryKey: ["organizationMembers"],
-      });
-
-      showSuccess("Organization successfully created");
-      window.location.href = "/dashboard";
+        showSuccess("Organization successfully created");
+        window.location.href = "/dashboard";
+      }
+    } catch (error) {
+      showError("An error occurred.");
+    } finally {
+      setButtonLoading(false);
     }
   };
-
+  // =============================/for form=============================
+  
   if (isLoadingSubscription) {
     return <LoadingSpinner />;
   }
@@ -156,7 +164,9 @@ export default function CreateOrganizationPage() {
           className="border w-full p-2"
         />
 
-        <Button type="submit">Start</Button>
+        <Button type="submit" disabled={buttonLoading}>
+          {buttonLoading ? "Loading..." : "Start"}
+        </Button>
       </Form>
     </div>
   );

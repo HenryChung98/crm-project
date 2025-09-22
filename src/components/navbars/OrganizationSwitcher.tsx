@@ -84,7 +84,7 @@ export default function OrganizationSwitcher({
                 className="block w-full p-2 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
                 onClick={closeDropdown}
               >
-                + Create Organization
+                + Create Your Organization
               </Link>
             </div>
           )}

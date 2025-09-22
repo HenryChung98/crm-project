@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { OrganizationInvitations } from "@/types/database/organizations";
-import { getOrganizationInvitationsByEmail } from "../hook-actions/organization-invitations";
+import { getOrganizationInvitationsByEmail } from "./organization-invitations";
 
 // type
 import { NetworkError } from "@/types/errors";

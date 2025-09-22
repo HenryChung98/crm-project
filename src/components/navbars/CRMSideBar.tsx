@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { createCrmNavItems, NavItemType } from "@/utils/data/navigation";
@@ -25,32 +25,46 @@ interface CRMSidebarProps {
   onToggleSidebar: () => void;
 }
 
-const ToggleButton = ({
-  isCollapsed,
-  onClick,
-  className,
-}: {
-  isCollapsed: boolean;
-  onClick: () => void;
-  className: string;
-}) => (
-  <button
-    onClick={onClick}
-    className={`bg-background z-50 p-2 border-1 rounded-lg shadow-sm hover:opacity-50 transition-all duration-300 ease-in-out ${className}`}
-  >
-    <svg className="w-2 h-15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={4}
-        d={isCollapsed ? "M6 3l12 9-12 9" : "M18 21L6 12l12-9"}
-      />
-    </svg>
-  </button>
-);
+const ToggleButton = ({ isCollapsed, onClick }: { isCollapsed: boolean; onClick: () => void }) => {
+  const baseClasses =
+    "bg-background z-50 p-2 border-1 rounded-lg shadow-sm hover:opacity-50 transition-all duration-300 ease-in-out fixed top-1/2 -translate-y-1/2";
+  const positionClasses = isCollapsed ? "-left-2" : "left-60";
+  const responsiveClasses = "md:block";
+
+  return (
+    <>
+      {/* Mobile Toggle */}
+      <button onClick={onClick} className={`${baseClasses} ${positionClasses} md:hidden`}>
+        <svg className="w-2 h-15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={4}
+            d={isCollapsed ? "M6 3l12 9-12 9" : "M18 21L6 12l12-9"}
+          />
+        </svg>
+      </button>
+
+      {/* Desktop Toggle */}
+      <button
+        onClick={onClick}
+        className={`hidden ${responsiveClasses} ${baseClasses} ${positionClasses}`}
+      >
+        <svg className="w-2 h-15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={4}
+            d={isCollapsed ? "M6 3l12 9-12 9" : "M18 21L6 12l12-9"}
+          />
+        </svg>
+      </button>
+    </>
+  );
+};
 
 const NavItem = ({ item, isActive, isExpanded, onToggle }: NavItemProps) => {
-  const hasChildren = item.children && item.children.length > 0;
+  const hasChildren = Boolean(item.children?.length);
 
   const handleItemClick = (e: React.MouseEvent) => {
     if (hasChildren) {
@@ -58,6 +72,13 @@ const NavItem = ({ item, isActive, isExpanded, onToggle }: NavItemProps) => {
       onToggle();
     }
   };
+
+  const itemContent = (
+    <>
+      <span className="mr-3 text-lg">{item.icon}</span>
+      <span className="font-medium">{item.label}</span>
+    </>
+  );
 
   return (
     <div className="mb-1">
@@ -69,15 +90,12 @@ const NavItem = ({ item, isActive, isExpanded, onToggle }: NavItemProps) => {
       >
         {item.href ? (
           <Link href={item.href} className="flex items-center flex-1">
-            <span className="mr-3 text-lg">{item.icon}</span>
-            <span className="font-medium">{item.label}</span>
+            {itemContent}
           </Link>
         ) : (
-          <div className="flex items-center flex-1">
-            <span className="mr-3 text-lg">{item.icon}</span>
-            <span className="font-medium">{item.label}</span>
-          </div>
+          <div className="flex items-center flex-1">{itemContent}</div>
         )}
+
         {hasChildren && (
           <button
             onClick={(e) => {
@@ -91,26 +109,24 @@ const NavItem = ({ item, isActive, isExpanded, onToggle }: NavItemProps) => {
         )}
       </div>
 
-      {hasChildren && isExpanded && item.children && (
+      {hasChildren && isExpanded && (
         <div className="ml-6 mt-1 space-y-1">
-          {item.children.map((child) =>
-            child.href ? (
-              <Link
-                key={child.label}
-                href={child.href}
-                className="block p-2 text-sm text-text-secondary hover:opacity-50 rounded transition-colors"
-              >
-                {child.label}
-              </Link>
-            ) : (
-              <div
-                key={child.label}
-                className="block p-2 text-sm text-text-secondary opacity-50 rounded cursor-not-allowed"
-              >
-                {child.label}
-              </div>
-            )
-          )}
+          {item.children?.map((child) => (
+            <div key={child.label}>
+              {child.href ? (
+                <Link
+                  href={child.href}
+                  className="block p-2 text-sm text-text-secondary hover:opacity-50 rounded transition-colors"
+                >
+                  {child.label}
+                </Link>
+              ) : (
+                <div className="block p-2 text-sm text-text-secondary opacity-50 rounded cursor-not-allowed">
+                  {child.label}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -142,16 +158,22 @@ export default function CRMSidebar({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [expandedItems, setExpandedItems] = useState(new Set<string>());
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const { user } = useAuth();
   const { signOut } = useSupabase();
 
-  const queryString = searchParams.toString();
-  const queryParam = queryString ? `?${queryString}` : "";
-  const crmNavItems = createCrmNavItems(searchParams);
+  // if user doesn't have organization
+  if (!organizations.length) return null;
 
-  // Owner 권한 체크
-  const isOwner = organizations.find((org) => org.organization_id === currentOrg)?.role === "owner";
+  const { queryParam, crmNavItems, isOwner } = useMemo(() => {
+    const queryString = searchParams.toString();
+    const queryParam = queryString ? `?${queryString}` : "";
+    const crmNavItems = createCrmNavItems(searchParams);
+    const isOwner =
+      organizations.find((org) => org.organization_id === currentOrg)?.role === "owner";
+
+    return { queryParam, crmNavItems, isOwner };
+  }, [searchParams, organizations, currentOrg]);
 
   const toggleItem = (itemLabel: string) => {
     setExpandedItems((prev) => {
@@ -172,7 +194,7 @@ export default function CRMSidebar({
 
   const isActiveItem = (item: NavItemType) => {
     if (item.href && pathname === item.href) return true;
-    return item.children?.some((child) => child.href && pathname === child.href) ?? false;
+    return Boolean(item.children?.some((child) => child.href && pathname === child.href));
   };
 
   return (
@@ -181,39 +203,21 @@ export default function CRMSidebar({
       {!isCollapsed && (
         <div
           className="fixed inset-0 bg-black z-40 md:hidden"
-          style={{ opacity: 0.8 }}
+          style={{ opacity: 0.5 }}
           onClick={toggleSidebar}
         />
       )}
 
-      {/* Toggle Buttons */}
-      <ToggleButton
-        isCollapsed={isCollapsed}
-        onClick={toggleSidebar}
-        className={
-          isCollapsed
-            ? "fixed top-1/2 -translate-y-1/2 -left-2 transition-all duration-300 ease-in-out md:hidden"
-            : "fixed top-1/2 -translate-y-1/2 left-60 transition-all duration-300 ease-in-out md:hidden"
-        }
-      />
-
-      <ToggleButton
-        isCollapsed={isCollapsed}
-        onClick={toggleSidebar}
-        className={
-          isCollapsed
-            ? "hidden md:block fixed top-1/2 -translate-y-1/2 -left-2 transition-all duration-300 ease-in-out"
-            : "hidden md:block fixed top-1/2 -translate-y-1/2 left-60 transition-all duration-300 ease-in-out"
-        }
-      />
+      {/* Toggle Button */}
+      <ToggleButton isCollapsed={isCollapsed} onClick={toggleSidebar} />
 
       {/* Sidebar */}
       <nav
         className={`
-        w-64 pt-22 h-screen bg-navbar border-r border-border p-4 fixed left-0 top-0 overflow-y-auto z-40
-        transition-transform duration-300 ease-in-out
-        ${isCollapsed ? "-translate-x-full" : "translate-x-0"}
-      `}
+          w-64 pt-22 h-screen bg-navbar border-r border-border p-4 fixed left-0 top-0 overflow-y-auto z-40
+          transition-transform duration-300 ease-in-out
+          ${isCollapsed ? "-translate-x-full" : "translate-x-0"}
+        `}
       >
         <UserProfile user={user} />
 
@@ -228,7 +232,6 @@ export default function CRMSidebar({
             Sign Out
           </button>
 
-          {/* Owner만 조직 관리 버튼 표시 */}
           {isOwner && (
             <Link
               className="border border-border rounded p-2 block text-center"

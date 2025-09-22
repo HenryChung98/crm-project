@@ -1,21 +1,12 @@
-"use server";
-import { createClient } from "@/utils/supabase/server";
 import { SupabaseError } from "@/types/errors";
 import { revalidateTag } from "next/cache";
-
+import { useAuth } from "@/contexts/AuthContext";
 // type
 import { OrganizationInvitations } from "@/types/database/organizations";
 
 export async function getOrganizationInvitationsByEmail(): Promise<OrganizationInvitations[]> {
-  const supabase = await createClient();
-
-  // 사용자 인증 확인
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user?.email) {
+  const { user, supabase } = useAuth();
+  if (!user) {
     throw new Error("User not authenticated");
   }
 

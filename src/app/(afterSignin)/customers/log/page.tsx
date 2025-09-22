@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useCustomerLogs } from "@/hooks/tanstack/useCustomerLogs";
+import { useCustomerLogs } from "@/app/(afterSignin)/customers/hook/useCustomerLogs";
 import { CustomerLogs } from "@/types/database/customers";
 
 interface ChangedData {

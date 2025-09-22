@@ -2,13 +2,13 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createCustomer } from "./action";
+import { useQueryClient } from "@tanstack/react-query";
 
 // ui
 import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
 import { showSuccess, showError } from "@/utils/feedback";
-
 
 interface CustomerFormData {
   orgId: string;
@@ -20,10 +20,6 @@ interface CustomerFormData {
 }
 
 export default function CreateCustomersPage() {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const searchParams = useSearchParams();
-  const currentOrgId = searchParams.get("org") || "";
   const [formData, setFormData] = useState<CustomerFormData>({
     orgId: "",
     firstName: "",
@@ -32,32 +28,38 @@ export default function CreateCustomersPage() {
     phone: "",
     note: "",
   });
+  
+  // =============================for form=============================
+  const [buttonLoading, setButtonLoading] = useState<boolean>(false);
+  const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const currentOrgId = searchParams.get("org") || "";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-
-    if (error) {
-      setError(null);
-    }
   };
 
   const handleSubmit = async (formData: FormData) => {
-    setLoading(true);
-
+    setButtonLoading(true);
     try {
       const res = await createCustomer(formData);
-      if (res.success) {
-        showSuccess("Customer added successfully.");
+      if (res?.error) {
+        showError(`Error: ${res.error}` || "Failed to add customer");
       } else {
-        showError(res.error || "Failed to add customer.");
+        await queryClient.invalidateQueries({
+          queryKey: ["products"],
+        });
+
+        showSuccess("Customer successfully created");
       }
     } catch (error) {
       showError("An error occurred.");
     } finally {
-      setLoading(false);
+      setButtonLoading(false);
     }
   };
+  // =============================/for form=============================
   return (
     <>
       <Form action={handleSubmit} formTitle={`add customer`}>
@@ -107,8 +109,8 @@ export default function CreateCustomersPage() {
           onChange={handleChange}
           className="border w-full p-2"
         />
-        <Button type="submit" disabled={loading}>
-          {loading ? "Adding..." : "Add customer"}
+        <Button type="submit" disabled={buttonLoading}>
+          {buttonLoading ? "Adding..." : "Add customer"}
         </Button>
       </Form>
     </>

@@ -1,19 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { NetworkError } from "@/types/errors";
-import { CustomerLogs } from "@/types/database/customers";
-import { getCustomerLogs } from "../hook-actions/customer-logs";
+import { Customers } from "@/types/database/customers";
+import { getCustomers } from "./customers";
 
 // type
 import { QueryResult } from "@/types/customData";
 
-export const useCustomerLogs = <T = CustomerLogs>(
-  orgId: string,
+export const useCustomers = <T = Customers>(
+  organizationId: string,
   select?: string
 ): QueryResult<T> => {
   const result = useQuery({
-    queryKey: ["customer_logs", orgId, select || "*"],
-    queryFn: () => getCustomerLogs(orgId),
-    enabled: !!orgId,
+    queryKey: ["customers", organizationId, select || "*"],
+    queryFn: async () => getCustomers(organizationId, select),
+    enabled: !!organizationId,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     retry: (failureCount, error: NetworkError) => {
@@ -22,7 +22,7 @@ export const useCustomerLogs = <T = CustomerLogs>(
     },
   });
   return {
-    data: (result.data as T[]) || [],
+    data: result.data as T[],
     error: result.error,
     isLoading: result.isLoading,
     isFetching: result.isFetching,

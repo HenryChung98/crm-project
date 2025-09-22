@@ -14,15 +14,6 @@ export interface NavItemType {
   icon?: React.ReactNode;
 }
 
-// before sign in navbar
-// export const navItems: NavItemType[] = [
-//   {
-//     label: "menu1",
-//     href: "#",
-//     children: [{ label: "submenu1", href: "#" }],
-//   },
-// ];
-
 // after sign in navbar
 export function createCrmNavItems(searchParams: URLSearchParams) {
   const queryString = searchParams.toString();

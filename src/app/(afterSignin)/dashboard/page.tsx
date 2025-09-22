@@ -10,8 +10,8 @@ import { OrganizationInvitations } from "@/types/database/organizations";
 import { CustomerLogs } from "@/types/database/customers";
 
 // hook
-import { useOrganizationInvitationsByEmail } from "@/hooks/tanstack/useOrganizationInvitations";
-import { useCustomerLogs } from "@/hooks/tanstack/useCustomerLogs";
+import { useOrganizationInvitationsByEmail } from "@/app/(afterSignin)/dashboard/invite-member/useOrganizationInvitations";
+import { useCustomerLogs } from "@/app/(afterSignin)/customers/hook/useCustomerLogs";
 import { useDashboardStats } from "@/hooks/tanstack/useDashboardStats";
 import { usePlanByOrg } from "@/hooks/tanstack/usePlan";
 import { useOrgAuth } from "@/hooks/tanstack/useOrgAuth";
@@ -125,7 +125,7 @@ export default function DashboardPage() {
             <p className="text-text-secondary text-lg">
               Please
               <Link href="/organizations/create" className="text-blue-500">
-                create an organization
+                &nbsp;create an organization&nbsp;
               </Link>
               or join an organization.
             </p>
