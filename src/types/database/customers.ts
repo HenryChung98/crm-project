@@ -16,7 +16,9 @@ export interface Customers {
 
 export interface CustomerLogs {
   id: string;
-  customer_id: string;
+  organization_id: string;
+  entity_id: string;
+  entity_type: string;
   action: string;
   changed_data: JSON;
   performed_at: string;

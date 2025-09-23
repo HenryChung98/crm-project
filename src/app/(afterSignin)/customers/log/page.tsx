@@ -5,6 +5,7 @@ import { useCustomerLogs } from "@/app/(afterSignin)/customers/hook/useCustomerL
 import { CustomerLogs } from "@/types/database/customers";
 
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
+import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 
 interface ChangedData {
   note?: string;
@@ -29,8 +30,9 @@ const LogItem: React.FC<LogItemProps> = ({ log }) => {
   return (
     <div className="p-4 border rounded">
       <h3 className="font-semibold">{log.id}</h3>
-      <p className="text-gray-600">{log.customer_id}</p>
       <p className="text-gray-600">{new Date(log.performed_at).toLocaleString()}</p>
+      <p className="text-gray-600">Entity ID: {log.entity_id}</p>
+      <p className="text-gray-600">Entity: {log.entity_type}</p>
       <p className="text-gray-600">Action: {log.action}</p>
       <p className="text-gray-600">Performed by: {log.performed_by}</p>
 
@@ -146,10 +148,10 @@ export default function CustomerLogPage() {
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
 
-  const { data: logs, isLoading, error } = useCustomerLogs(currentOrgId);
+  const { data: logs, isLoading, refetch, error } = useCustomerLogs(currentOrgId);
 
   if (isLoading) return <FetchingSpinner />;
-  if (error) return <div>Error: {error.message}</div>;
+  if (error) return <QueryErrorUI error={error} onRetry={refetch} />;
 
   return (
     <>

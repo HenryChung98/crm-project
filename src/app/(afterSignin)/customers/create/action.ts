@@ -106,7 +106,9 @@ export async function createCustomer(formData: FormData) {
     }
 
     const customerLogData = {
-      customer_id: customerInsertData.id,
+      organization_id: orgId,
+      entity_id: customerInsertData.id,
+      entity_type: "customer",
       action: "customer-created",
       changed_data: customerData,
       performed_by: orgMember?.id,

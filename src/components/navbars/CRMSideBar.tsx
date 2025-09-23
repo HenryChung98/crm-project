@@ -27,7 +27,7 @@ interface CRMSidebarProps {
 
 const ToggleButton = ({ isCollapsed, onClick }: { isCollapsed: boolean; onClick: () => void }) => {
   const baseClasses =
-    "bg-background z-50 p-2 border-1 rounded-lg shadow-sm hover:opacity-50 transition-all duration-300 ease-in-out fixed top-1/2 -translate-y-1/2";
+    "bg-background z-50 p-2 border-1 rounded-lg shadow-sm hover:bg-primary transition-all duration-300 ease-in-out fixed top-1/2 -translate-y-1/2";
   const positionClasses = isCollapsed ? "-left-2" : "left-60";
   const responsiveClasses = "md:block";
 
@@ -193,8 +193,15 @@ export default function CRMSidebar({
   };
 
   const isActiveItem = (item: NavItemType) => {
-    if (item.href && pathname === item.href) return true;
-    return Boolean(item.children?.some((child) => child.href && pathname === child.href));
+    const cleanItemHref = item.href?.split("?")[0];
+    if (cleanItemHref && pathname === cleanItemHref) return true;
+
+    return Boolean(
+      item.children?.some((child) => {
+        const cleanChildHref = child.href?.split("?")[0];
+        return cleanChildHref && pathname === cleanChildHref;
+      })
+    );
   };
 
   return (

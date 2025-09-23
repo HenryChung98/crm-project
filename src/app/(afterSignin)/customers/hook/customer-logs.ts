@@ -37,7 +37,7 @@ export async function getCustomerLogs(orgId: string, select?: string): Promise<C
     )
     `
     )
-    .in("customer_id", customerIds)
+    .in("entity_id", customerIds)
     .order("performed_at", { ascending: false })) as {
     data: CustomerLogs[] | null;
     error: SupabaseError;

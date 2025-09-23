@@ -15,7 +15,18 @@ export default function ProductPage() {
   // fetch customer infos
   const { data: products, isLoading, error, refetch, isFetching } = useProducts(currentOrgId);
 
-  const headers = ["ID", "name", "SKU", "description", "type", "price", "cost", "status", "note"];
+  const headers = [
+    "ID",
+    "name",
+    "SKU",
+    "description",
+    "type",
+    "price",
+    "cost",
+    "margin",
+    "status",
+    "note",
+  ];
   const data =
     products?.map((product) => [
       product.id,
@@ -25,6 +36,7 @@ export default function ProductPage() {
       product.type,
       product.price,
       product.cost,
+      product.price - product.cost,
       product.status,
       product.note || "",
     ]) || [];
@@ -38,7 +50,7 @@ export default function ProductPage() {
       <Button onClick={refetch} disabled={isFetching}>
         {isFetching ? "loading.." : "refresh"}
       </Button>
-      <Table headers={headers} data={data} columnCount={9} />
+      <Table headers={headers} data={data} columnCount={10} />
       <Link href="/sales/products/create">create</Link>
     </>
   );
