@@ -27,50 +27,72 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
   // IMPORTANT: DO NOT REMOVE auth.getUser()
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // if logged in user try to access home, auth pages
-  if (user && (request.nextUrl.pathname.startsWith("/auth") || request.nextUrl.pathname === "/")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
-  }
+  const currentPath = request.nextUrl.pathname;
 
   // for debug
-  console.log("Middleware - Current path:", request.nextUrl.pathname);
+  console.log("Middleware - Current path:", currentPath);
   console.log("Middleware - User:", user ? "Logged in" : "Not logged in");
 
-  // define public paths
-  const publicPaths = ["/auth", "/reset"];
-  const isPublicPath = publicPaths.some((path) => request.nextUrl.pathname.startsWith(path));
+  const publicPaths = [
+    "/",
+    "/about",
+    "/contact",
+    "/features",
+    "/help",
+    "/pricing",
+    "/terms",
+    "/privacy",
+  ];
 
-  // if unauthorized user try to access protected paths
-  if (!user && !isPublicPath) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/signin";
-    return NextResponse.redirect(url);
+  const authPaths = [
+    "/auth/signin",
+    "/auth/signup",
+    "/auth/callback",
+    "/auth/verify",
+    "/auth/callback/confirmed",
+    "/auth/callback/reset-password",
+    "/auth/signin/reset-password",
+  ];
+
+  const protectedPaths = [
+    "/dashboard",
+    "/customers",
+    "/settings",
+    "/organizations",
+    "/sales",
+    "/subscription",
+  ];
+
+  const isPublicPath = publicPaths.includes(currentPath);
+  const isAuthPath = authPaths.some((path) => currentPath.startsWith(path));
+  const isProtectedPath = protectedPaths.some((path) => currentPath.startsWith(path));
+  const isResetPath = currentPath.startsWith("/reset/");
+
+
+  if (user) {
+    if (currentPath === "/" || isAuthPath) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      console.log("Redirecting logged-in user from", currentPath, "to /dashboard");
+      return NextResponse.redirect(url);
+    }
+    return supabaseResponse;
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
-  // If you're creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
+  if (!user) {
+    if (isProtectedPath || (!isPublicPath && !isAuthPath && !isResetPath)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/signin";
+      console.log("Redirecting non-authenticated user from", currentPath, "to /auth/signin");
+      return NextResponse.redirect(url);
+    }
+    return supabaseResponse;
+  }
 
   return supabaseResponse;
 }
