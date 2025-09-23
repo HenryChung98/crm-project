@@ -41,7 +41,6 @@ export default function SubscriptionPage() {
           });
           showSuccess("Free plan activated successfully");
           window.location.href = hasData ? "/dashboard" : "/organizations/create";
-          // router.replace("/dashboard/organizations/create");
         } else {
           showError(result.error || "Failed to select plan");
         }

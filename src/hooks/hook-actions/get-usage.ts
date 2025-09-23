@@ -1,5 +1,4 @@
 "use server";
-import { createClient } from "@/utils/supabase/server";
 import { withOrgAuth } from "@/utils/auth";
 
 export interface UsageByOrganization {

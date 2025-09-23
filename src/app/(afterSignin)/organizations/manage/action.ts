@@ -1,9 +1,7 @@
-// action.ts
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { withOrgAuth } from "@/utils/auth";
 
 export async function updateMemberRole(orgId: string, formData: FormData) {
@@ -12,7 +10,7 @@ export async function updateMemberRole(orgId: string, formData: FormData) {
   const organizationId = formData.get("organizationId") as string;
 
   try {
-    const { user, orgMember, supabase } = await withOrgAuth(orgId, ["owner"]);
+    const { supabase } = await withOrgAuth(orgId, ["owner"]);
 
     // Update member role
     const { data, error } = await supabase

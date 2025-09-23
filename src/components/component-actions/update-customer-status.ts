@@ -7,7 +7,7 @@ export async function updateCustomerStatus(orgId: string | undefined) {
     throw new Error("Organization ID is required");
   }
 
-  const { user, orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin"]);
+  const { supabase } = await withOrgAuth(orgId, ["owner", "admin"]);
 
   // Calculate the date 30 days ago
   const thirtyDaysAgo = new Date();
@@ -17,8 +17,7 @@ export async function updateCustomerStatus(orgId: string | undefined) {
 
   try {
     const results = await Promise.allSettled([
-
-      // 1. new → active 
+      // 1. new → active
       supabase
         .from("customers")
         .update({
@@ -27,9 +26,9 @@ export async function updateCustomerStatus(orgId: string | undefined) {
         })
         .eq("organization_id", orgId)
         .lt("created_at", thirtyDaysAgo.toISOString())
-        .eq("status", "new"), 
+        .eq("status", "new"),
 
-      // 2. active → dormant 
+      // 2. active → dormant
       supabase
         .from("customers")
         .update({

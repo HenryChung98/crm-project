@@ -10,7 +10,7 @@ export interface DashboardStats {
 export async function getDashboardStats(orgId: string): Promise<DashboardStats | null> {
   if (!orgId) return null;
 
-  const { user, orgMember, supabase } = await withOrgAuth(orgId);
+  const { supabase } = await withOrgAuth(orgId);
 
   // 병렬로 모든 통계 조회
   const [totalResult, newResult, activeResult] = await Promise.all([

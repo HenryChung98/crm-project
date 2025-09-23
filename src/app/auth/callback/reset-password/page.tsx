@@ -28,7 +28,7 @@ export default function ResetPasswordPage() {
       showError("Passwords do not match");
       return;
     }
-    const { data: resetData, error } = await supabase.auth.updateUser({
+    const { data: resetData } = await supabase.auth.updateUser({
       password: data.password,
     });
     if (resetData) {

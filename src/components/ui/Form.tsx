@@ -13,6 +13,9 @@ export function Form({ children, formTitle, className = "", ...props }: FormProp
         {...props}
       >
         <h3 className="text-xl font-semibold text-center">{formTitle}</h3>
+        {/* <p className="text-sm text-gray-500 text-center">
+          <span className="text-red-500">*</span> Required fields
+        </p> */}
         {children}
       </form>
     </div>

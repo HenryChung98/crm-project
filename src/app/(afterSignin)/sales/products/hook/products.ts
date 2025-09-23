@@ -1,19 +1,19 @@
 "use server";
 
-import { Customers } from "@/types/database/customers";
+import { Products } from "@/types/database/products";
 import { SupabaseError } from "@/types/errors";
 import { withOrgAuth } from "@/utils/auth";
 
-export async function getCustomers(orgId: string, select?: string): Promise<Customers[]> {
+export async function getProducts(orgId: string, select?: string): Promise<Products[]> {
   if (!orgId) return [];
 
   const { supabase } = await withOrgAuth(orgId);
 
-  // get customers' data
   const { data, error } = (await supabase
-    .from("customers")
+    .from("products")
     .select(select || "*")
-    .eq("organization_id", orgId)) as { data: Customers[] | null; error: SupabaseError };
+    .order("created_at", { ascending: false })
+    .eq("organization_id", orgId)) as { data: Products[] | null; error: SupabaseError };
 
   if (error) throw error;
 

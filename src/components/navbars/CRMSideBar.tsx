@@ -162,9 +162,6 @@ export default function CRMSidebar({
   const { user } = useAuth();
   const { signOut } = useSupabase();
 
-  // if user doesn't have organization
-  if (!organizations.length) return null;
-
   const { queryParam, crmNavItems, isOwner } = useMemo(() => {
     const queryString = searchParams.toString();
     const queryParam = queryString ? `?${queryString}` : "";
@@ -174,6 +171,9 @@ export default function CRMSidebar({
 
     return { queryParam, crmNavItems, isOwner };
   }, [searchParams, organizations, currentOrg]);
+
+  // if user doesn't have organization
+  if (!organizations.length) return null;
 
   const toggleItem = (itemLabel: string) => {
     setExpandedItems((prev) => {

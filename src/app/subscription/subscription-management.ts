@@ -18,7 +18,6 @@ export interface SubscriptionInfo {
   subscriptionEndsAt?: string;
 }
 
-
 interface Plan {
   created_at: string;
   description: string;
@@ -41,19 +40,13 @@ interface Subscription {
   payment_status: "paid" | "pending" | "failed" | "refunded";
 }
 
-
 // =============================================================================
 // 구독 조회 함수들
 // =============================================================================
 
-// 현재 활성 구독 조회
-interface SubscriptionWithPlan extends Subscription {
-  plans: Plan;
-}
-
 export const getCurrentSubscription = async (
   supabase: SupabaseClient,
-  userId: string  
+  userId: string
 ): Promise<{ subscription: Subscription; plan: Plan } | null> => {
   try {
     const query = supabase

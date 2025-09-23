@@ -1,7 +1,7 @@
 "use server";
 
 import { randomUUID } from "crypto";
-import { createClient, createAdminClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/server";
 import { withOrgAuth } from "@/utils/auth";
 import { getUsageForOrg } from "@/hooks/hook-actions/get-usage";
 import { getPlanByOrg } from "@/hooks/hook-actions/get-plans";
@@ -11,8 +11,9 @@ export async function inviteUser(formData: FormData) {
   const orgId = formData.get("orgId")?.toString().trim();
 
   try {
-    const { orgMember } = await withOrgAuth(orgId, ["owner", "admin"]);
+    const { orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin"]);
 
+    // ========================================== check plan ==========================================
     // get user's current plan using existing action
     const orgPlanData = await getPlanByOrg(orgId);
     if (!orgPlanData?.plans) {
@@ -53,12 +54,10 @@ export async function inviteUser(formData: FormData) {
         };
       }
     }
-
+    // ========================================== /check plan ==========================================
     if (!invitedEmail || !orgId) {
       return { error: "Email and organization are required." };
     }
-
-    const supabase = await createClient();
 
     const {
       data: { user },

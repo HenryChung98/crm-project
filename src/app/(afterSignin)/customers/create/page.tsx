@@ -28,7 +28,7 @@ export default function CreateCustomersPage() {
     phone: "",
     note: "",
   });
-  
+
   // =============================for form=============================
   const [buttonLoading, setButtonLoading] = useState<boolean>(false);
   const queryClient = useQueryClient();
@@ -48,7 +48,7 @@ export default function CreateCustomersPage() {
         showError(`Error: ${res.error}` || "Failed to add customer");
       } else {
         await queryClient.invalidateQueries({
-          queryKey: ["products"],
+          queryKey: ["customers"],
         });
 
         showSuccess("Customer successfully created");

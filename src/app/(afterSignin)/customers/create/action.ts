@@ -3,6 +3,7 @@
 import { withOrgAuth } from "@/utils/auth";
 import { getUsageForOrg } from "@/hooks/hook-actions/get-usage";
 import { getPlanByOrg } from "@/hooks/hook-actions/get-plans";
+import { revalidatePath } from "next/cache";
 
 // resend
 import { Resend } from "resend";
@@ -156,7 +157,7 @@ export async function createCustomer(formData: FormData) {
         };
       }
     }
-
+    revalidatePath("/customers");
     return { success: true, customerId: customerInsertData.id };
   } catch (error) {
     return {

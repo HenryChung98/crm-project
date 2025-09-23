@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { hasSubscription } from "@/hooks/hook-actions/get-plans";
+import { revalidatePath } from "next/cache";
 
 export async function createOrganization(formData: FormData) {
   const supabase = await createClient();
@@ -96,6 +97,6 @@ export async function createOrganization(formData: FormData) {
     await supabase.from("organizations").delete().eq("id", orgInsertData.id);
     return { error: orgMemberDataError.message };
   }
-
+  revalidatePath("/dashboard");
   return { success: true };
 }

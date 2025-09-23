@@ -72,6 +72,7 @@ export default function CreateProductPage() {
   return (
     <>
       <Form action={handleSubmit} formTitle="Create Product">
+        <input type="hidden" name="orgId" value={currentOrgId} />
         <FormField
           label="Product Name"
           name="name"
@@ -80,6 +81,7 @@ export default function CreateProductPage() {
           value={formData.name}
           onChange={handleChange}
           required
+          requiredField
           className="border w-full p-2"
         />
         <FormField
@@ -90,6 +92,7 @@ export default function CreateProductPage() {
           value={formData.sku}
           onChange={handleChange}
           required
+          requiredField
           className="border w-full p-2"
         />
         <FormField
@@ -100,6 +103,7 @@ export default function CreateProductPage() {
           value={formData.description}
           onChange={handleChange}
           required
+          requiredField
           className="border w-full p-2"
         />
         <Dropdown name="type" value={formData.type} onChange={handleChange} required>
@@ -116,6 +120,7 @@ export default function CreateProductPage() {
           value={formData.price?.toString() ?? ""}
           onChange={handleChange}
           required
+          requiredField
           className="border w-full p-2"
         />
         <FormField
@@ -126,6 +131,7 @@ export default function CreateProductPage() {
           value={formData.cost?.toString() ?? ""}
           onChange={handleChange}
           required
+          requiredField
           className="border w-full p-2"
         />
         <div>

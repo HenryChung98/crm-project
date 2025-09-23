@@ -13,7 +13,7 @@ export const useSupabase = () => {
     async (access_token: string, refresh_token: string) => {
       try {
         setLoading(true);
-        const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
+        const { error } = await supabase.auth.setSession({ access_token, refresh_token });
 
         if (error) {
           console.error("Failed to set session:", error.message);
@@ -49,7 +49,7 @@ export const useSupabase = () => {
   const refreshSession = useCallback(async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.auth.refreshSession();
+      const { error } = await supabase.auth.refreshSession();
 
       if (error) {
         console.error("Failed to refresh session:", error.message);

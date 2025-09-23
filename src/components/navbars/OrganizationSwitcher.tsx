@@ -23,7 +23,7 @@ export default function OrganizationSwitcher({
   const currentOrgData = organizations.find((org) => org.organization_id === currentOrg);
   const currentOrgName = currentOrgData?.organizations?.name || "";
 
-  const { hasData, isLoading, error } = useOrganizationCheck();
+  const { hasData } = useOrganizationCheck();
 
   return (
     <div className="relative mb-6">

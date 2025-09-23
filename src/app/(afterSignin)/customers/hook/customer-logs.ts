@@ -7,7 +7,7 @@ import { withOrgAuth } from "@/utils/auth";
 export async function getCustomerLogs(orgId: string, select?: string): Promise<CustomerLogs[]> {
   if (!orgId) return [];
 
-  const { user, orgMember, supabase } = await withOrgAuth(orgId);
+  const { supabase } = await withOrgAuth(orgId);
 
   // get organization_id of customer
   const { data: customers, error: customersError } = await supabase

@@ -10,7 +10,7 @@ import { OrganizationInvitations } from "@/types/database/organizations";
 import { CustomerLogs } from "@/types/database/customers";
 
 // hook
-import { useOrganizationInvitationsByEmail } from "@/app/(afterSignin)/dashboard/invite-member/useOrganizationInvitations";
+import { useOrganizationInvitationsByEmail } from "@/app/(afterSignin)/dashboard/invite-member/hook/useOrganizationInvitations";
 import { useCustomerLogs } from "@/app/(afterSignin)/customers/hook/useCustomerLogs";
 import { useDashboardStats } from "@/hooks/tanstack/useDashboardStats";
 import { usePlanByOrg } from "@/hooks/tanstack/usePlan";

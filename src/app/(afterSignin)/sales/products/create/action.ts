@@ -1,4 +1,7 @@
+"use server";
+
 import { withOrgAuth } from "@/utils/auth";
+import { revalidatePath } from "next/cache";
 
 export async function createProduct(formData: FormData) {
   const orgId = formData.get("orgId")?.toString().trim();
@@ -14,15 +17,33 @@ export async function createProduct(formData: FormData) {
     const { orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin", "member"]);
 
     if (!orgId || !name || !sku || !description || !type || !price || !cost) {
-      console.log("Required fields are missing.");
-      return { error: "Required fields are missing." };
+      return { success: false, error: "Required fields are missing." };
     }
-    console.log("it works");
+
+    const { error } = await supabase
+      .from("products")
+      .insert({
+        organization_id: orgId,
+        name,
+        sku,
+        description,
+        type,
+        price: parseFloat(price),
+        cost: parseFloat(cost),
+        note: note || null,
+        created_by: orgMember.user_id,
+      })
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    revalidatePath("/products")
     return { success: true };
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error occured",
+      error: error instanceof Error ? error.message : "Unknown error occurred",
     };
   }
 }
