@@ -26,7 +26,7 @@ export const QueryErrorUI: React.FC<{
     if (!error) return "Failed to load data";
 
     // NetworkError의 code 체크 (Supabase/PostgREST 에러)
-    const networkError = error as any;
+    const networkError = error as NetworkError;
     if (networkError?.code === "PGRST301") {
       return "No data found";
     }
