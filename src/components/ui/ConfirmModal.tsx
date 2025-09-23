@@ -1,14 +1,18 @@
 import { useState } from "react";
+import { Button } from "./Button";
 
-interface ConfirmModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
+interface ConfirmOptions {
   title?: string;
   message?: string;
   confirmText?: string;
   cancelText?: string;
-  variant?: "default" | "danger";
+  variant?: string;
+}
+
+interface ConfirmModalProps extends ConfirmOptions {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
 }
 
 export function ConfirmModal({
@@ -23,16 +27,6 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
   if (!isOpen) return null;
 
-  const handleConfirm = () => {
-    onConfirm();
-    onClose();
-  };
-
-  const confirmButtonClass =
-    variant === "danger"
-      ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
-      : "bg-primary text-primary-foreground hover:bg-primary/90";
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center slide-in-fwd-center">
       {/* Backdrop */}
@@ -40,68 +34,42 @@ export function ConfirmModal({
 
       {/* Modal */}
       <div className="relative bg-card border border-border rounded-lg p-6 max-w-md w-full mx-4 shadow-lg">
-        <h2 className="text-lg font-semibold text-foreground mb-2">{title}</h2>
+        <h2 className="text-lg font-semibold mb-2">{title}</h2>
 
-        <p className="text-muted-foreground mb-6">{message}</p>
+        <p className="mb-6">{message}</p>
 
         <div className="flex gap-3 justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-md hover:bg-muted transition-colors"
-          >
-            {cancelText}
-          </button>
+          <Button onClick={onClose} className="bg-secondary">{cancelText}</Button>
 
-          <button
-            onClick={handleConfirm}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${confirmButtonClass}`}
-          >
+          <Button onClick={onConfirm} className={`bg-${variant}`}>
             {confirmText}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
   );
 }
 
-// 사용을 위한 커스텀 훅
 export function useConfirm() {
   const [isOpen, setIsOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
-  const [options, setOptions] = useState<{
-    title?: string;
-    message?: string;
-    confirmText?: string;
-    cancelText?: string;
-    variant?: "default" | "danger";
-  }>({});
+  const [options, setOptions] = useState<ConfirmOptions>({});
 
-  const confirm = (
-    action: () => void,
-    opts?: {
-      title?: string;
-      message?: string;
-      confirmText?: string;
-      cancelText?: string;
-      variant?: "default" | "danger";
-    }
-  ) => {
+  const confirm = (action: () => void, opts: ConfirmOptions = {}) => {
     setConfirmAction(() => action);
-    setOptions(opts || {});
+    setOptions(opts);
     setIsOpen(true);
   };
 
   const handleConfirm = () => {
-    if (confirmAction) {
-      confirmAction();
-    }
-    setIsOpen(false);
-    setConfirmAction(null);
+    confirmAction?.();
+    handleClose();
   };
 
   const handleClose = () => {
     setIsOpen(false);
     setConfirmAction(null);
+    setOptions({});
   };
 
   const ConfirmModalComponent = () => (
@@ -113,3 +81,31 @@ export function useConfirm() {
     ConfirmModal: ConfirmModalComponent,
   };
 }
+
+/*
+const MyComponent = () => {
+  const { confirm, ConfirmModal } = useConfirm();
+
+  const handleDelete = () => {
+    confirm(
+      () => {
+        // 실제 삭제 로직
+        console.log('삭제됨');
+      },
+      {
+        title: '삭제 확인',
+        message: '정말로 삭제하시겠습니까?',
+        confirmText: '삭제',
+        variant: 'danger'
+      }
+    );
+  };
+
+  return (
+    <div>
+      <button onClick={handleDelete}>삭제</button>
+      <ConfirmModal />
+    </div>
+  );
+};
+*/

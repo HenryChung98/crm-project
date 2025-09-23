@@ -16,13 +16,15 @@ import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 import { EMPTY_ARRAY } from "@/types/customData";
 import { OrganizationMembers } from "@/types/database/organizations";
 
+type PendingActionType = "updating" | "removing";
+
 export default function ManageOrganizationPage() {
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org");
   const { user } = useAuth();
   const { confirm, ConfirmModal } = useConfirm();
 
-  const [pendingActions, setPendingActions] = useState<Record<string, "updating" | "removing">>({});
+  const [pendingActions, setPendingActions] = useState<Record<string, PendingActionType>>({});
 
   const {
     data: orgMembers = EMPTY_ARRAY,
@@ -40,49 +42,60 @@ export default function ManageOrganizationPage() {
     { enabled: !!currentOrgId }
   );
 
-  if (isLoading) return <FetchingSpinner />;
+  const clearPendingAction = (memberId: string) => {
+    setPendingActions((prev) => {
+      const { [memberId]: _, ...rest } = prev;
+      return rest;
+    });
+  };
 
-  if (error) {
-    return (
-      <div className="flex flex-col justify-center items-center min-h-screen">
-        <QueryErrorUI error={error} onRetry={refetch} />
-      </div>
-    );
-  }
+  const executeWithPendingState = async (
+    memberId: string,
+    actionType: PendingActionType,
+    action: () => Promise<{ success: boolean; error?: string }>,
+    successMessage: string,
+    errorMessage: string
+  ) => {
+    setPendingActions((prev) => ({ ...prev, [memberId]: actionType }));
+
+    try {
+      const result = await action();
+
+      if (result.success) {
+        showSuccess(successMessage);
+        refetch();
+      } else {
+        showError(`${errorMessage}: ${result.error}`);
+      }
+    } catch (error) {
+      showError(`An error occurred while ${actionType}`);
+    } finally {
+      clearPendingAction(memberId);
+    }
+  };
 
   const handleUpdateRole = async (memberId: string, newRole: string) => {
     confirm(
       async () => {
-        setPendingActions((prev) => ({ ...prev, [memberId]: "updating" }));
-
-        try {
-          const formData = new FormData();
-          formData.append("memberId", memberId);
-          formData.append("role", newRole);
-          formData.append("organizationId", currentOrgId!);
-
-          const result = await updateMemberRole(currentOrgId!, formData);
-
-          if (result.success) {
-            showSuccess("Role updated successfully!");
-            refetch();
-          } else {
-            showError(`Failed to update role: ${result.error}`);
-          }
-        } catch (error) {
-          showError("An error occurred while updating the role");
-        } finally {
-          setPendingActions((prev) => {
-            const { [memberId]: _, ...rest } = prev;
-            return rest;
-          });
-        }
+        await executeWithPendingState(
+          memberId,
+          "updating",
+          async () => {
+            const formData = new FormData();
+            formData.append("memberId", memberId);
+            formData.append("role", newRole);
+            formData.append("organizationId", currentOrgId!);
+            return await updateMemberRole(currentOrgId!, formData);
+          },
+          "Role updated successfully!",
+          "Failed to update role"
+        );
       },
       {
         title: "Update Role",
         message: "Are you sure you want to update this member's role?",
         confirmText: "Update",
-        variant: "default",
+        variant: "primary",
       }
     );
   };
@@ -90,29 +103,18 @@ export default function ManageOrganizationPage() {
   const handleRemove = async (memberId: string) => {
     confirm(
       async () => {
-        setPendingActions((prev) => ({ ...prev, [memberId]: "removing" }));
-
-        try {
-          const formData = new FormData();
-          formData.append("removeId", memberId);
-          formData.append("organizationId", currentOrgId!);
-
-          const result = await removeMember(formData);
-
-          if (result.success) {
-            showSuccess("Member removed successfully!");
-            refetch();
-          } else {
-            showError(`Failed to remove member: ${result.error}`);
-          }
-        } catch (error) {
-          showError("An error occurred while removing the member");
-        } finally {
-          setPendingActions((prev) => {
-            const { [memberId]: _, ...rest } = prev;
-            return rest;
-          });
-        }
+        await executeWithPendingState(
+          memberId,
+          "removing",
+          async () => {
+            const formData = new FormData();
+            formData.append("removeId", memberId);
+            formData.append("organizationId", currentOrgId!);
+            return await removeMember(formData);
+          },
+          "Member removed successfully!",
+          "Failed to remove member"
+        );
       },
       {
         title: "Remove Member",
@@ -126,8 +128,14 @@ export default function ManageOrganizationPage() {
   // Filter out current user's member data
   const otherMembers = orgMembers.filter((member) => member.user_id !== user?.id);
 
-  if (isLoading) {
-    return <div className="p-6">Loading organization members...</div>;
+  if (isLoading) return <FetchingSpinner />;
+
+  if (error) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-screen">
+        <QueryErrorUI error={error} onRetry={refetch} />
+      </div>
+    );
   }
 
   return (
