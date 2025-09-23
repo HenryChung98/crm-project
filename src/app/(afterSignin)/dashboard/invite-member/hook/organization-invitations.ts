@@ -1,3 +1,4 @@
+"use server";
 import { SupabaseError } from "@/types/errors";
 import { createClient } from "@/utils/supabase/server";
 // type

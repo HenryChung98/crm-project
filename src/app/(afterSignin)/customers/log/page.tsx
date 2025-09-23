@@ -4,6 +4,8 @@ import { useSearchParams } from "next/navigation";
 import { useCustomerLogs } from "@/app/(afterSignin)/customers/hook/useCustomerLogs";
 import { CustomerLogs } from "@/types/database/customers";
 
+import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
+
 interface ChangedData {
   note?: string;
   email?: string;
@@ -146,7 +148,7 @@ export default function CustomerLogPage() {
 
   const { data: logs, isLoading, error } = useCustomerLogs(currentOrgId);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <FetchingSpinner />;
   if (error) return <div>Error: {error.message}</div>;
 
   return (

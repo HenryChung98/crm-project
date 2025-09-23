@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useProducts } from "./hook/useProduct";
 //  ui
 import { Table } from "@/components/ui/Table";
+import { Button } from "@/components/ui/Button";
+import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
+import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 
 export default function ProductPage() {
   const searchParams = useSearchParams();
@@ -12,17 +15,7 @@ export default function ProductPage() {
   // fetch customer infos
   const { data: products, isLoading, error, refetch, isFetching } = useProducts(currentOrgId);
 
-  const headers = [
-    "ID",
-    "name",
-    "SKU",
-    "description",
-    "type",
-    "price",
-    "cost",
-    "status",
-    "note",
-  ];
+  const headers = ["ID", "name", "SKU", "description", "type", "price", "cost", "status", "note"];
   const data =
     products?.map((product) => [
       product.id,
@@ -36,9 +29,15 @@ export default function ProductPage() {
       product.note || "",
     ]) || [];
 
+  if (isLoading) return <FetchingSpinner />;
+  if (error) return <QueryErrorUI error={error} onRetry={refetch} />;
+
   return (
     <>
       <div>product page</div>
+      <Button onClick={refetch} disabled={isFetching}>
+        {isFetching ? "loading.." : "refresh"}
+      </Button>
       <Table headers={headers} data={data} columnCount={9} />
       <Link href="/sales/products/create">create</Link>
     </>

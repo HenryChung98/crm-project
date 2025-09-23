@@ -9,6 +9,8 @@ import { updateMemberRole, removeMember } from "./action";
 import { Button } from "@/components/ui/Button";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 import { showSuccess, showError } from "@/utils/feedback";
+import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
+import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 
 // type
 import { EMPTY_ARRAY } from "@/types/customData";
@@ -37,6 +39,16 @@ export default function ManageOrganizationPage() {
     `,
     { enabled: !!currentOrgId }
   );
+
+  if (isLoading) return <FetchingSpinner />;
+
+  if (error) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-screen">
+        <QueryErrorUI error={error} onRetry={refetch} />
+      </div>
+    );
+  }
 
   const handleUpdateRole = async (memberId: string, newRole: string) => {
     confirm(
@@ -116,16 +128,6 @@ export default function ManageOrganizationPage() {
 
   if (isLoading) {
     return <div className="p-6">Loading organization members...</div>;
-  }
-
-  if (error) {
-    if (error.message.includes("User not authenticated")) {
-      return <div className="p-6">Please log in to view this page.</div>;
-    }
-    if (error.message.includes("permission required")) {
-      return <div className="p-6">Access denied - Owner role required</div>;
-    }
-    return <div className="p-6">Error loading members: {error.message}</div>;
   }
 
   return (

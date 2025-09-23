@@ -5,6 +5,8 @@ import UpdateCustomerStatusButton from "@/components/UpdateCustomerStatusButton"
 
 // ui
 import { Button } from "@/components/ui/Button";
+import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
+import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 
 export default function CustomersPage() {
   const searchParams = useSearchParams();
@@ -13,7 +15,15 @@ export default function CustomersPage() {
   // fetch customer infos
   const { data: customers, isLoading, error, refetch, isFetching } = useCustomers(currentOrgId);
 
-  if (isLoading) return <div>Loading customers...</div>;
+  if (isLoading) return <FetchingSpinner />;
+
+  if (error) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-screen">
+        <QueryErrorUI error={error} onRetry={refetch} />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">

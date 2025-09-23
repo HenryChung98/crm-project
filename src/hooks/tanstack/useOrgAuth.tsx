@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { getOrgMember, OrganizationMember, Role } from "@/hooks/hook-actions/org-auth";
+import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 
 // 역할 계층 정의 (숫자가 높을수록 높은 권한)
 const ROLE_HIERARCHY: Record<Role, number> = {
@@ -100,7 +101,7 @@ export function OrgAuthGuard({
   const { orgMember, isLoading, error, hasRole, hasAnyRole, hasMinimumRole } = useOrgAuth(orgId);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <FetchingSpinner />;
   }
 
   if (error || !orgMember) {

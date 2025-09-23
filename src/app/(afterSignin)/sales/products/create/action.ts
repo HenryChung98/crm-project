@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 export async function createProduct(formData: FormData) {
   const orgId = formData.get("orgId")?.toString().trim();
   const name = formData.get("name")?.toString().trim();
-  const sku = formData.get("sku")?.toString().trim();
+  const sku = formData.get("sku")?.toString().toUpperCase().trim();
   const description = formData.get("description")?.toString().trim();
   const type = formData.get("type")?.toString().trim();
   const price = formData.get("price")?.toString().trim();
