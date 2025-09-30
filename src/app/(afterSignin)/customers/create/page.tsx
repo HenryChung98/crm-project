@@ -9,6 +9,9 @@ import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
 import { showSuccess, showError } from "@/utils/feedback";
+import { useConfirm } from "@/components/ui/ConfirmModal";
+
+import { CustomerForm } from "../CustomerForm";
 
 interface CustomerFormData {
   orgId: string;
@@ -34,15 +37,57 @@ export default function CreateCustomersPage() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
+  const { confirm, ConfirmModal } = useConfirm();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const { name, value } = e.target;
+  //   setFormData((prev) => ({ ...prev, [name]: value }));
+  // };
 
-  const handleSubmit = async (formData: FormData) => {
+  // const createCustomerAction = async (formData: FormData) => {
+  //   setButtonLoading(true);
+  //   try {
+  //     const res = await createCustomer(formData);
+  //     if (res?.error) {
+  //       showError(`Error: ${res.error}` || "Failed to add customer");
+  //     } else {
+  //       await queryClient.invalidateQueries({
+  //         queryKey: ["customers"],
+  //       });
+
+  //       showSuccess("Customer successfully created");
+  //     }
+  //   } catch (error) {
+  //     showError("An error occurred.");
+  //   } finally {
+  //     setButtonLoading(false);
+  //   }
+  // };
+
+  // const handleSubmit = async (formData: FormData) => {
+  //   confirm(
+  //     async () => {
+  //       await createCustomerAction(formData);
+  //     },
+  //     {
+  //       title: "Create Customer",
+  //       message: "Are you sure you want to create this customer?",
+  //       confirmText: "Create",
+  //       variant: "primary",
+  //     }
+  //   );
+  // };
+  const createCustomerAction = async (data: CustomerFormData) => {
     setButtonLoading(true);
     try {
+      const formData = new FormData();
+      formData.append("orgId", data.orgId);
+      formData.append("firstName", data.firstName);
+      formData.append("lastName", data.lastName);
+      formData.append("email", data.email);
+      if (data.phone) formData.append("phone", data.phone);
+      if (data.note) formData.append("note", data.note);
+
       const res = await createCustomer(formData);
       if (res?.error) {
         showError(`Error: ${res.error}` || "Failed to add customer");
@@ -50,7 +95,6 @@ export default function CreateCustomersPage() {
         await queryClient.invalidateQueries({
           queryKey: ["customers"],
         });
-
         showSuccess("Customer successfully created");
       }
     } catch (error) {
@@ -59,10 +103,24 @@ export default function CreateCustomersPage() {
       setButtonLoading(false);
     }
   };
+
+  const handleSubmit = async (data: CustomerFormData) => {
+    confirm(
+      async () => {
+        await createCustomerAction(data);
+      },
+      {
+        title: "Create Customer",
+        message: "Are you sure you want to create this customer?",
+        confirmText: "Create",
+        variant: "primary",
+      }
+    );
+  };
   // =============================/for form=============================
   return (
     <>
-      <Form action={handleSubmit} formTitle={`add customer`}>
+      {/* <Form action={handleSubmit} formTitle={`add customer`}>
         <input type="hidden" name="orgId" value={currentOrgId} />
         <FormField
           label="First Name"
@@ -112,7 +170,14 @@ export default function CreateCustomersPage() {
         <Button type="submit" disabled={buttonLoading}>
           {buttonLoading ? "Adding..." : "Add customer"}
         </Button>
-      </Form>
+      </Form> */}
+      <CustomerForm
+        currentOrgId={currentOrgId}
+        mode="create"
+        onSubmit={handleSubmit}
+        isLoading={buttonLoading}
+      />
+      <ConfirmModal />
     </>
   );
 }

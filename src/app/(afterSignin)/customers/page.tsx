@@ -2,6 +2,7 @@
 import { useSearchParams } from "next/navigation";
 import { useCustomers } from "@/app/(afterSignin)/customers/hook/useCustomers";
 import UpdateCustomerStatusButton from "@/components/UpdateCustomerStatusButton";
+import Link from "next/link";
 
 // ui
 import { Button } from "@/components/ui/Button";
@@ -43,6 +44,9 @@ export default function CustomersPage() {
             <p className="text-gray-600">{customer.status}</p>
             <p className="text-gray-600">{customer.source}</p>
             <p className="text-gray-600">{new Date(customer.created_at).toLocaleString()}</p>
+            <Link href={`/customers/update/${customer.id}`}>
+              <Button variant="secondary">Edit</Button>
+            </Link>
           </div>
         ))}
       </div>
