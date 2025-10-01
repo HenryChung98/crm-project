@@ -31,7 +31,6 @@ export function createCrmNavItems(searchParams: URLSearchParams) {
       children: [
         { label: "All Customers", href: `/customers${queryParam}` },
         { label: "Add Customer", href: `/customers/create${queryParam}` },
-        { label: "Customer Logs", href: `/customers/log${queryParam}` },
       ],
     },
     {
@@ -58,9 +57,10 @@ export function createCrmNavItems(searchParams: URLSearchParams) {
       icon: React.createElement(RiSettings3Line),
       children: [
         { label: "Profile", href: `/settings/profile${queryParam}` },
+        { label: "Activity Logs", href: `/settings/log${queryParam}` },
+        { label: "Billing", href: `/settings/billing${queryParam}` },
         { label: "Team", href: `#` },
         { label: "Integrations", href: `#` },
-        { label: "Billing", href: `/settings/billing${queryParam}` },
       ],
     },
   ];

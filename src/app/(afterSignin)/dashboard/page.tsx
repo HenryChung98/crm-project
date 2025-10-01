@@ -7,11 +7,11 @@ import { useMemo } from "react";
 // type
 import { EMPTY_ARRAY } from "@/types/customData";
 import { OrganizationInvitations } from "@/types/database/organizations";
-import { ActivityLogs } from "@/types/database/customers";
+import { ActivityLogs } from "@/types/database/activityLogs";
 
 // hook
 import { useOrganizationInvitationsByEmail } from "@/app/(afterSignin)/dashboard/invite-member/hook/useOrganizationInvitations";
-import { useCustomerLogs } from "@/app/(afterSignin)/customers/hook/useCustomerLogs";
+import { useActivityLogs } from "@/hooks/tanstack/useActivityLogs";
 import { useDashboardStats } from "@/hooks/tanstack/useDashboardStats";
 import { usePlanByOrg } from "@/hooks/tanstack/usePlan";
 import { useOrgAuth } from "@/hooks/tanstack/useOrgAuth";
@@ -40,11 +40,9 @@ export default function DashboardPage() {
   const { data: orgInvitations = EMPTY_ARRAY, isLoading: isInvitationLoading } =
     useOrganizationInvitationsByEmail<OrganizationInvitations>();
 
-  const { data: customerLogs = EMPTY_ARRAY, isLoading: customerLogLoading } =
-    useCustomerLogs<ActivityLogs>(
-      currentOrgId || "",
-      `id, action, organization_members:performed_by(user_email)`
-    );
+  const { data: activityLogs = EMPTY_ARRAY, isLoading: activityLogLoading } = useActivityLogs(
+    currentOrgId || ""
+  );
 
   const { data: orgPlan, isLoading: orgPlanLoading } = usePlanByOrg(currentOrgId);
 
@@ -98,11 +96,11 @@ export default function DashboardPage() {
                 <h3 className="text-lg font-semibold">Recent Activity Logs</h3>
               </div>
               <div className="p-6">
-                {customerLogLoading ? (
+                {activityLogLoading ? (
                   <div className="flex items-center justify-center py-8">Loading logs...</div>
-                ) : customerLogs.length > 0 ? (
+                ) : activityLogs.length > 0 ? (
                   <div className="space-y-4">
-                    {customerLogs.slice(0, 5).map((log) => (
+                    {activityLogs.slice(0, 5).map((log) => (
                       <div key={log.id} className="p-4 rounded-lg border border-border">
                         <div className="text-sm font-medium">Action: {log?.action}</div>
                         <div className="text-xs mt-1 text-text-secondary">

@@ -22,32 +22,27 @@ export async function updateCustomer(formData: FormData) {
       return { error: "Failed to get user plan data" };
     }
 
-    // check if expired
     if (orgPlanData.subscription.status !== "free") {
       const isExpired =
         orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
       if (isExpired) {
         let errorMessage = `Your current organization plan is expired.`;
-
         if (orgMember?.role === "owner") {
           errorMessage += `\n\nAs the owner, you can renew your plan.`;
         }
-        return {
-          error: errorMessage,
-        };
+        return { error: errorMessage };
       }
     }
     // ========================================== /check plan expiration ==========================================
 
-    // check all required fields
     if (!customerId || !orgId || !firstName || !lastName || !email) {
       return { error: "Customer ID, name, and email are required." };
     }
 
-    // verify customer exists and belongs to organization
+    // verify customer exists and get current data
     const { data: existingCustomer, error: fetchError } = await supabase
       .from("customers")
-      .select("id, email")
+      .select("id, email, first_name, last_name, phone, note")
       .eq("id", customerId)
       .eq("organization_id", orgId)
       .single();
@@ -77,12 +72,44 @@ export async function updateCustomer(formData: FormData) {
     const customerData = {
       first_name: firstName,
       last_name: lastName,
-      email: email ?? null,
-      phone: phone ?? null,
-      note: note ?? null,
+      email: email,
+      phone: phone || null,
+      note: note || null,
       updated_at: new Date().toISOString(),
     };
 
+    // detect changes
+    const changedData: Record<
+      string,
+      { old: string | number | null; new: string | number | null | undefined }
+    > = {};
+
+    // need this for nullable columns
+    const normalizedPhone = phone || null;
+    const normalizedNote = note || null;
+
+    if (existingCustomer.first_name !== firstName) {
+      changedData.first_name = { old: existingCustomer.first_name, new: firstName };
+    }
+    if (existingCustomer.last_name !== lastName) {
+      changedData.last_name = { old: existingCustomer.last_name, new: lastName };
+    }
+    if (existingCustomer.email !== email) {
+      changedData.email = { old: existingCustomer.email, new: email };
+    }
+    if (existingCustomer.phone !== normalizedPhone) {
+      changedData.phone = { old: existingCustomer.phone, new: normalizedPhone };
+    }
+    if (existingCustomer.note !== normalizedNote) {
+      changedData.note = { old: existingCustomer.note, new: normalizedNote };
+    }
+
+    // if no changes, return early
+    if (Object.keys(changedData).length === 0) {
+      return { success: true, customerId, message: "No changes detected" };
+    }
+
+    // update customer
     const { error: updateError } = await supabase
       .from("customers")
       .update(customerData)
@@ -93,27 +120,31 @@ export async function updateCustomer(formData: FormData) {
       return { error: updateError.message };
     }
 
-    const customerLogData = {
+    // log only changed fields
+    const activityLogData = {
       organization_id: orgId,
       entity_id: customerId,
       entity_type: "customer",
       action: "customer-updated",
-      changed_data: customerData,
-      performed_by: orgMember?.id,
+      changed_data: changedData,
+      performed_by: orgMember.id,
     };
 
-    const { error: customerLogError } = await supabase
-      .from("customer_logs")
-      .insert([customerLogData])
+    const { error: activityLogError } = await supabase
+      .from("activity_logs")
+      .insert([activityLogData])
       .select("id")
       .single();
 
-    if (customerLogError) {
-      return { error: customerLogError.message };
+    if (activityLogError) {
+      return { error: activityLogError.message };
     }
 
-    revalidatePath("/customers");
-    revalidatePath(`/customers/${customerId}`);
+    revalidatePath(`/customers?org=${orgId}`);
+    revalidatePath(`/customers/${customerId}?org=${orgId}`);
+    revalidatePath(`/dashboard?org=${orgId}`);
+    revalidatePath(`/customers/log?org=${orgId}`);
+
     return { success: true, customerId };
   } catch (error) {
     return {
@@ -153,7 +184,7 @@ export async function removeCustomer(customerId: string, organizationId: string)
     // verify customer exists and belongs to organization
     const { data: customerToRemove, error: fetchError } = await supabase
       .from("customers")
-      .select("id")
+      .select("id, email")
       .eq("id", customerId)
       .eq("organization_id", organizationId)
       .single();
@@ -174,23 +205,26 @@ export async function removeCustomer(customerId: string, organizationId: string)
     }
 
     // log the deletion
-    const customerLogData = {
+    const activityLogData = {
       organization_id: organizationId,
       entity_id: customerId,
       entity_type: "customer",
       action: "customer-deleted",
-      changed_data: { deleted_at: new Date().toISOString() },
-      performed_by: orgMember?.id,
+      changed_data: {
+        customer_email: customerToRemove.email,
+        deleted_at: new Date().toISOString(),
+      },
+      performed_by: orgMember.id,
     };
 
-    const { error: customerLogError } = await supabase
-      .from("customer_logs")
-      .insert([customerLogData])
+    const { error: activityLogError } = await supabase
+      .from("activity_logs")
+      .insert([activityLogData])
       .select("id")
       .single();
 
-    if (customerLogError) {
-      return { success: false, error: customerLogError.message };
+    if (activityLogError) {
+      return { success: false, error: activityLogError.message };
     }
 
     revalidatePath("/customers");

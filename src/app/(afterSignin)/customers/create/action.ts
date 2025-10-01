@@ -88,11 +88,11 @@ export async function createCustomer(formData: FormData) {
       first_name: firstName,
       last_name: lastName,
       source: `By ${orgMember.user_email}`,
-      email: email ?? null,
-      phone: phone ?? null,
+      email: email,
+      phone: phone || null,
       status: "new",
       tag: "regular",
-      note: note ?? null,
+      note: note|| null,
     };
 
     const { data: customerInsertData, error: customerDataError } = await supabase
@@ -105,23 +105,23 @@ export async function createCustomer(formData: FormData) {
       return { error: customerDataError.message };
     }
 
-    const customerLogData = {
+    const activityLogData = {
       organization_id: orgId,
       entity_id: customerInsertData.id,
       entity_type: "customer",
       action: "customer-created",
       changed_data: customerData,
-      performed_by: orgMember?.id,
+      performed_by: orgMember.id,
     };
 
-    const { error: customerLogError } = await supabase
+    const { error: activityLogError } = await supabase
       .from("activity_logs")
-      .insert([customerLogData])
+      .insert([activityLogData])
       .select("id")
       .single();
 
-    if (customerLogError) {
-      return { error: customerLogError.message };
+    if (activityLogError) {
+      return { error: activityLogError.message };
     }
 
     // resend logic
@@ -159,7 +159,9 @@ export async function createCustomer(formData: FormData) {
         };
       }
     }
-    revalidatePath("/customers");
+    revalidatePath(`/customers?org=${orgId}`);
+    revalidatePath(`/dashboard?org=${orgId}`);
+    revalidatePath(`/customers/log?org=${orgId}`);
     return { success: true, customerId: customerInsertData.id };
   } catch (error) {
     return {
