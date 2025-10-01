@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { NetworkError } from "@/types/errors";
-import { CustomerLogs } from "@/types/database/customers";
+import { ActivityLogs } from "@/types/database/customers";
 import { getCustomerLogs } from "./customer-logs";
 
 // type
 import { QueryResult } from "@/types/customData";
 
-export const useCustomerLogs = <T = CustomerLogs>(
+export const useCustomerLogs = <T = ActivityLogs>(
   orgId: string,
   select?: string
 ): QueryResult<T> => {

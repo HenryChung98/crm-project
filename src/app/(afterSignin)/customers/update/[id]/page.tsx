@@ -18,7 +18,6 @@ export default function UpdateCustomerPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
-  
   const [buttonLoading, setButtonLoading] = useState<boolean>(false);
   const queryClient = useQueryClient();
   const { confirm, ConfirmModal } = useConfirm();
@@ -93,7 +92,7 @@ export default function UpdateCustomerPage() {
         currentOrgId={currentOrgId}
         mode={`update ${customer.first_name}`}
         initialData={{
-          orgId: customer.organization_id,
+          orgId: currentOrgId,
           firstName: customer.first_name,
           lastName: customer.last_name,
           email: customer.email,

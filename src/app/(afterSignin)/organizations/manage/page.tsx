@@ -77,11 +77,7 @@ export default function ManageOrganizationPage() {
       async () => {
         setIsUpdateLoading(true);
         try {
-          const formData = new FormData();
-          formData.append("removeId", memberId);
-          formData.append("organizationId", currentOrgId!);
-
-          const result = await removeMember(formData);
+          const result = await removeMember(memberId, currentOrgId!);
 
           if (result.success) {
             showSuccess("Member removed successfully!");
@@ -91,6 +87,7 @@ export default function ManageOrganizationPage() {
           }
         } catch (error) {
           showError("An error occurred while removing");
+          console.error("Remove member error:", error); // 디버깅용
         } finally {
           setIsUpdateLoading(false);
         }

@@ -1,6 +1,5 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { withOrgAuth } from "@/utils/auth";
 
@@ -33,40 +32,34 @@ export async function updateMemberRole(orgId: string, formData: FormData) {
   }
 }
 
-export async function removeMember(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, error: "Unauthorized" };
-  }
-
-  const removeId = formData.get("removeId") as string;
-  const organizationId = formData.get("organizationId") as string;
-
+export async function removeMember(memberId: string, organizationId: string) {
   try {
-    // Check if current user is owner
-    const { data: currentMember } = await supabase
+    const { supabase, orgMember } = await withOrgAuth(organizationId, ["owner"]);
+
+    if (orgMember.id === memberId) {
+      return { success: false, error: "You cannot remove yourself from the organization" };
+    }
+
+    const { data: memberToRemove, error: fetchError } = await supabase
       .from("organization_members")
-      .select("role")
-      .eq("user_id", user.id)
+      .select("id")
+      .eq("id", memberId)
       .eq("organization_id", organizationId)
       .single();
 
-    if (currentMember?.role !== "owner") {
-      return { success: false, error: "Owner role required." };
+    if (fetchError || !memberToRemove) {
+      return { success: false, error: "Member not found or access denied" };
     }
 
-    // Remove member
-    const { error } = await supabase
+    const { error: deleteError } = await supabase
       .from("organization_members")
       .delete()
-      .eq("id", removeId)
+      .eq("id", memberId)
       .eq("organization_id", organizationId);
 
-    if (error) throw error;
+    if (deleteError) {
+      return { success: false, error: deleteError.message };
+    }
 
     revalidatePath("/organizations/manage");
     return { success: true };

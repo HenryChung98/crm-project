@@ -51,10 +51,10 @@ export function CustomerForm({
 
   return (
     <Form onSubmit={handleSubmit} formTitle={`${mode} customer`}>
-      {/* <input type="hidden" name="orgId" value={currentOrgId} /> */}
       <FormField
         label="First Name"
         name="firstName"
+        placeholder="John"
         value={formData.firstName}
         onChange={handleChange}
         required
@@ -62,6 +62,7 @@ export function CustomerForm({
       <FormField
         label="Last Name"
         name="lastName"
+        placeholder="Doe"
         value={formData.lastName}
         onChange={handleChange}
         required
@@ -103,6 +104,7 @@ export function CustomerForm({
           ? "Create Customer"
           : "Update Customer"}
       </Button>
+      {/* {mode === "create" || <Button type="submit" variant="danger">Delete</Button>} */}
     </Form>
   );
 }

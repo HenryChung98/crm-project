@@ -3,15 +3,21 @@ import { useSearchParams } from "next/navigation";
 import { useCustomers } from "@/app/(afterSignin)/customers/hook/useCustomers";
 import UpdateCustomerStatusButton from "@/components/UpdateCustomerStatusButton";
 import Link from "next/link";
+import { removeCustomer } from "./update/[id]/action";
 
 // ui
 import { Button } from "@/components/ui/Button";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
+import { showSuccess, showError } from "@/utils/feedback";
+import { useConfirm } from "@/components/ui/ConfirmModal";
+import { useState } from "react";
 
 export default function CustomersPage() {
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
+  const { confirm, ConfirmModal } = useConfirm();
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
   // fetch customer infos
   const { data: customers, isLoading, error, refetch, isFetching } = useCustomers(currentOrgId);
@@ -25,6 +31,35 @@ export default function CustomersPage() {
       </div>
     );
   }
+
+  const handleRemove = async (customer: string) => {
+    confirm(
+      async () => {
+        setIsDeleteLoading(true);
+        try {
+          const result = await removeCustomer(customer, currentOrgId!);
+
+          if (result.success) {
+            showSuccess("Member removed successfully!");
+            refetch();
+          } else {
+            showError(`Failed to remove member: ${result.error}`);
+          }
+        } catch (error) {
+          showError("An error occurred while removing");
+          console.error("Remove member error:", error); // 디버깅용
+        } finally {
+          setIsDeleteLoading(false);
+        }
+      },
+      {
+        title: "Remove Member",
+        message: "Are you sure you want to remove this member? This action cannot be undone.",
+        confirmText: "Remove",
+        variant: "danger",
+      }
+    );
+  };
 
   return (
     <div className="p-6">
@@ -47,9 +82,17 @@ export default function CustomersPage() {
             <Link href={`/customers/update/${customer.id}`}>
               <Button variant="secondary">Edit</Button>
             </Link>
+            <Button
+              variant="danger"
+              disabled={isDeleteLoading}
+              onClick={() => handleRemove(customer.id)}
+            >
+              {isDeleteLoading ? "Deleting..." : "Delete"}
+            </Button>
           </div>
         ))}
       </div>
+      <ConfirmModal />
     </div>
   );
 }

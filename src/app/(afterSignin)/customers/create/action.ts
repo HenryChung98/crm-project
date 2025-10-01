@@ -115,7 +115,7 @@ export async function createCustomer(formData: FormData) {
     };
 
     const { error: customerLogError } = await supabase
-      .from("customer_logs")
+      .from("activity_logs")
       .insert([customerLogData])
       .select("id")
       .single();

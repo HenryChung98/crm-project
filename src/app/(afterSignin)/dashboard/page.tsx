@@ -7,7 +7,7 @@ import { useMemo } from "react";
 // type
 import { EMPTY_ARRAY } from "@/types/customData";
 import { OrganizationInvitations } from "@/types/database/organizations";
-import { CustomerLogs } from "@/types/database/customers";
+import { ActivityLogs } from "@/types/database/customers";
 
 // hook
 import { useOrganizationInvitationsByEmail } from "@/app/(afterSignin)/dashboard/invite-member/hook/useOrganizationInvitations";
@@ -41,7 +41,7 @@ export default function DashboardPage() {
     useOrganizationInvitationsByEmail<OrganizationInvitations>();
 
   const { data: customerLogs = EMPTY_ARRAY, isLoading: customerLogLoading } =
-    useCustomerLogs<CustomerLogs>(
+    useCustomerLogs<ActivityLogs>(
       currentOrgId || "",
       `id, action, organization_members:performed_by(user_email)`
     );

@@ -1,10 +1,10 @@
 "use server";
 
-import { CustomerLogs } from "@/types/database/customers";
+import { ActivityLogs } from "@/types/database/customers";
 import { SupabaseError } from "@/types/errors";
 import { withOrgAuth } from "@/utils/auth";
 
-export async function getCustomerLogs(orgId: string, select?: string): Promise<CustomerLogs[]> {
+export async function getCustomerLogs(orgId: string, select?: string): Promise<ActivityLogs[]> {
   if (!orgId) return [];
 
   const { supabase } = await withOrgAuth(orgId);
@@ -39,7 +39,7 @@ export async function getCustomerLogs(orgId: string, select?: string): Promise<C
     )
     .in("entity_id", customerIds)
     .order("performed_at", { ascending: false })) as {
-    data: CustomerLogs[] | null;
+    data: ActivityLogs[] | null;
     error: SupabaseError;
   };
 

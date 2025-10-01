@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCustomerLogs } from "@/app/(afterSignin)/customers/hook/useCustomerLogs";
-import { CustomerLogs } from "@/types/database/customers";
+import { ActivityLogs } from "@/types/database/customers";
 
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
@@ -21,7 +21,7 @@ interface ChangedData {
 }
 
 interface LogItemProps {
-  log: CustomerLogs;
+  log: ActivityLogs;
 }
 
 const LogItem: React.FC<LogItemProps> = ({ log }) => {
@@ -30,7 +30,7 @@ const LogItem: React.FC<LogItemProps> = ({ log }) => {
   return (
     <div className="p-4 border rounded">
       <h3 className="font-semibold">{log.id}</h3>
-      <p className="text-gray-600">{new Date(log.performed_at).toLocaleString()}</p>
+      <p className="text-gray-600">{new Date(log.created_at).toLocaleString()}</p>
       <p className="text-gray-600">Entity ID: {log.entity_id}</p>
       <p className="text-gray-600">Entity: {log.entity_type}</p>
       <p className="text-gray-600">Action: {log.action}</p>

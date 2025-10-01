@@ -1,13 +1,10 @@
 "use client";
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { createCustomer } from "./action";
 import { useQueryClient } from "@tanstack/react-query";
 
 // ui
-import { Form } from "@/components/ui/Form";
-import { FormField } from "@/components/ui/FormField";
-import { Button } from "@/components/ui/Button";
 import { showSuccess, showError } from "@/utils/feedback";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 
@@ -23,60 +20,13 @@ interface CustomerFormData {
 }
 
 export default function CreateCustomersPage() {
-  const [formData, setFormData] = useState<CustomerFormData>({
-    orgId: "",
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    note: "",
-  });
-
-  // =============================for form=============================
-  const [buttonLoading, setButtonLoading] = useState<boolean>(false);
-  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
+  const router = useRouter();
+  const [buttonLoading, setButtonLoading] = useState<boolean>(false);
+  const queryClient = useQueryClient();
   const { confirm, ConfirmModal } = useConfirm();
 
-  // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const { name, value } = e.target;
-  //   setFormData((prev) => ({ ...prev, [name]: value }));
-  // };
-
-  // const createCustomerAction = async (formData: FormData) => {
-  //   setButtonLoading(true);
-  //   try {
-  //     const res = await createCustomer(formData);
-  //     if (res?.error) {
-  //       showError(`Error: ${res.error}` || "Failed to add customer");
-  //     } else {
-  //       await queryClient.invalidateQueries({
-  //         queryKey: ["customers"],
-  //       });
-
-  //       showSuccess("Customer successfully created");
-  //     }
-  //   } catch (error) {
-  //     showError("An error occurred.");
-  //   } finally {
-  //     setButtonLoading(false);
-  //   }
-  // };
-
-  // const handleSubmit = async (formData: FormData) => {
-  //   confirm(
-  //     async () => {
-  //       await createCustomerAction(formData);
-  //     },
-  //     {
-  //       title: "Create Customer",
-  //       message: "Are you sure you want to create this customer?",
-  //       confirmText: "Create",
-  //       variant: "primary",
-  //     }
-  //   );
-  // };
   const createCustomerAction = async (data: CustomerFormData) => {
     setButtonLoading(true);
     try {
@@ -96,6 +46,7 @@ export default function CreateCustomersPage() {
           queryKey: ["customers"],
         });
         showSuccess("Customer successfully created");
+        router.push(`/customers?org=${currentOrgId}`);
       }
     } catch (error) {
       showError("An error occurred.");
@@ -117,7 +68,6 @@ export default function CreateCustomersPage() {
       }
     );
   };
-  // =============================/for form=============================
   return (
     <>
       {/* <Form action={handleSubmit} formTitle={`add customer`}>
