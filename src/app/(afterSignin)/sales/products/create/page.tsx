@@ -1,65 +1,46 @@
 "use client";
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { createProduct } from "./action";
 import { useQueryClient } from "@tanstack/react-query";
 
 // ui
-import { Form } from "@/components/ui/Form";
-import { FormField } from "@/components/ui/FormField";
-import { Button } from "@/components/ui/Button";
-import { showSuccess, showError } from "@/utils/feedback";
-import { Dropdown } from "@/components/ui/Dropdown";
 
-interface ProductFormData {
-  orgId: string;
-  name: string;
-  sku: string;
-  description: string;
-  type: "inventory" | "non-inventory" | "service" | "";
-  price: number | null;
-  cost: number | null;
-  note?: string;
-}
+import { showSuccess, showError } from "@/utils/feedback";
+import { useConfirm } from "@/components/ui/ConfirmModal";
+
+import { ProductForm, ProductFormData } from "../ProductForm";
 
 export default function CreateProductPage() {
-  const [formData, setFormData] = useState<ProductFormData>({
-    orgId: "",
-    name: "",
-    sku: "",
-    description: "",
-    type: "",
-    price: null,
-    cost: null,
-    note: "",
-  });
-  // =============================for form=============================
   const [buttonLoading, setButtonLoading] = useState<boolean>(false);
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
+  const router = useRouter();
+  const { confirm, ConfirmModal } = useConfirm();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    if (name === "price" || name === "cost") {
-      setFormData((prev) => ({ ...prev, [name]: Number(value) || 0 }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleSubmit = async (formData: FormData) => {
+  const createProductAction = async (data: ProductFormData) => {
     setButtonLoading(true);
     try {
+      const formData = new FormData();
+      formData.append("orgId", data.orgId);
+      formData.append("name", data.name);
+      formData.append("sku", data.sku);
+      formData.append("description", data.description);
+      formData.append("type", data.type);
+      formData.append("price", data.price?.toString() || "0");
+      formData.append("cost", data.cost?.toString() || "0");
+      if (data.note) formData.append("note", data.note);
+
       const res = await createProduct(formData);
       if (res?.error) {
-        showError(`Error: ${res.error}` || "Failed to create product");
+        showError(`Error: ${res.error}` || "Failed to add customer");
       } else {
         await queryClient.invalidateQueries({
           queryKey: ["products"],
         });
-
         showSuccess("Product successfully created");
+        router.push(`/sales/products?org=${currentOrgId}`);
       }
     } catch (error) {
       showError("An error occurred.");
@@ -67,90 +48,30 @@ export default function CreateProductPage() {
       setButtonLoading(false);
     }
   };
-  // =============================/for form=============================
+
+  const handleSubmit = async (data: ProductFormData) => {
+    confirm(
+      async () => {
+        await createProductAction(data);
+      },
+      {
+        title: "Create Product",
+        message: "Are you sure you want to create this product?",
+        confirmText: "Create",
+        variant: "primary",
+      }
+    );
+  };
 
   return (
     <>
-      <Form action={handleSubmit} formTitle="Create Product">
-        <input type="hidden" name="orgId" value={currentOrgId} />
-        <FormField
-          label="Product Name"
-          name="name"
-          type="text"
-          placeholder="Product 1"
-          value={formData.name}
-          onChange={handleChange}
-          required
-          requiredField
-          className="border w-full p-2"
-        />
-        <FormField
-          label="SKU"
-          name="sku"
-          type="text"
-          placeholder="ABC-001"
-          value={formData.sku}
-          onChange={handleChange}
-          required
-          requiredField
-          className="border w-full p-2"
-        />
-        <FormField
-          label="Description"
-          name="description"
-          type="text"
-          placeholder="desc..."
-          value={formData.description}
-          onChange={handleChange}
-          required
-          requiredField
-          className="border w-full p-2"
-        />
-        <Dropdown name="type" value={formData.type} onChange={handleChange} required>
-          <option value="">Select Product Type</option>
-          <option value="inventory">Inventory</option>
-          <option value="non-inventory">Non-Inventory</option>
-          <option value="service">Service</option>
-        </Dropdown>
-        <FormField
-          label="Price"
-          name="price"
-          type="text"
-          placeholder="0"
-          value={formData.price?.toString() ?? ""}
-          onChange={handleChange}
-          required
-          requiredField
-          className="border w-full p-2"
-        />
-        <FormField
-          label="Cost"
-          name="cost"
-          type="text"
-          placeholder="0"
-          value={formData.cost?.toString() ?? ""}
-          onChange={handleChange}
-          required
-          requiredField
-          className="border w-full p-2"
-        />
-        <div>
-          Margin:
-          {formData.price && formData.cost ? (formData.price - formData.cost).toFixed(2) : "0.00"}
-        </div>
-        <FormField
-          label="Note"
-          name="note"
-          type="text"
-          placeholder="Optional"
-          value={formData.note ?? ""}
-          onChange={handleChange}
-          className="border w-full p-2"
-        />
-        <Button type="submit" disabled={buttonLoading}>
-          {buttonLoading ? "Adding..." : "Add Product"}
-        </Button>
-      </Form>
+      <ProductForm
+        currentOrgId={currentOrgId}
+        mode="create"
+        onSubmit={handleSubmit}
+        isLoading={buttonLoading}
+      />
+      <ConfirmModal />
     </>
   );
 }

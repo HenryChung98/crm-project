@@ -39,6 +39,12 @@ export default function ProductPage() {
       product.price - product.cost,
       product.status,
       product.note || "",
+      <Link href={`/sales/products/update/${product.id}`}>
+        <Button>Update</Button>
+      </Link>,
+      <Link href={`/sales/products/update/${product.id}`}>
+        <Button variant="danger">Delete</Button>
+      </Link>,
     ]) || [];
 
   if (isLoading) return <FetchingSpinner />;
@@ -50,7 +56,7 @@ export default function ProductPage() {
       <Button onClick={refetch} disabled={isFetching}>
         {isFetching ? "loading.." : "refresh"}
       </Button>
-      <Table headers={headers} data={data} columnCount={10} />
+      <Table headers={headers} data={data} columnCount={12} />
       <Link href="/sales/products/create">create</Link>
     </>
   );

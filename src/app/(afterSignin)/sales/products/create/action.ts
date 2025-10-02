@@ -14,7 +14,7 @@ export async function createProduct(formData: FormData) {
   const note = formData.get("note")?.toString().trim();
 
   try {
-    const { orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin", "member"]);
+    const { orgMember, supabase } = await withOrgAuth(orgId);
 
     if (!orgId || !name || !sku || !description || !type || !price || !cost) {
       return { success: false, error: "Required fields are missing." };

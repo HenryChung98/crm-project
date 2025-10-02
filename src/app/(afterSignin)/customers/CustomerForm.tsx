@@ -28,7 +28,7 @@ export function CustomerForm({
   onSubmit,
   isLoading,
 }: CustomerFormProps) {
-  const [formData, setFormData] = useState(
+  const [formData, setFormData] = useState<CustomerFormData>(
     initialData || {
       orgId: currentOrgId,
       firstName: "",

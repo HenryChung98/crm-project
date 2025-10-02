@@ -2,7 +2,7 @@ import React from "react";
 
 interface TableProps {
   headers: string[];
-  data: (string | number | null)[][];
+  data: (string | number | null | React.ReactElement)[][];
   columnCount?: number;
 }
 

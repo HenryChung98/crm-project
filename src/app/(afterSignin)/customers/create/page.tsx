@@ -8,23 +8,23 @@ import { useQueryClient } from "@tanstack/react-query";
 import { showSuccess, showError } from "@/utils/feedback";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 
-import { CustomerForm } from "../CustomerForm";
+import { CustomerForm, CustomerFormData } from "../CustomerForm";
 
-interface CustomerFormData {
-  orgId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string | null;
-  note?: string | null;
-}
+// interface CustomerFormData {
+//   orgId: string;
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   phone?: string | null;
+//   note?: string | null;
+// }
 
 export default function CreateCustomersPage() {
+  const [buttonLoading, setButtonLoading] = useState<boolean>(false);
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
   const router = useRouter();
-  const [buttonLoading, setButtonLoading] = useState<boolean>(false);
-  const queryClient = useQueryClient();
   const { confirm, ConfirmModal } = useConfirm();
 
   const createCustomerAction = async (data: CustomerFormData) => {
@@ -70,57 +70,6 @@ export default function CreateCustomersPage() {
   };
   return (
     <>
-      {/* <Form action={handleSubmit} formTitle={`add customer`}>
-        <input type="hidden" name="orgId" value={currentOrgId} />
-        <FormField
-          label="First Name"
-          name="firstName"
-          type="text"
-          placeholder="John"
-          value={formData.firstName}
-          onChange={handleChange}
-          required
-        />
-        <FormField
-          label="Last Name"
-          name="lastName"
-          type="text"
-          placeholder="Doe"
-          value={formData.lastName}
-          onChange={handleChange}
-          required
-        />
-        <FormField
-          label="Email"
-          name="email"
-          type="email"
-          placeholder="example@example.com"
-          value={formData.email}
-          onChange={handleChange}
-          className="border w-full p-2"
-        />
-        <FormField
-          label="Phone"
-          name="phone"
-          type="text"
-          placeholder="1234567890"
-          value={formData.phone ?? ""}
-          onChange={handleChange}
-          className="border w-full p-2"
-        />
-        <FormField
-          label="Note"
-          name="note"
-          type="text"
-          placeholder="Any Note"
-          value={formData.note ?? ""}
-          onChange={handleChange}
-          className="border w-full p-2"
-        />
-        <Button type="submit" disabled={buttonLoading}>
-          {buttonLoading ? "Adding..." : "Add customer"}
-        </Button>
-      </Form> */}
       <CustomerForm
         currentOrgId={currentOrgId}
         mode="create"
