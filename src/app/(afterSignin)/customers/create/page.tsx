@@ -10,15 +10,6 @@ import { useConfirm } from "@/components/ui/ConfirmModal";
 
 import { CustomerForm, CustomerFormData } from "../CustomerForm";
 
-// interface CustomerFormData {
-//   orgId: string;
-//   firstName: string;
-//   lastName: string;
-//   email: string;
-//   phone?: string | null;
-//   note?: string | null;
-// }
-
 export default function CreateCustomersPage() {
   const [buttonLoading, setButtonLoading] = useState<boolean>(false);
   const queryClient = useQueryClient();

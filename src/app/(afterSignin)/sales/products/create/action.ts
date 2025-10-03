@@ -14,31 +14,58 @@ export async function createProduct(formData: FormData) {
   const note = formData.get("note")?.toString().trim();
 
   try {
-    const { orgMember, supabase } = await withOrgAuth(orgId);
+    console.log("Received orgId:", orgId); // 첫 줄에 추가
+    console.log("Received orgId:", name); // 첫 줄에 추가
+    console.log("FormData orgId:", formData.get("orgId"));
 
-    if (!orgId || !name || !sku || !description || !type || !price || !cost) {
+    const { orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin"]);
+
+    if (!name || !sku || !description || !type || !price || !cost) {
       return { success: false, error: "Required fields are missing." };
     }
 
-    const { error } = await supabase
+    const productData = {
+      organization_id: orgId,
+      name: name,
+      sku: sku,
+      description: description,
+      type: type,
+      price: parseFloat(price),
+      cost: parseFloat(cost),
+      note: note || null,
+      created_by: orgMember.user_id,
+    };
+
+    const { data: productInsertData, error } = await supabase
       .from("products")
-      .insert({
-        organization_id: orgId,
-        name,
-        sku,
-        description,
-        type,
-        price: parseFloat(price),
-        cost: parseFloat(cost),
-        note: note || null,
-        created_by: orgMember.user_id,
-      })
+      .insert([productData])
+      .select("id")
       .single();
 
     if (error) {
       return { success: false, error: error.message };
     }
-    revalidatePath("/products")
+
+    const activityLogData = {
+      organization_id: orgId,
+      entity_id: productInsertData.id,
+      entity_type: "product",
+      action: "product-created",
+      changed_data: productData,
+      performed_by: orgMember.id,
+    };
+
+    const { error: activityLogError } = await supabase
+      .from("activity_logs")
+      .insert([activityLogData])
+      .select("id")
+      .single();
+
+    if (activityLogError) {
+      return { error: activityLogError.message };
+    }
+
+    revalidatePath("/products");
     return { success: true };
   } catch (error) {
     return {

@@ -1,131 +1,102 @@
 "use server";
 
 import { withOrgAuth } from "@/utils/auth";
-import { getPlanByOrg } from "@/hooks/hook-actions/get-plans";
 import { revalidatePath } from "next/cache";
 
-export async function updateProduct(formData: FormData) {
-  const customerId = formData.get("customerId")?.toString().trim();
+export async function updateProduct(productId: string, formData: FormData) {
   const orgId = formData.get("orgId")?.toString().trim();
-  const firstName = formData.get("firstName")?.toString().trim();
-  const lastName = formData.get("lastName")?.toString().trim();
-  const email = formData.get("email")?.toString().trim();
-  const phone = formData.get("phone")?.toString().trim();
+  const name = formData.get("name")?.toString().trim();
+  const sku = formData.get("sku")?.toString().toUpperCase().trim();
+  const description = formData.get("description")?.toString().trim();
+  const type = formData.get("type")?.toString().trim();
+  const price = formData.get("price")?.toString().trim();
+  const cost = formData.get("cost")?.toString().trim();
   const note = formData.get("note")?.toString().trim();
 
   try {
-    const { orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin"]);
+    const { orgMember, supabase } = await withOrgAuth(orgId);
 
-    // ========================================== check plan expiration ==========================================
-    const orgPlanData = await getPlanByOrg(orgId);
-    if (!orgPlanData?.plans) {
-      return { error: "Failed to get user plan data" };
+    if (!orgId || !name || !sku || !description || !type || !price || !cost) {
+      return { success: false, error: "Required fields are missing." };
     }
 
-    if (orgPlanData.subscription.status !== "free") {
-      const isExpired =
-        orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
-      if (isExpired) {
-        let errorMessage = `Your current organization plan is expired.`;
-        if (orgMember?.role === "owner") {
-          errorMessage += `\n\nAs the owner, you can renew your plan.`;
-        }
-        return { error: errorMessage };
-      }
-    }
-    // ========================================== /check plan expiration ==========================================
-
-    if (!customerId || !orgId || !firstName || !lastName || !email) {
-      return { error: "Customer ID, name, and email are required." };
-    }
-
-    // verify customer exists and get current data
-    const { data: existingCustomer, error: fetchError } = await supabase
-      .from("customers")
-      .select("id, email, first_name, last_name, phone, note")
-      .eq("id", customerId)
+    // Get existing product to compare changes
+    const { data: existingProduct, error: fetchError } = await supabase
+      .from("products")
+      .select("*")
+      .eq("id", productId)
       .eq("organization_id", orgId)
       .single();
 
-    if (fetchError || !existingCustomer) {
-      return { error: "Customer not found or access denied." };
+    if (fetchError || !existingProduct) {
+      return { success: false, error: "Product not found or access denied" };
     }
 
-    // check duplicate email (only if email changed)
-    if (existingCustomer.email !== email) {
-      const { data: duplicateCustomer, error: checkError } = await supabase
-        .from("customers")
-        .select("id")
-        .eq("organization_id", orgId)
-        .eq("email", email)
-        .neq("id", customerId)
-        .single();
-
-      if (checkError && checkError.code !== "PGRST116") {
-        return { error: checkError.message };
-      }
-      if (duplicateCustomer) {
-        return { error: "This email is already used by another customer." };
-      }
-    }
-
-    const customerData = {
-      first_name: firstName,
-      last_name: lastName,
-      email: email,
-      phone: phone || null,
+    const productData = {
+      name,
+      sku,
+      description,
+      type,
+      price: parseFloat(price),
+      cost: parseFloat(cost),
       note: note || null,
-      updated_at: new Date().toISOString(),
     };
 
-    // detect changes
+    // Detect changes
     const changedData: Record<
       string,
       { old: string | number | null; new: string | number | null | undefined }
     > = {};
 
-    // need this for nullable columns
-    const normalizedPhone = phone || null;
+    // Need this for nullable columns
     const normalizedNote = note || null;
+    const parsedPrice = parseFloat(price);
+    const parsedCost = parseFloat(cost);
 
-    if (existingCustomer.first_name !== firstName) {
-      changedData.first_name = { old: existingCustomer.first_name, new: firstName };
+    if (existingProduct.name !== name) {
+      changedData.name = { old: existingProduct.name, new: name };
     }
-    if (existingCustomer.last_name !== lastName) {
-      changedData.last_name = { old: existingCustomer.last_name, new: lastName };
+    if (existingProduct.sku !== sku) {
+      changedData.sku = { old: existingProduct.sku, new: sku };
     }
-    if (existingCustomer.email !== email) {
-      changedData.email = { old: existingCustomer.email, new: email };
+    if (existingProduct.description !== description) {
+      changedData.description = { old: existingProduct.description, new: description };
     }
-    if (existingCustomer.phone !== normalizedPhone) {
-      changedData.phone = { old: existingCustomer.phone, new: normalizedPhone };
+    if (existingProduct.type !== type) {
+      changedData.type = { old: existingProduct.type, new: type };
     }
-    if (existingCustomer.note !== normalizedNote) {
-      changedData.note = { old: existingCustomer.note, new: normalizedNote };
+    if (existingProduct.price !== parsedPrice) {
+      changedData.price = { old: existingProduct.price, new: parsedPrice };
+    }
+    if (existingProduct.cost !== parsedCost) {
+      changedData.cost = { old: existingProduct.cost, new: parsedCost };
+    }
+    if (existingProduct.note !== normalizedNote) {
+      changedData.note = { old: existingProduct.note, new: normalizedNote };
     }
 
-    // if no changes, return early
+    // If no changes, return early
     if (Object.keys(changedData).length === 0) {
-      return { success: true, customerId, message: "No changes detected" };
+      return { success: true, productId, message: "No changes detected" };
     }
 
-    // update customer
+    // Update product
     const { error: updateError } = await supabase
-      .from("customers")
-      .update(customerData)
-      .eq("id", customerId)
+      .from("products")
+      .update(productData)
+      .eq("id", productId)
       .eq("organization_id", orgId);
 
     if (updateError) {
       return { error: updateError.message };
     }
 
-    // log only changed fields
+    // Log only changed fields
     const activityLogData = {
       organization_id: orgId,
-      entity_id: customerId,
-      entity_type: "customer",
-      action: "customer-updated",
+      entity_id: productId,
+      entity_type: "product",
+      action: "product-updated",
       changed_data: changedData,
       performed_by: orgMember.id,
     };
@@ -140,12 +111,11 @@ export async function updateProduct(formData: FormData) {
       return { error: activityLogError.message };
     }
 
-    revalidatePath(`/customers?org=${orgId}`);
-    revalidatePath(`/customers/${customerId}?org=${orgId}`);
+    revalidatePath(`/sales/products?org=${orgId}`);
+    revalidatePath(`/sales/products/${productId}?org=${orgId}`);
     revalidatePath(`/dashboard?org=${orgId}`);
-    revalidatePath(`/customers/log?org=${orgId}`);
 
-    return { success: true, customerId };
+    return { success: true, productId };
   } catch (error) {
     return {
       success: false,
@@ -154,64 +124,42 @@ export async function updateProduct(formData: FormData) {
   }
 }
 
-export async function removeProduct(customerId: string, organizationId: string) {
+export async function removeProduct(productId: string, organizationId: string) {
   try {
-    const { supabase, orgMember } = await withOrgAuth(organizationId, ["owner", "admin"]);
+    const { supabase, orgMember } = await withOrgAuth(organizationId);
 
-    // ========================================== check plan expiration ==========================================
-    const orgPlanData = await getPlanByOrg(organizationId);
-    if (!orgPlanData?.plans) {
-      return { error: "Failed to get user plan data" };
-    }
-
-    // check if expired
-    if (orgPlanData.subscription.status !== "free") {
-      const isExpired =
-        orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
-      if (isExpired) {
-        let errorMessage = `Your current organization plan is expired.`;
-
-        if (orgMember?.role === "owner") {
-          errorMessage += `\n\nAs the owner, you can renew your plan.`;
-        }
-        return {
-          error: errorMessage,
-        };
-      }
-    }
-    // ========================================== /check plan expiration ==========================================
-
-    // verify customer exists and belongs to organization
-    const { data: customerToRemove, error: fetchError } = await supabase
-      .from("customers")
-      .select("id, email")
-      .eq("id", customerId)
+    // Verify product exists and belongs to organization
+    const { data: productToRemove, error: fetchError } = await supabase
+      .from("products")
+      .select("id, name, sku")
+      .eq("id", productId)
       .eq("organization_id", organizationId)
       .single();
 
-    if (fetchError || !customerToRemove) {
-      return { success: false, error: "Customer not found or access denied" };
+    if (fetchError || !productToRemove) {
+      return { success: false, error: "Product not found or access denied" };
     }
 
-    // delete customer
+    // Delete product
     const { error: deleteError } = await supabase
-      .from("customers")
+      .from("products")
       .delete()
-      .eq("id", customerId)
+      .eq("id", productId)
       .eq("organization_id", organizationId);
 
     if (deleteError) {
       return { success: false, error: deleteError.message };
     }
 
-    // log the deletion
+    // Log the deletion
     const activityLogData = {
       organization_id: organizationId,
-      entity_id: customerId,
-      entity_type: "customer",
-      action: "customer-deleted",
+      entity_id: productId,
+      entity_type: "product",
+      action: "product-deleted",
       changed_data: {
-        customer_email: customerToRemove.email,
+        product_name: productToRemove.name,
+        product_sku: productToRemove.sku,
         deleted_at: new Date().toISOString(),
       },
       performed_by: orgMember.id,
@@ -227,13 +175,13 @@ export async function removeProduct(customerId: string, organizationId: string) 
       return { success: false, error: activityLogError.message };
     }
 
-    revalidatePath("/customers");
-    revalidatePath(`/customers/${customerId}`);
+    revalidatePath("/sales/products");
+    revalidatePath(`/sales/products/${productId}`);
     return { success: true };
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to remove customer",
+      error: error instanceof Error ? error.message : "Failed to remove product",
     };
   }
 }

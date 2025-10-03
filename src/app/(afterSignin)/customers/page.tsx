@@ -47,7 +47,7 @@ export default function CustomersPage() {
           }
         } catch (error) {
           showError("An error occurred while removing");
-          console.error("Remove member error:", error); // 디버깅용
+          console.error("Remove member error:", error); 
         } finally {
           setIsDeleteLoading(false);
         }

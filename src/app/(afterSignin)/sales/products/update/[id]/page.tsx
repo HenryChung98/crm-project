@@ -38,15 +38,15 @@ export default function UpdateCustomerPage() {
       formData.append("cost", data.cost?.toString() || "0");
       if (data.note) formData.append("note", data.note);
 
-      const res = await updateProduct(formData);
+      const res = await updateProduct(product!.id, formData);
       if (res?.error) {
-        showError(`Error: ${res.error}` || "Failed to update customer");
+        showError(`Error: ${res.error}` || "Failed to update product");
       } else {
         await queryClient.invalidateQueries({
-          queryKey: ["customers"],
+          queryKey: ["products"],
         });
-        showSuccess("Customer successfully updated");
-        router.push(`/customers?org=${currentOrgId}`);
+        showSuccess("Product successfully updated");
+        router.push(`/sales/products?org=${currentOrgId}`);
       }
     } catch (error) {
       showError("An error occurred.");
@@ -100,7 +100,7 @@ export default function UpdateCustomerPage() {
           type: product.type,
           price: product.price,
           cost: product.cost,
-          // note: product.note,
+          note: product.note || undefined,
         }}
         onSubmit={handleSubmit}
         isLoading={buttonLoading}
