@@ -3,7 +3,7 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { useProducts } from "./hook/useProduct";
-import { removeProduct } from "./update/[id]/action";
+import { removeProduct, removeBulkProducts } from "./update/[id]/action";
 
 //  ui
 import { Table } from "@/components/ui/Table";
@@ -19,15 +19,17 @@ export default function ProductPage() {
   const { confirm, ConfirmModal } = useConfirm();
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
+  const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+
   // fetch customer infos
   const { data: products, isLoading, error, refetch, isFetching } = useProducts(currentOrgId);
 
-  const handleRemove = async (customer: string) => {
+  const handleRemove = async (productId: string) => {
     confirm(
       async () => {
         setIsDeleteLoading(true);
         try {
-          const result = await removeProduct(customer, currentOrgId!);
+          const result = await removeProduct(productId, currentOrgId!);
 
           if (result.success) {
             showSuccess("Product removed successfully!");
@@ -51,8 +53,51 @@ export default function ProductPage() {
     );
   };
 
+  const handleBulkRemove = async () => {
+    if (!products || selectedIndices.length === 0) return;
+    const selectedIds = selectedIndices.map((i) => products[i].id);
+
+    confirm(
+      async () => {
+        setIsDeleteLoading(true);
+        try {
+          const result = await removeBulkProducts(selectedIds, currentOrgId!);
+
+          if (result.success) {
+            showSuccess(`${selectedIds.length} products removed successfully!`);
+            setSelectedIndices([]);
+            refetch();
+          } else {
+            showError(`Failed to remove products: ${result.error}`);
+          }
+        } catch (error) {
+          showError("An error occurred while removing");
+          console.error("Remove products error:", error);
+        } finally {
+          setIsDeleteLoading(false);
+        }
+      },
+      {
+        title: "Remove Products",
+        message: `Are you sure you want to remove ${selectedIds.length} product(s)? This action cannot be undone.`,
+        confirmText: "Remove",
+        variant: "danger",
+      }
+    );
+  };
+
+  const handleSelectionChange = (indices: number[]) => {
+    setSelectedIndices(indices); // state 업데이트
+    console.log("선택된 행 인덱스:", indices);
+    if (products) {
+      console.log(
+        "선택된 데이터:",
+        indices.map((i) => products[i])
+      );
+    }
+  };
+
   const headers = [
-    "ID",
     "name",
     "SKU",
     "description",
@@ -65,7 +110,6 @@ export default function ProductPage() {
   ];
   const data =
     products?.map((product) => [
-      product.id,
       product.name,
       product.sku,
       product.description,
@@ -97,7 +141,16 @@ export default function ProductPage() {
       <Button onClick={refetch} disabled={isFetching}>
         {isFetching ? "loading.." : "refresh"}
       </Button>
-      <Table headers={headers} data={data} columnCount={12} />
+      <Button onClick={handleBulkRemove} variant="danger" disabled={isFetching}>
+        Delete
+      </Button>
+      <Table
+        headers={headers}
+        data={data}
+        columnCount={11}
+        selectable={true}
+        onSelectionChange={handleSelectionChange}
+      />
       <Link href={`/sales/products/create?org=${currentOrgId}`}>create</Link>
       <ConfirmModal />
     </>

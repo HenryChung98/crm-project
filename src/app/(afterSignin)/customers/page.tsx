@@ -4,14 +4,15 @@ import { useCustomers } from "@/app/(afterSignin)/customers/hook/useCustomers";
 import UpdateCustomerStatusButton from "@/components/UpdateCustomerStatusButton";
 import Link from "next/link";
 import { removeCustomer } from "./update/[id]/action";
+import { useState } from "react";
 
 // ui
+import { Table } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 import { showSuccess, showError } from "@/utils/feedback";
 import { useConfirm } from "@/components/ui/ConfirmModal";
-import { useState } from "react";
 
 export default function CustomersPage() {
   const searchParams = useSearchParams();
@@ -47,7 +48,7 @@ export default function CustomersPage() {
           }
         } catch (error) {
           showError("An error occurred while removing");
-          console.error("Remove member error:", error); 
+          console.error("Remove member error:", error);
         } finally {
           setIsDeleteLoading(false);
         }
@@ -61,6 +62,28 @@ export default function CustomersPage() {
     );
   };
 
+  const headers = ["Firt Name", "Last Name", "Email", "Status", "Source", "Created At"];
+  const data =
+    customers?.map((customer) => [
+      customer.first_name,
+      customer.last_name,
+      customer.email,
+      customer.status,
+      customer.source,
+      new Date(customer.created_at).toLocaleString(),
+      <Link key={`update-${customer.id}`} href={`/customers/update/${customer.id}`}>
+        <Button variant="secondary">Update</Button>
+      </Link>,
+      <Button
+        key={`delete-${customer.id}`}
+        variant="danger"
+        disabled={isDeleteLoading}
+        onClick={() => handleRemove(customer.id)}
+      >
+        {isDeleteLoading ? "Deleting..." : "Delete"}
+      </Button>,
+    ]) || [];
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Customers {currentOrgId && `(${currentOrgId})`}</h1>
@@ -68,30 +91,7 @@ export default function CustomersPage() {
         {isFetching ? "loading.." : "refresh"}
       </Button>
       <UpdateCustomerStatusButton orgId={currentOrgId} />
-      <div className="grid gap-4">
-        {customers?.map((customer) => (
-          <div key={customer.id} className="p-4 border rounded">
-            <h3 className="font-semibold">{customer.id}</h3>
-            <p className="text-gray-600">{customer.organization_id}</p>
-            <p className="text-gray-600">{customer.first_name}</p>
-            <p className="text-gray-600">{customer.last_name}</p>
-            <p className="text-gray-600">{customer.email}</p>
-            <p className="text-gray-600">{customer.status}</p>
-            <p className="text-gray-600">{customer.source}</p>
-            <p className="text-gray-600">{new Date(customer.created_at).toLocaleString()}</p>
-            <Link href={`/customers/update/${customer.id}`}>
-              <Button variant="secondary">Edit</Button>
-            </Link>
-            <Button
-              variant="danger"
-              disabled={isDeleteLoading}
-              onClick={() => handleRemove(customer.id)}
-            >
-              {isDeleteLoading ? "Deleting..." : "Delete"}
-            </Button>
-          </div>
-        ))}
-      </div>
+      <Table headers={headers} data={data} columnCount={8} />
       <ConfirmModal />
     </div>
   );

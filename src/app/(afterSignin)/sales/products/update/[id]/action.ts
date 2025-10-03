@@ -185,3 +185,72 @@ export async function removeProduct(productId: string, organizationId: string) {
     };
   }
 }
+
+
+export async function removeBulkProducts(productIds: string[], organizationId: string) {
+  try {
+    const { supabase, orgMember } = await withOrgAuth(organizationId);
+
+    // Verify products exist and belong to organization
+    const { data: productsToRemove, error: fetchError } = await supabase
+      .from("products")
+      .select("id, name, sku")
+      .in("id", productIds)
+      .eq("organization_id", organizationId);
+
+    if (fetchError || !productsToRemove || productsToRemove.length === 0) {
+      return { success: false, error: "Products not found or access denied" };
+    }
+
+    // Verify all requested products were found
+    if (productsToRemove.length !== productIds.length) {
+      return { success: false, error: "Some products not found or access denied" };
+    }
+
+    // Delete products
+    const { error: deleteError } = await supabase
+      .from("products")
+      .delete()
+      .in("id", productIds)
+      .eq("organization_id", organizationId);
+
+    if (deleteError) {
+      return { success: false, error: deleteError.message };
+    }
+
+    // Log the deletions
+    const activityLogsData = productsToRemove.map((product) => ({
+      organization_id: organizationId,
+      entity_id: product.id,
+      entity_type: "product",
+      action: "product-deleted",
+      changed_data: {
+        product_name: product.name,
+        product_sku: product.sku,
+        deleted_at: new Date().toISOString(),
+      },
+      performed_by: orgMember.id,
+    }));
+
+    const { error: activityLogError } = await supabase
+      .from("activity_logs")
+      .insert(activityLogsData);
+
+    if (activityLogError) {
+      return { success: false, error: activityLogError.message };
+    }
+
+    revalidatePath("/sales/products");
+    // Revalidate individual product pages
+    productIds.forEach((id) => {
+      revalidatePath(`/sales/products/${id}`);
+    });
+
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to remove products",
+    };
+  }
+}

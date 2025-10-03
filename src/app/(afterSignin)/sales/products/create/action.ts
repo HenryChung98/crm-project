@@ -14,10 +14,6 @@ export async function createProduct(formData: FormData) {
   const note = formData.get("note")?.toString().trim();
 
   try {
-    console.log("Received orgId:", orgId); // 첫 줄에 추가
-    console.log("Received orgId:", name); // 첫 줄에 추가
-    console.log("FormData orgId:", formData.get("orgId"));
-
     const { orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin"]);
 
     if (!name || !sku || !description || !type || !price || !cost) {

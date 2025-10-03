@@ -42,7 +42,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     organizations:organization_id(name)
   `);
 
-  // 유효한 조직 ID들과 기본 조직 ID를 함께 계산
   const { validOrganizationIds, defaultOrganizationId } = useMemo(() => {
     const orgIds = orgMembers?.map((member) => member.organization_id) || [];
     return {
@@ -102,6 +101,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (isLoadingOrgMembers) {
     return <LoadingSpinner />;
   }
+
+  // if (!currentOrganizationId || !validOrganizationIds.has(currentOrganizationId)) {
+  //   if (defaultOrganizationId) {
+  //     const params = new URLSearchParams(searchParams.toString());
+  //     params.set("org", defaultOrganizationId);
+  //     router.replace(`${pathname}?${params.toString()}`);
+  //   }
+  //   return <LoadingSpinner />; // 리다이렉트 중에도 로딩 표시
+  // }
 
   return (
     <>
