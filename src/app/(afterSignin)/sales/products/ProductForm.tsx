@@ -93,7 +93,7 @@ export function ProductForm({
         requiredField
         className="border w-full p-2"
       />
-      <Dropdown name="type" value={formData.type} onChange={handleChange} required>
+      <Dropdown name="type" value={formData.type} onChange={handleChange} label="Product Type" required requiredField>
         <option value="">Select Product Type</option>
         <option value="inventory">Inventory</option>
         <option value="non-inventory">Non-Inventory</option>

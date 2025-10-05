@@ -158,29 +158,6 @@ export async function removeCustomer(customerId: string, organizationId: string)
   try {
     const { supabase, orgMember } = await withOrgAuth(organizationId, ["owner", "admin"]);
 
-    // ========================================== check plan expiration ==========================================
-    const orgPlanData = await getPlanByOrg(organizationId);
-    if (!orgPlanData?.plans) {
-      return { error: "Failed to get user plan data" };
-    }
-
-    // check if expired
-    if (orgPlanData.subscription.status !== "free") {
-      const isExpired =
-        orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
-      if (isExpired) {
-        let errorMessage = `Your current organization plan is expired.`;
-
-        if (orgMember?.role === "owner") {
-          errorMessage += `\n\nAs the owner, you can renew your plan.`;
-        }
-        return {
-          error: errorMessage,
-        };
-      }
-    }
-    // ========================================== /check plan expiration ==========================================
-
     // verify customer exists and belongs to organization
     const { data: customerToRemove, error: fetchError } = await supabase
       .from("customers")

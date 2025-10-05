@@ -1,7 +1,7 @@
 import React from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "danger" | "success" | "warning";
+  variant?: "primary" | "secondary" | "danger" | "success" | "warning" | "muted";
 }
 
 export function Button({ variant = "primary", className = "", ...props }: ButtonProps) {
@@ -16,6 +16,8 @@ export function Button({ variant = "primary", className = "", ...props }: Button
       "bg-[var(--success)] text-[var(--success-foreground)] hover:opacity-80 focus:ring-[var(--success)]",
     warning:
       "bg-[var(--warning)] text-[var(--warning-foreground)] hover:opacity-80 focus:ring-[var(--warning)]",
+    muted:
+      "bg-[var(--muted)] text-[var(--muted-foreground)] hover:opacity-80 focus:ring-[var(--muted)]",
   };
 
   return <button className={`${baseStyle} ${variants[variant]} ${className}`} {...props} />;

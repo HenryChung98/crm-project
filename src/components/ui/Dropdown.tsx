@@ -1,10 +1,22 @@
 interface DropdownProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  label?: string;
   error?: string;
+  requiredField?: boolean;
 }
 
-export function Dropdown({ children, error, className = "", ...props }: DropdownProps) {
+export function Dropdown({
+  children,
+  label,
+  error,
+  className = "",
+  requiredField = false,
+  ...props
+}: DropdownProps) {
   return (
     <div className="w-full">
+      <label className="block text-sm font-medium mb-1">
+        {label} {requiredField && <span className="text-red-500 ml-1">*</span>}
+      </label>
       <select
         className={`
             w-full px-3 py-2 

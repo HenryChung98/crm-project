@@ -3,8 +3,8 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { useProducts } from "./hook/useProduct";
-import { removeProduct, removeBulkProducts } from "./update/[id]/action";
-
+import { removeBulkProducts } from "./update/[id]/action";
+import { BiCheck } from "react-icons/bi";
 //  ui
 import { Table } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
@@ -24,35 +24,6 @@ export default function ProductPage() {
   // fetch customer infos
   const { data: products, isLoading, error, refetch, isFetching } = useProducts(currentOrgId);
 
-  const handleRemove = async (productId: string) => {
-    confirm(
-      async () => {
-        setIsDeleteLoading(true);
-        try {
-          const result = await removeProduct(productId, currentOrgId!);
-
-          if (result.success) {
-            showSuccess("Product removed successfully!");
-            refetch();
-          } else {
-            showError(`Failed to remove product: ${result.error}`);
-          }
-        } catch (error) {
-          showError("An error occurred while removing");
-          console.error("Remove product error:", error);
-        } finally {
-          setIsDeleteLoading(false);
-        }
-      },
-      {
-        title: "Remove Product",
-        message: "Are you sure you want to remove this product? This action cannot be undone.",
-        confirmText: "Remove",
-        variant: "danger",
-      }
-    );
-  };
-
   const handleBulkRemove = async () => {
     if (!products || selectedIndices.length === 0) return;
     const selectedIds = selectedIndices.map((i) => products[i].id);
@@ -65,8 +36,8 @@ export default function ProductPage() {
 
           if (result.success) {
             showSuccess(`${selectedIds.length} products removed successfully!`);
-            setSelectedIndices([]);
             refetch();
+            setSelectedIndices([]);
           } else {
             showError(`Failed to remove products: ${result.error}`);
           }
@@ -87,14 +58,14 @@ export default function ProductPage() {
   };
 
   const handleSelectionChange = (indices: number[]) => {
-    setSelectedIndices(indices); // state 업데이트
-    console.log("선택된 행 인덱스:", indices);
-    if (products) {
-      console.log(
-        "선택된 데이터:",
-        indices.map((i) => products[i])
-      );
-    }
+    setSelectedIndices(indices);
+    // console.log("선택된 행 인덱스:", indices);
+    // if (products) {
+    //   console.log(
+    //     "선택된 데이터:",
+    //     indices.map((i) => products[i])
+    //   );
+    // }
   };
 
   const headers = [
@@ -117,19 +88,15 @@ export default function ProductPage() {
       product.price,
       product.cost,
       product.price - product.cost,
-      product.status,
+      {
+        value: product.status,
+        textColor: product.status === "active" ? "#22c55e" : "#ef4444",
+        icon: <BiCheck />,
+      },
       product.note || "",
       <Link key={`update-${product.id}`} href={`/sales/products/update/${product.id}`}>
         <Button>Update</Button>
       </Link>,
-      <Button
-        key={`delete-${product.id}`}
-        variant="danger"
-        disabled={isDeleteLoading}
-        onClick={() => handleRemove(product.id)}
-      >
-        {isDeleteLoading ? "Deleting..." : "Delete"}
-      </Button>,
     ]) || [];
 
   if (isLoading) return <FetchingSpinner />;
@@ -141,13 +108,17 @@ export default function ProductPage() {
       <Button onClick={refetch} disabled={isFetching}>
         {isFetching ? "loading.." : "refresh"}
       </Button>
-      <Button onClick={handleBulkRemove} variant="danger" disabled={isFetching}>
+      <Button
+        onClick={handleBulkRemove}
+        variant={`${selectedIndices.length === 0 ? "muted" : "danger"}`}
+        disabled={selectedIndices.length === 0 || isFetching}
+      >
         Delete
       </Button>
       <Table
         headers={headers}
         data={data}
-        columnCount={11}
+        columnCount={10}
         selectable={true}
         onSelectionChange={handleSelectionChange}
       />

@@ -5,6 +5,7 @@ import UpdateCustomerStatusButton from "@/components/UpdateCustomerStatusButton"
 import Link from "next/link";
 import { removeCustomer } from "./update/[id]/action";
 import { useState } from "react";
+import { CopyButton } from "@/components/CopyButton";
 
 // ui
 import { Table } from "@/components/ui/Table";
@@ -91,6 +92,7 @@ export default function CustomersPage() {
         {isFetching ? "loading.." : "refresh"}
       </Button>
       <UpdateCustomerStatusButton orgId={currentOrgId} />
+      <CopyButton text="https://org.com" label="Copy" />
       <Table headers={headers} data={data} columnCount={8} />
       <ConfirmModal />
     </div>

@@ -1,12 +1,60 @@
 import React, { useState } from "react";
 
+interface CellData {
+  value: string | number | null | React.ReactElement;
+  className?: string;
+  textColor?: string;
+  bgColor?: string;
+  icon?: React.ReactElement;
+  iconPosition?: "left" | "right";
+}
+
+type CellContent = string | number | null | React.ReactElement | CellData;
+
 interface TableProps {
   headers: string[];
-  data: (string | number | null | React.ReactElement)[][];
+  data: CellContent[][];
   columnCount?: number;
   selectable?: boolean;
   onSelectionChange?: (selectedIndices: number[]) => void;
 }
+
+interface CheckboxProps {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  indeterminate?: boolean;
+}
+
+const Checkbox: React.FC<CheckboxProps> = ({ checked, onChange, indeterminate = false }) => {
+  return (
+    <label className="flex items-center cursor-pointer">
+      <input
+        type="checkbox"
+        className="sr-only peer"
+        checked={checked}
+        ref={(input) => {
+          if (input) input.indeterminate = indeterminate;
+        }}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      <div className="w-4 h-4 border-2 border-gray-400 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 flex items-center justify-center transition-all">
+        <svg
+          className="w-3 h-3 text-white hidden peer-checked:block"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          strokeWidth={3}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+    </label>
+  );
+};
+
+const isCellData = (cell: CellContent): cell is CellData => {
+  return cell !== null && typeof cell === "object" && "value" in cell;
+};
 
 export const Table: React.FC<TableProps> = ({
   headers,
@@ -58,13 +106,10 @@ export const Table: React.FC<TableProps> = ({
           <tr className="border-b border-gray-300">
             {selectable && (
               <th className="text-left py-3 px-4">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={isAllSelected}
-                  ref={(el) => {
-                    if (el) el.indeterminate = isIndeterminate;
-                  }}
-                  onChange={(e) => handleSelectAll(e.target.checked)}
+                  indeterminate={isIndeterminate}
+                  onChange={handleSelectAll}
                 />
               </th>
             )}
@@ -77,21 +122,48 @@ export const Table: React.FC<TableProps> = ({
         </thead>
         <tbody>
           {displayData.map((row, rowIndex) => (
-            <tr key={rowIndex} className="border-b border-gray-100">
+            <tr
+              key={rowIndex}
+              className={`border-b border-gray-100 ${
+                selectedRows.has(rowIndex) ? "opacity-50" : ""
+              }`}
+            >
               {selectable && (
                 <td className="py-3 px-4">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={selectedRows.has(rowIndex)}
-                    onChange={(e) => handleSelectRow(rowIndex, e.target.checked)}
+                    onChange={(checked) => handleSelectRow(rowIndex, checked)}
                   />
                 </td>
               )}
-              {row.map((cell, cellIndex) => (
-                <td key={cellIndex} className="py-3 px-4">
-                  {cell || "-"}
-                </td>
-              ))}
+              {row.map((cell, cellIndex) => {
+                const cellData = isCellData(cell) ? cell : { value: cell };
+                const {
+                  value,
+                  className,
+                  textColor,
+                  bgColor,
+                  icon,
+                  iconPosition = "left",
+                } = cellData;
+
+                return (
+                  <td
+                    key={cellIndex}
+                    className={`py-3 px-4 ${className || ""}`}
+                    style={{
+                      color: textColor,
+                      backgroundColor: bgColor,
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      {icon && iconPosition === "left" && icon}
+                      <span>{value || "-"}</span>
+                      {icon && iconPosition === "right" && icon}
+                    </div>
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>

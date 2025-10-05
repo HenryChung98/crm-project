@@ -124,68 +124,6 @@ export async function updateProduct(productId: string, formData: FormData) {
   }
 }
 
-export async function removeProduct(productId: string, organizationId: string) {
-  try {
-    const { supabase, orgMember } = await withOrgAuth(organizationId);
-
-    // Verify product exists and belongs to organization
-    const { data: productToRemove, error: fetchError } = await supabase
-      .from("products")
-      .select("id, name, sku")
-      .eq("id", productId)
-      .eq("organization_id", organizationId)
-      .single();
-
-    if (fetchError || !productToRemove) {
-      return { success: false, error: "Product not found or access denied" };
-    }
-
-    // Delete product
-    const { error: deleteError } = await supabase
-      .from("products")
-      .delete()
-      .eq("id", productId)
-      .eq("organization_id", organizationId);
-
-    if (deleteError) {
-      return { success: false, error: deleteError.message };
-    }
-
-    // Log the deletion
-    const activityLogData = {
-      organization_id: organizationId,
-      entity_id: productId,
-      entity_type: "product",
-      action: "product-deleted",
-      changed_data: {
-        product_name: productToRemove.name,
-        product_sku: productToRemove.sku,
-        deleted_at: new Date().toISOString(),
-      },
-      performed_by: orgMember.id,
-    };
-
-    const { error: activityLogError } = await supabase
-      .from("activity_logs")
-      .insert([activityLogData])
-      .select("id")
-      .single();
-
-    if (activityLogError) {
-      return { success: false, error: activityLogError.message };
-    }
-
-    revalidatePath("/sales/products");
-    revalidatePath(`/sales/products/${productId}`);
-    return { success: true };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to remove product",
-    };
-  }
-}
-
 
 export async function removeBulkProducts(productIds: string[], organizationId: string) {
   try {

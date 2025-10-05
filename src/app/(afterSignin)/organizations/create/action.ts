@@ -4,6 +4,15 @@ import { createClient } from "@/utils/supabase/server";
 import { hasSubscription } from "@/hooks/hook-actions/get-plans";
 import { revalidatePath } from "next/cache";
 
+function isValidUrl(urlString: string): boolean {
+  try {
+    const url = new URL(urlString);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export async function createOrganization(formData: FormData) {
   const supabase = await createClient();
 
@@ -11,15 +20,20 @@ export async function createOrganization(formData: FormData) {
   const orgCountry = formData.get("orgCountry")?.toString().trim();
   const orgProvince = formData.get("orgProvince")?.toString().trim();
   const orgCity = formData.get("orgCity")?.toString().trim();
+  const url = formData.get("url")?.toString().trim();
 
   // check all fields
   if (!orgName || !orgCountry || !orgCity) {
     return { error: "Organization's name, country, and city are required." };
   }
 
+  if (url && !isValidUrl(url)) {
+    return { error: "Please enter a valid URL (e.g., https://example.com)" };
+  }
+
   const checkSubscription = await hasSubscription();
   if (!checkSubscription) {
-    return { error: "You are fucking cheating now." };
+    return { error: "Invalid Access." };
   }
 
   // province validation
@@ -48,6 +62,7 @@ export async function createOrganization(formData: FormData) {
     state_province: orgProvince ? orgProvince.toUpperCase() : null,
     city: orgCity,
     created_by: user.id,
+    url: url,
   };
 
   const { data: organizationExist } = await supabase

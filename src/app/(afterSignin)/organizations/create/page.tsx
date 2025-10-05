@@ -20,6 +20,7 @@ interface OrganizationFormData {
   orgCountry: string;
   orgProvince: string;
   orgCity: string;
+  url: string;
 }
 
 interface Country {
@@ -64,6 +65,7 @@ export default function CreateOrganizationPage() {
     orgCountry: "",
     orgProvince: "",
     orgCity: "",
+    url: "",
   });
 
   // =============================for form=============================
@@ -99,7 +101,7 @@ export default function CreateOrganizationPage() {
     }
   };
   // =============================/for form=============================
-  
+
   if (isLoadingSubscription) {
     return <LoadingSpinner />;
   }
@@ -120,8 +122,16 @@ export default function CreateOrganizationPage() {
           onChange={handleChange}
           required
           className="border w-full p-2"
+          requiredField
         />
-        <Dropdown name="orgCountry" value={formData.orgCountry} onChange={handleChange} required>
+        <Dropdown
+          name="orgCountry"
+          value={formData.orgCountry}
+          onChange={handleChange}
+          label="Country"
+          required
+          requiredField
+        >
           <option value="">Select Country</option>
           {sortedCountries.map((c: Country) => (
             <option key={c.iso} value={c.iso}>
@@ -163,7 +173,16 @@ export default function CreateOrganizationPage() {
           required
           className="border w-full p-2"
         />
-
+        <FormField
+          label="URL"
+          name="url"
+          type="text"
+          placeholder="https://..."
+          value={formData.url}
+          onChange={handleChange}
+          required
+          className="border w-full p-2"
+        />
         <Button type="submit" disabled={buttonLoading}>
           {buttonLoading ? "Loading..." : "Start"}
         </Button>
