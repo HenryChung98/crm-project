@@ -122,7 +122,6 @@ export default function CreateOrganizationPage() {
           onChange={handleChange}
           required
           className="border w-full p-2"
-          requiredField
         />
         <Dropdown
           name="orgCountry"
@@ -130,7 +129,6 @@ export default function CreateOrganizationPage() {
           onChange={handleChange}
           label="Country"
           required
-          requiredField
         >
           <option value="">Select Country</option>
           {sortedCountries.map((c: Country) => (

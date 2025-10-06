@@ -17,7 +17,7 @@ import { usePlanByOrg } from "@/hooks/tanstack/usePlan";
 import { useOrgAuth } from "@/hooks/tanstack/useOrgAuth";
 
 // ui
-import JoinOrganizationButton from "@/components/JoinOrganizationButton";
+import JoinOrganizationButton from "@/app/(afterSignin)/dashboard/JoinOrganizationButton";
 import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 

@@ -31,8 +31,7 @@ export default function UpdateCustomerPage() {
       const formData = new FormData();
       formData.append("customerId", id);
       formData.append("orgId", data.orgId);
-      formData.append("firstName", data.firstName);
-      formData.append("lastName", data.lastName);
+      formData.append("name", data.name);
       formData.append("email", data.email);
       if (data.phone) formData.append("phone", data.phone);
       if (data.note) formData.append("note", data.note);
@@ -90,11 +89,10 @@ export default function UpdateCustomerPage() {
     <>
       <CustomerForm
         currentOrgId={currentOrgId}
-        mode={`update ${customer.first_name}`}
+        mode={`update ${customer.name}`}
         initialData={{
           orgId: currentOrgId,
-          firstName: customer.first_name,
-          lastName: customer.last_name,
+          name: customer.name,
           email: customer.email,
           phone: customer.phone,
           note: customer.note,

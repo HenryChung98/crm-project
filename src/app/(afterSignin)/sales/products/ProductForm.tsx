@@ -68,7 +68,6 @@ export function ProductForm({
         value={formData.name}
         onChange={handleChange}
         required
-        requiredField
         className="border w-full p-2"
       />
       <FormField
@@ -79,7 +78,6 @@ export function ProductForm({
         value={formData.sku}
         onChange={handleChange}
         required
-        requiredField
         className="border w-full p-2"
       />
       <FormField
@@ -90,10 +88,9 @@ export function ProductForm({
         value={formData.description}
         onChange={handleChange}
         required
-        requiredField
         className="border w-full p-2"
       />
-      <Dropdown name="type" value={formData.type} onChange={handleChange} label="Product Type" required requiredField>
+      <Dropdown name="type" value={formData.type} onChange={handleChange} label="Product Type" required>
         <option value="">Select Product Type</option>
         <option value="inventory">Inventory</option>
         <option value="non-inventory">Non-Inventory</option>
@@ -107,7 +104,6 @@ export function ProductForm({
         value={formData.price?.toString() ?? ""}
         onChange={handleChange}
         required
-        requiredField
         className="border w-full p-2"
       />
       <FormField
@@ -118,7 +114,6 @@ export function ProductForm({
         value={formData.cost?.toString() ?? ""}
         onChange={handleChange}
         required
-        requiredField
         className="border w-full p-2"
       />
       <div>

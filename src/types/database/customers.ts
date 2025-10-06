@@ -1,16 +1,13 @@
 export interface Customers {
   id: string;
   organization_id: string;
-  first_name: string;
-  last_name: string;
+  name: string;
   email: string;
   phone: string;
-  status: string;
-  tag: string;
   created_at: string;
   updated_at: string;
-  last_contacted_at: string;
   source: string;
   note: string;
+  imported_data?: JSON;
+  status: "lead" | "customer";
 }
-

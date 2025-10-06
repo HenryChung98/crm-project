@@ -1,6 +1,6 @@
 "use client";
 
-import { acceptInvitation } from "./component-actions/accept-invitation";
+import { acceptInvitation } from "./invite-member/hook/accept-invitation";
 import { useTransition } from "react";
 
 import { showSuccess, showError } from "@/utils/feedback";

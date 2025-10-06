@@ -47,6 +47,8 @@ export async function updateSession(request: NextRequest) {
     "/pricing",
     "/terms",
     "/privacy",
+    "/public",
+    "/v",
   ];
 
   const authPaths = [
@@ -68,11 +70,15 @@ export async function updateSession(request: NextRequest) {
     "/subscription",
   ];
 
-  const isPublicPath = publicPaths.includes(currentPath);
+  const isPublicPath = publicPaths.some((path) => {
+    if (path === "/") {
+      return currentPath === "/";
+    }
+    return currentPath.startsWith(path);
+  });
   const isAuthPath = authPaths.some((path) => currentPath.startsWith(path));
   const isProtectedPath = protectedPaths.some((path) => currentPath.startsWith(path));
   const isResetPath = currentPath.startsWith("/reset/");
-
 
   if (user) {
     if (currentPath === "/" || isAuthPath) {

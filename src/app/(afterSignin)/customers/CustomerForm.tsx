@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/Button";
 
 export interface CustomerFormData {
   orgId: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   phone?: string | null;
   note?: string | null;
@@ -31,8 +30,7 @@ export function CustomerForm({
   const [formData, setFormData] = useState<CustomerFormData>(
     initialData || {
       orgId: currentOrgId,
-      firstName: "",
-      lastName: "",
+      name: "",
       email: "",
       phone: "",
       note: "",
@@ -52,18 +50,10 @@ export function CustomerForm({
   return (
     <Form onSubmit={handleSubmit} formTitle={`${mode} customer`}>
       <FormField
-        label="First Name"
-        name="firstName"
+        label="Name"
+        name="name"
         placeholder="John"
-        value={formData.firstName}
-        onChange={handleChange}
-        required
-      />
-      <FormField
-        label="Last Name"
-        name="lastName"
-        placeholder="Doe"
-        value={formData.lastName}
+        value={formData.name}
         onChange={handleChange}
         required
       />

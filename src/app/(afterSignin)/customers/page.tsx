@@ -1,7 +1,6 @@
 "use client";
 import { useSearchParams } from "next/navigation";
 import { useCustomers } from "@/app/(afterSignin)/customers/hook/useCustomers";
-import UpdateCustomerStatusButton from "@/components/UpdateCustomerStatusButton";
 import Link from "next/link";
 import { removeCustomer } from "./update/[id]/action";
 import { useState } from "react";
@@ -15,6 +14,7 @@ import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 import { showSuccess, showError } from "@/utils/feedback";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 
+//
 export default function CustomersPage() {
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
@@ -63,13 +63,11 @@ export default function CustomersPage() {
     );
   };
 
-  const headers = ["Firt Name", "Last Name", "Email", "Status", "Source", "Created At"];
+  const headers = ["Name", "Email", "Source", "Created At"];
   const data =
     customers?.map((customer) => [
-      customer.first_name,
-      customer.last_name,
+      customer.name,
       customer.email,
-      customer.status,
       customer.source,
       new Date(customer.created_at).toLocaleString(),
       <Link key={`update-${customer.id}`} href={`/customers/update/${customer.id}`}>
@@ -87,13 +85,15 @@ export default function CustomersPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Customers {currentOrgId && `(${currentOrgId})`}</h1>
+      <h1 className="text-2xl font-bold mb-4">Customers</h1>
       <Button onClick={refetch} variant="primary">
         {isFetching ? "loading.." : "refresh"}
       </Button>
-      <UpdateCustomerStatusButton orgId={currentOrgId} />
-      <CopyButton text="https://org.com" label="Copy" />
-      <Table headers={headers} data={data} columnCount={8} />
+      <CopyButton
+        text={`${window.location.origin}/public/booking?org=${currentOrgId}`}
+        label="Copy"
+      />
+      <Table headers={headers} data={data} columnCount={6} />
       <ConfirmModal />
     </div>
   );

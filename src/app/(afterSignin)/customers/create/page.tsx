@@ -23,8 +23,7 @@ export default function CreateCustomersPage() {
     try {
       const formData = new FormData();
       formData.append("orgId", data.orgId);
-      formData.append("firstName", data.firstName);
-      formData.append("lastName", data.lastName);
+      formData.append("name", data.name);
       formData.append("email", data.email);
       if (data.phone) formData.append("phone", data.phone);
       if (data.note) formData.append("note", data.note);
