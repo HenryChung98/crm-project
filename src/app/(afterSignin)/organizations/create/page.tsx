@@ -41,24 +41,71 @@ export default function CreateOrganizationPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [noProvince, setNoProvince] = useState<boolean>(false);
+
   // check subscription
   const { hasData: hasSubscription, isLoading: isLoadingSubscription } = useSubscriptionCheck();
   const { hasData: hasOrganization, isLoading: isLoadingOrganization } = useOrganizationCheck();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (isLoadingSubscription || isLoadingOrganization) return;
-    if (pathname === "/subscription") return;
+    console.log("🔍 Debug:", {
+      pathname,
+      hasSubscription,
+      hasOrganization,
+      isLoadingSubscription,
+      isLoadingOrganization,
+    });
+
+    if (isLoadingSubscription || isLoadingOrganization) {
+      console.log("⏳ Still loading...");
+      return;
+    }
+    if (pathname === "/subscription") {
+      console.log("✅ Already on subscription page");
+      return;
+    }
 
     if (hasSubscription === false) {
+      console.log("🚫 No subscription, redirecting...");
       router.replace("/subscription");
       return;
     }
     if (hasOrganization === true) {
+      console.log("✅ Has organization, redirecting to dashboard...");
       router.replace("/dashboard");
       return;
     }
-  }, [hasSubscription, isLoadingSubscription, pathname, router]);
+
+    console.log("✅ All checks passed, showing form");
+  }, [
+    hasSubscription,
+    hasOrganization,
+    isLoadingSubscription,
+    isLoadingOrganization,
+    pathname,
+    router,
+  ]);
+
+  // useEffect(() => {
+  //   if (isLoadingSubscription || isLoadingOrganization) return;
+  //   if (pathname === "/subscription") return;
+
+  //   if (hasSubscription === false) {
+  //     router.replace("/subscription");
+  //     return;
+  //   }
+  //   if (hasOrganization === true) {
+  //     router.replace("/dashboard");
+  //     return;
+  //   }
+  // }, [
+  //   hasSubscription,
+  //   hasOrganization,
+  //   isLoadingSubscription,
+  //   isLoadingOrganization,
+  //   pathname,
+  //   router,
+  // ]);
 
   const [formData, setFormData] = useState<OrganizationFormData>({
     orgName: "",
@@ -102,11 +149,20 @@ export default function CreateOrganizationPage() {
   };
   // =============================/for form=============================
 
-  if (isLoadingSubscription) {
+  if (
+    isLoadingSubscription ||
+    isLoadingOrganization ||
+    hasSubscription === undefined ||
+    hasOrganization === undefined
+  ) {
     return <LoadingSpinner />;
   }
 
   if (hasSubscription === false) {
+    return null;
+  }
+
+  if (hasOrganization === true) {
     return null;
   }
 
@@ -178,7 +234,6 @@ export default function CreateOrganizationPage() {
           placeholder="https://..."
           value={formData.url}
           onChange={handleChange}
-          required
           className="border w-full p-2"
         />
         <Button type="submit" disabled={buttonLoading}>

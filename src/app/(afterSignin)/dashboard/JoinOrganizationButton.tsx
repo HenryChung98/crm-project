@@ -22,6 +22,7 @@ export default function JoinOrganizationButton({
           try {
             await acceptInvitation(inviteId, orgName);
             showSuccess("accepted!");
+            window.location.reload();
           } catch (err) {
             showError("Failed to join: " + (err as Error).message);
           }

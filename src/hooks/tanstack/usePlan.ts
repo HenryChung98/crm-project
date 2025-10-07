@@ -3,12 +3,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { NetworkError } from "@/types/errors";
 import { SubscribedPlan } from "@/types/database/plan";
-import { hasSubscription, getPlanByOrg, hasOrganization } from "../hook-actions/get-plans";
+import { getPlanByOrg } from "../hook-actions/get-plans";
 import { useMemo, useCallback } from "react";
-import {
-  getUsageForOrg,
-  type UsageByOrganization,
-} from "../hook-actions/get-usage";
+import { getUsageForOrg, type UsageByOrganization } from "../hook-actions/get-usage";
 
 type HasResult = {
   hasData: boolean | undefined;
@@ -20,9 +17,16 @@ type HasResult = {
 export const useSubscriptionCheck = (): HasResult => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["subscription", "check"],
-    queryFn: hasSubscription,
-    staleTime: 1000 * 60 * 5, // 5분간 캐시 
-    refetchOnWindowFocus: false, 
+    queryFn: async () => {
+      const res = await fetch("/api/subscription/check", { cache: "no-store" });
+      if (!res.ok) throw new Error("Subscription check failed");
+      const json = await res.json();
+      return Boolean(json?.has);
+    },
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    retry: 1,
   });
 
   return {
@@ -36,9 +40,16 @@ export const useSubscriptionCheck = (): HasResult => {
 export const useOrganizationCheck = (): HasResult => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["organization", "check"],
-    queryFn: hasOrganization,
-    staleTime: 1000 * 60 * 5, // 5분간 캐시 
-    refetchOnWindowFocus: false, 
+    queryFn: async () => {
+      const res = await fetch("/api/organization/check", { cache: "no-store" });
+      if (!res.ok) throw new Error("Organization check failed");
+      const json = await res.json();
+      return Boolean(json?.has);
+    },
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    retry: 1,
   });
 
   return {
@@ -48,7 +59,6 @@ export const useOrganizationCheck = (): HasResult => {
     refetch,
   };
 };
-
 
 type OrgQuotaType = "customers" | "users";
 
@@ -109,7 +119,7 @@ export const usePlanByOrg = (orgId: string): OrgPlanResult => {
 
   const limits = useMemo((): BaseLimits | null => {
     if (!planResult.data?.plans) return null;
-    
+
     const plan = planResult.data.plans;
     return {
       maxCustomers: plan.max_customers,

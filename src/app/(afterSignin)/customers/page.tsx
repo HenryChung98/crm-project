@@ -16,6 +16,8 @@ import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 import { showSuccess, showError } from "@/utils/feedback";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 
+import { usePlanByOrg } from "@/hooks/tanstack/usePlan";
+
 //
 export default function CustomersPage() {
   const searchParams = useSearchParams();
@@ -23,15 +25,27 @@ export default function CustomersPage() {
   const { confirm, ConfirmModal } = useConfirm();
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
+  const { data: orgPlan, isLoading: orgPlanLoading } = usePlanByOrg(currentOrgId);
+
   // ========== JSON Modal State ==========
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [jsonModalData, setJsonModalData] = useState<any>(null);
   // ======================================
 
-  // fetch customer infos
-  const { data: customers, isLoading, error, refetch, isFetching } = useCustomers(currentOrgId);
+  // ========== Copy Link Modal ==========
+  const [showCopyModal, setShowCopyModal] = useState(false);
+  // ========================================
 
-  if (isLoading) return <FetchingSpinner />;
+  // fetch customer infos
+  const {
+    data: customers,
+    isLoading: isCustomerLoading,
+    error,
+    refetch,
+    isFetching,
+  } = useCustomers(currentOrgId);
+
+  if (isCustomerLoading || orgPlanLoading) return <FetchingSpinner />;
 
   if (error) {
     return (
@@ -139,10 +153,12 @@ export default function CustomersPage() {
       <Button onClick={refetch} variant="primary">
         {isFetching ? "loading.." : "refresh"}
       </Button>
-      <CopyButton
-        text={`${window.location.origin}/public/booking?org=${currentOrgId}&src=instagram`}
-        label="Copy"
-      />
+      {(orgPlan && orgPlan.plans.name === "free") && (
+        <Button onClick={() => setShowCopyModal(true)} variant="primary">
+          Copy Booking Link
+        </Button>
+      )}
+
       <Table headers={headers} data={data} columnCount={8} />
 
       <ConfirmModal />
@@ -166,6 +182,40 @@ export default function CustomersPage() {
             <pre className="text-sm p-4 bg-indigo-800 rounded overflow-auto z-50">
               {JSON.stringify(jsonModalData, null, 2)}
             </pre>
+          </div>
+        </div>
+      )}
+      {/* ===================================== */}
+
+      {/* ========== Copy Link Modal ========== */}
+      {showCopyModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setShowCopyModal(false)}
+        >
+          <div className="p-6 rounded-lg max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold mb-4">Select Source</h3>
+            <div className="flex flex-col gap-3">
+              <CopyButton
+                text={`${window.location.origin}/public/booking?org=${currentOrgId}&src=instagram`}
+                label="Copy Instagram Booking Link"
+                currentOrgId={currentOrgId}
+                // basicRequired
+              />
+              <CopyButton
+                text={`${window.location.origin}/public/booking?org=${currentOrgId}&src=facebook`}
+                label="Copy Facebook Booking Link"
+                currentOrgId={currentOrgId}
+              />
+              <CopyButton
+                text={`${window.location.origin}/v/${currentOrgId}?src=instagram`}
+                label="Copy Instagram Tracking Link"
+                currentOrgId={currentOrgId}
+              />
+              <Button variant="secondary" onClick={() => setShowCopyModal(false)}>
+                Cancel
+              </Button>
+            </div>
           </div>
         </div>
       )}

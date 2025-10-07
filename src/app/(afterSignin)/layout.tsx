@@ -23,7 +23,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // ===============================================
   const { user } = useAuth();
   if (user) {
-    console.log(user);
+    // console.log(user);
   } else {
     console.log("not logged in");
   }

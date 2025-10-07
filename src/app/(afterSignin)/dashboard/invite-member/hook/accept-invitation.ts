@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { revalidatePath } from "next/cache";
 
 export async function acceptInvitation(inviteId: string, orgName: string | undefined) {
   const supabase = await createClient();
@@ -64,6 +65,8 @@ export async function acceptInvitation(inviteId: string, orgName: string | undef
   if (insertError) {
     throw insertError;
   }
+
+  revalidatePath(`/dashboard?org=${inviteId}`);
 
   return { success: true };
 }
