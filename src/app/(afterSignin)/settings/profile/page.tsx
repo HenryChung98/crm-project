@@ -12,7 +12,7 @@ export default function ProfilePage() {
         <div className="mb-4">
           <label htmlFor="username" className="block text-gray-700 text-sm font-bold mb-2">
             {user?.first_name}, {user?.last_name}, {user?.email},{user?.image}
-            {user?.created_at && new Date(user.created_at).toLocaleString()}
+            {user?.created_at && new Date(user.created_at).toLocaleDateString()}
           </label>
         </div>
         <div className="flex items-center justify-between">

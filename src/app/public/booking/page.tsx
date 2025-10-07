@@ -12,7 +12,7 @@ import { showSuccess, showError } from "@/utils/feedback";
 export default function BookingFormPage() {
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
-
+  const currentSource = searchParams.get("src") || "";
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {
@@ -29,6 +29,7 @@ export default function BookingFormPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           orgId: currentOrgId,
+          source: currentSource,
           name,
           email,
           phone,
@@ -61,13 +62,13 @@ export default function BookingFormPage() {
           tabIndex={-1}
           autoComplete="off"
         />
-        <FormField label="Name" name="name" type="text" required />
+        <FormField label="Name" name="name" type="text" placeholder="John" required />
 
-        <FormField label="Email" name="email" type="email" />
+        <FormField label="Email" name="email" type="email" placeholder="example@gmail.com" />
 
-        <FormField label="Phone" name="phone" type="tel" />
+        <FormField label="Phone" name="phone" type="tel" placeholder="1234567890" />
 
-        <FormField label="Message" name="note" type="textarea" />
+        <FormField label="Message" name="note" type="textarea" placeholder="any question" />
 
         <Button type="submit" disabled={loading}>
           {loading ? "Submitting..." : "Submit"}

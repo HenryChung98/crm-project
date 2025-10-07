@@ -32,7 +32,7 @@ export default function ActivityLogsPage() {
                   <span className="text-gray-500 ml-2">({log.entity_type})</span>
                 </div>
                 <span className="text-sm text-gray-500">
-                  {new Date(log.created_at).toLocaleString()}
+                  {new Date(log.created_at).toLocaleDateString()}
                 </span>
               </div>
 

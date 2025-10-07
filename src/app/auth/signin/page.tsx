@@ -53,10 +53,9 @@ export default function SigninPage() {
       if (res?.error) {
         setError(res.error);
         setIsLoading(false);
-        return; // 🔥 에러가 있으면 여기서 중단
+        return; 
       }
 
-      // 성공한 경우에만 실행
       if (res?.success) {
         await refetchUser();
         router.push("/dashboard");

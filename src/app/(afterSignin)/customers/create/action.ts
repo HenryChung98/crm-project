@@ -67,6 +67,10 @@ export async function createCustomer(formData: FormData) {
       return { error: "Customer's name, and either email or phone number are required." };
     }
 
+    if (name.length < 2 || /^\d+$/.test(name)) {
+      return { error: "Invalid name." };
+    }
+
     if (email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {

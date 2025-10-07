@@ -7,14 +7,14 @@ import { useMemo } from "react";
 // type
 import { EMPTY_ARRAY } from "@/types/customData";
 import { OrganizationInvitations } from "@/types/database/organizations";
-import { ActivityLogs } from "@/types/database/activityLogs";
+// import { ActivityLogs } from "@/types/database/activityLogs";
 
 // hook
 import { useOrganizationInvitationsByEmail } from "@/app/(afterSignin)/dashboard/invite-member/hook/useOrganizationInvitations";
 import { useActivityLogs } from "@/hooks/tanstack/useActivityLogs";
-import { useDashboardStats } from "@/hooks/tanstack/useDashboardStats";
 import { usePlanByOrg } from "@/hooks/tanstack/usePlan";
 import { useOrgAuth } from "@/hooks/tanstack/useOrgAuth";
+// import { useDashboardStats } from "@/hooks/tanstack/useDashboardStats";
 
 // ui
 import JoinOrganizationButton from "@/app/(afterSignin)/dashboard/JoinOrganizationButton";
@@ -35,7 +35,7 @@ export default function DashboardPage() {
   const currentOrgId = searchParams.get("org") ?? "";
 
   const { hasRole } = useOrgAuth(currentOrgId);
-  const { data, isLoading } = useDashboardStats(currentOrgId);
+  // const { data, isLoading } = useDashboardStats(currentOrgId);
 
   const { data: orgInvitations = EMPTY_ARRAY, isLoading: isInvitationLoading } =
     useOrganizationInvitationsByEmail<OrganizationInvitations>();
@@ -47,7 +47,7 @@ export default function DashboardPage() {
   const { data: orgPlan, isLoading: orgPlanLoading } = usePlanByOrg(currentOrgId);
 
   const hasInvitations = useMemo(() => orgInvitations.length > 0, [orgInvitations]);
-  const isEssentialLoading = currentOrgId && (isLoading || orgPlanLoading);
+  const isEssentialLoading = currentOrgId && orgPlanLoading;
 
   if (isEssentialLoading) {
     return (
@@ -84,11 +84,11 @@ export default function DashboardPage() {
             )}
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <StatCard title="Total Customers" value={data?.total} />
               <StatCard title="New Customers (30 days)" value={data?.new} />
               <StatCard title="Activated Customers" value={data?.active} />
-            </div>
+            </div> */}
 
             {/* Activity Logs */}
             <div className="border border-border rounded-lg shadow-sm">

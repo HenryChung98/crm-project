@@ -7,7 +7,7 @@ import { WelcomeEmail } from "@/components/resend-components/templates/WelcomeEm
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { orgId, name, email, phone } = body;
+    const { orgId, source, name, email, phone } = body;
 
     // IP 가져오기
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
@@ -77,8 +77,8 @@ export async function POST(request: NextRequest) {
       email: email || null,
       phone: phone || null,
       note: null,
-      source: "Public Lead Form", // 공개 폼에서 추가됨
-      status: "lead", // 외부인이 추가하면 lead
+      source: `Public Lead Form - ${source}`,
+      status: "lead",
     };
 
     const { data: customer, error: insertError } = await supabase

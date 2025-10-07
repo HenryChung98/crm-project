@@ -14,9 +14,9 @@ export async function GET(
     customer_id: customerId,
     source: source, // 'instagram', 'facebook', 'email'
     visited_at: new Date().toISOString(),
-    ip: req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown",
+    ip_address: req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown",
   });
 
   // 웹사이트로 리디렉트
-  return Response.redirect("https://your-website.com", 302);
+  return Response.redirect("https://henry-chung-portfolio.netlify.app/", 302);
 }
