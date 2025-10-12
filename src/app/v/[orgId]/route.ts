@@ -1,11 +1,30 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { getPlanByOrg } from "@/hooks/hook-actions/get-plans";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ orgId: string }> }) {
   const supabase = await createClient();
   const source = req.nextUrl.searchParams.get("src");
   const { orgId } = await params;
 
+  const orgPlanData = await getPlanByOrg(orgId);
+  if (!orgPlanData?.plans) {
+    return { error: "Failed to get user plan data" };
+  }
+
+  // check if expired
+  if (orgPlanData.subscription.plan_id !== "75e0250f-909b-4074-bfa9-5dd140195fc2") {
+    return { error: "premium only" };
+  } else {
+    const isExpired =
+      orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
+    if (isExpired) {
+      let errorMessage = `Current organization plan is expired.`;
+      return {
+        error: errorMessage,
+      };
+    }
+  }
   const { data: org, error } = await supabase
     .from("organizations")
     .select("url")

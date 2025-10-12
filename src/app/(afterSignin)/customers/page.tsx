@@ -1,16 +1,15 @@
+// CustomersPage.tsx (수정된 버전)
 "use client";
 import { useSearchParams } from "next/navigation";
 import { useCustomers } from "@/app/(afterSignin)/customers/hook/useCustomers";
 import Link from "next/link";
 import { removeCustomer } from "./update/[id]/action";
 import { useState } from "react";
-import { CopyButton } from "@/components/CopyButton";
 import { updateCustomerStatus } from "./hook/customers";
 
 // ui
 import { Table } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
-import { Dropdown } from "@/components/ui/Dropdown";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 import { showSuccess, showError } from "@/utils/feedback";
@@ -18,7 +17,6 @@ import { useConfirm } from "@/components/ui/ConfirmModal";
 
 import { usePlanByOrg } from "@/hooks/tanstack/usePlan";
 
-//
 export default function CustomersPage() {
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") || "";
@@ -27,16 +25,9 @@ export default function CustomersPage() {
 
   const { data: orgPlan, isLoading: orgPlanLoading } = usePlanByOrg(currentOrgId);
 
-  // ========== JSON Modal State ==========
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [jsonModalData, setJsonModalData] = useState<any>(null);
-  // ======================================
 
-  // ========== Copy Link Modal ==========
-  const [showCopyModal, setShowCopyModal] = useState(false);
-  // ========================================
-
-  // fetch customer infos
   const {
     data: customers,
     isLoading: isCustomerLoading,
@@ -88,7 +79,12 @@ export default function CustomersPage() {
     confirm(
       async () => {
         try {
-          await updateCustomerStatus(customerId, currentOrgId);
+          const result = await updateCustomerStatus(customerId, currentOrgId);
+
+          if (result.error || !result.success) {
+            showError(result.error || "Failed to update status");
+            return;
+          }
 
           showSuccess("Status updated successfully!");
           refetch();
@@ -113,15 +109,17 @@ export default function CustomersPage() {
       customer.name,
       customer.email,
       customer.source,
-      // ========== View JSON Data Button ==========
-      <Button
-        key={`view-${customer.id}`}
-        variant="secondary"
-        onClick={() => setJsonModalData(customer.imported_data)}
-      >
-        View Data
-      </Button>,
-      // ===========================================
+      customer.imported_data ? (
+        <Button
+          key={`view-${customer.id}`}
+          variant="secondary"
+          onClick={() => setJsonModalData(customer.imported_data)}
+        >
+          View Data
+        </Button>
+      ) : (
+        "-"
+      ),
       new Date(customer.created_at).toLocaleDateString(),
       {
         value:
@@ -153,17 +151,11 @@ export default function CustomersPage() {
       <Button onClick={refetch} variant="primary">
         {isFetching ? "loading.." : "refresh"}
       </Button>
-      {(orgPlan && orgPlan.plans.name === "free") && (
-        <Button onClick={() => setShowCopyModal(true)} variant="primary">
-          Copy Booking Link
-        </Button>
-      )}
 
       <Table headers={headers} data={data} columnCount={8} />
 
       <ConfirmModal />
 
-      {/* ========== JSON Data Modal ========= */}
       {jsonModalData && (
         <div
           className="fixed inset-0 flex items-center justify-center"
@@ -185,41 +177,6 @@ export default function CustomersPage() {
           </div>
         </div>
       )}
-      {/* ===================================== */}
-
-      {/* ========== Copy Link Modal ========== */}
-      {showCopyModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onClick={() => setShowCopyModal(false)}
-        >
-          <div className="p-6 rounded-lg max-w-md w-full" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold mb-4">Select Source</h3>
-            <div className="flex flex-col gap-3">
-              <CopyButton
-                text={`${window.location.origin}/public/booking?org=${currentOrgId}&src=instagram`}
-                label="Copy Instagram Booking Link"
-                currentOrgId={currentOrgId}
-                // basicRequired
-              />
-              <CopyButton
-                text={`${window.location.origin}/public/booking?org=${currentOrgId}&src=facebook`}
-                label="Copy Facebook Booking Link"
-                currentOrgId={currentOrgId}
-              />
-              <CopyButton
-                text={`${window.location.origin}/v/${currentOrgId}?src=instagram`}
-                label="Copy Instagram Tracking Link"
-                currentOrgId={currentOrgId}
-              />
-              <Button variant="secondary" onClick={() => setShowCopyModal(false)}>
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* ===================================== */}
     </div>
   );
 }

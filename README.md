@@ -2,8 +2,8 @@
 
 ### Libraries / Frameworks
 
-- [React Icons](https://react-icons.github.io/react-icons/)
 - [Next.js](https://nextjs.org/docs/app/getting-started/installation)
+- [React Icons](https://react-icons.github.io/react-icons/)
 - [Tailwind CSS](https://tailwindcss.com/docs/installation/framework-guides/nextjs)
 - [Zustand](https://zustand-demo.pmnd.rs/)
 - [typed-countries](https://www.npmjs.com/package/typed-countries)
@@ -38,7 +38,7 @@
 - max add customer
 - email sender
 - customer status
-- create visit user's link to track(instagram, facebook, ...)
+- create link(instagram, facebook, ...)
 - booking form(instagram, facebook, ... / premium only)
 - create end point to save customer's action from external website(premium only)
 

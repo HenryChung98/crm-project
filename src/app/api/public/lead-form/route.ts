@@ -1,18 +1,39 @@
-// app/api/public/lead-form/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
 import { Resend } from "resend";
 import { WelcomeEmail } from "@/components/resend-components/templates/WelcomeEmail";
+import { getPlanByOrg } from "@/hooks/hook-actions/get-plans";
+import { createClient } from "@/utils/supabase/server";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { orgId, source, name, email, phone } = body;
+    const supabase = await createClient();
+
+    // ========================================== check plan ==========================================
+    // get user's current plan using existing action
+    const orgPlanData = await getPlanByOrg(orgId);
+    if (!orgPlanData?.plans) {
+      return { error: "Failed to get user plan data" };
+    }
+
+    // check if expired
+    if (orgPlanData.subscription.plan_id !== "75e0250f-909b-4074-bfa9-5dd140195fc2") {
+      return { error: "premium only" };
+    } else {
+      const isExpired =
+        orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
+      if (isExpired) {
+        let errorMessage = `Current organization plan is expired.`;
+        return {
+          error: errorMessage,
+        };
+      }
+    }
+    // ========================================== /check plan ==========================================
 
     // IP 가져오기
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
-
-    const supabase = await createClient();
 
     // ============ Spam Protection ============
 

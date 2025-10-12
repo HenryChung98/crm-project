@@ -8,28 +8,28 @@ export function CopyButton({
   text,
   label,
   currentOrgId,
-  basicRequired = false,
-  premiumRequired = false,
+  basicPlanRequired = false,
+  premiumPlanRequired = false,
 }: {
   text: string;
   label: string;
   currentOrgId: string;
-  basicRequired?: boolean;
-  premiumRequired?: boolean;
+  basicPlanRequired?: boolean;
+  premiumPlanRequired?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
   const { data: orgPlanData, isLoading: orgPlanLoading } = usePlanByOrg(currentOrgId);
 
   const handleCopy = async () => {
     try {
-      if ((basicRequired || premiumRequired) && orgPlanLoading) {
+      if ((basicPlanRequired || premiumPlanRequired) && orgPlanLoading) {
         showError("Please wait for plan to load");
         return;
       }
-      if (basicRequired && orgPlanData?.plans.name !== "basic") {
+      if (basicPlanRequired && orgPlanData?.plans.name !== "basic") {
         throw new Error("You need to be on the basic plan to copy this link");
       }
-      if (premiumRequired && orgPlanData?.plans.name !== "premium") {
+      if (premiumPlanRequired && orgPlanData?.plans.name !== "premium") {
         throw new Error("You need to be on the premium plan to copy this link");
       }
       await navigator.clipboard.writeText(text);

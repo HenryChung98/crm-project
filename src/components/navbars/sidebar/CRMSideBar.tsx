@@ -10,6 +10,9 @@ import OrganizationSwitcher from "./OrganizationSwitcher";
 import { useSupabase } from "@/hooks/useSupabase";
 import { AuthUserType } from "@/types/authuser";
 import { OrganizationMembers } from "@/types/database/organizations";
+import { Button } from "@/components/ui/Button";
+import { CopyButton } from "@/components/CopyButton";
+import { usePlanByOrg } from "@/hooks/tanstack/usePlan";
 
 interface NavItemProps {
   item: NavItemType;
@@ -33,7 +36,6 @@ const ToggleButton = ({ isCollapsed, onClick }: { isCollapsed: boolean; onClick:
 
   return (
     <>
-      {/* Mobile Toggle */}
       <button onClick={onClick} className={`${baseClasses} ${positionClasses} md:hidden`}>
         <svg className="w-2 h-15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -45,7 +47,6 @@ const ToggleButton = ({ isCollapsed, onClick }: { isCollapsed: boolean; onClick:
         </svg>
       </button>
 
-      {/* Desktop Toggle */}
       <button
         onClick={onClick}
         className={`hidden ${responsiveClasses} ${baseClasses} ${positionClasses}`}
@@ -159,8 +160,11 @@ export default function CRMSidebar({
   const searchParams = useSearchParams();
   const [expandedItems, setExpandedItems] = useState(new Set<string>());
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const [showCopyModal, setShowCopyModal] = useState(false);
   const { user } = useAuth();
   const { signOut } = useSupabase();
+
+  const { data: orgPlan } = usePlanByOrg(currentOrg);
 
   const { queryParam, crmNavItems, isOwner } = useMemo(() => {
     const queryString = searchParams.toString();
@@ -172,7 +176,6 @@ export default function CRMSidebar({
     return { queryParam, crmNavItems, isOwner };
   }, [searchParams, organizations, currentOrg]);
 
-  // if user doesn't have organization
   if (!organizations.length) return null;
 
   const toggleItem = (itemLabel: string) => {
@@ -206,7 +209,6 @@ export default function CRMSidebar({
 
   return (
     <>
-      {/* Mobile Overlay */}
       {!isCollapsed && (
         <div
           className="fixed inset-0 bg-black z-40 md:hidden"
@@ -215,10 +217,8 @@ export default function CRMSidebar({
         />
       )}
 
-      {/* Toggle Button */}
       <ToggleButton isCollapsed={isCollapsed} onClick={toggleSidebar} />
 
-      {/* Sidebar */}
       <nav
         className={`
           w-64 pt-22 h-screen bg-navbar border-r border-border p-4 fixed left-0 top-0 overflow-y-auto z-40
@@ -248,6 +248,15 @@ export default function CRMSidebar({
             </Link>
           )}
 
+          {orgPlan && orgPlan.plans.name === "premium" && (
+            <button
+              className="border border-border rounded p-2 w-full"
+              onClick={() => setShowCopyModal(true)}
+            >
+              Get Booking Links
+            </button>
+          )}
+
           {crmNavItems.map((item) => (
             <NavItem
               key={item.label}
@@ -259,6 +268,40 @@ export default function CRMSidebar({
           ))}
         </div>
       </nav>
+
+      {showCopyModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setShowCopyModal(false)}
+        >
+          <div
+            className="p-6 rounded-lg max-w-md w-full bg-background"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold mb-4">Select Source</h3>
+            <div className="flex flex-col gap-3">
+              <CopyButton
+                text={`${window.location.origin}/public/booking?org=${currentOrg}&src=instagram`}
+                label="Copy Instagram Booking Link"
+                currentOrgId={currentOrg}
+              />
+              <CopyButton
+                text={`${window.location.origin}/public/booking?org=${currentOrg}&src=facebook`}
+                label="Copy Facebook Booking Link"
+                currentOrgId={currentOrg}
+              />
+              <CopyButton
+                text={`${window.location.origin}/v/${currentOrg}?src=instagram`}
+                label="Copy Instagram Tracking Link"
+                currentOrgId={currentOrg}
+              />
+              <Button variant="secondary" onClick={() => setShowCopyModal(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

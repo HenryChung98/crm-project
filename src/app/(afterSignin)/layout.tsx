@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import CRMSideBar from "../../components/navbars/CRMSideBar";
+import CRMSideBar from "../../components/navbars/sidebar/CRMSideBar";
 import { useAuth } from "@/contexts/AuthContext";
 // hook
 import { useAllOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";

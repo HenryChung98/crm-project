@@ -1,19 +1,38 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { usePlanByOrg } from "@/hooks/tanstack/usePlan";
 
 // ui
 import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
 import { showSuccess, showError } from "@/utils/feedback";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export default function BookingFormPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const currentOrgId = searchParams.get("org") || "";
   const currentSource = searchParams.get("src") || "";
   const [loading, setLoading] = useState(false);
+
+  const { data, isLoading } = usePlanByOrg(currentOrgId);
+
+  useEffect(() => {
+    if (isLoading || !data) return;
+
+    // Check if plan is expired
+    if (data.subscription.status !== "free") {
+      const isExpired =
+        data.subscription.ends_at && new Date(data.subscription.ends_at) < new Date();
+
+      if (isExpired) {
+        router.push("/404");
+      }
+    }
+  }, [data, isLoading, router]);
 
   const handleSubmit = async (formData: FormData) => {
     setLoading(true);
@@ -51,6 +70,8 @@ export default function BookingFormPage() {
     }
   };
 
+  if (isLoading) return <LoadingSpinner />;
+  
   return (
     <div>
       <Form action={handleSubmit} formTitle="Booking Form">
