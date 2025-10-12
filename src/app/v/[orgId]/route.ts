@@ -9,20 +9,18 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ orgI
 
   const orgPlanData = await getPlanByOrg(orgId);
   if (!orgPlanData?.plans) {
-    return { error: "Failed to get user plan data" };
+    return NextResponse.json({ error: "Failed to get user plan data" }, { status: 500 });
   }
 
   // check if expired
   if (orgPlanData.subscription.plan_id !== "75e0250f-909b-4074-bfa9-5dd140195fc2") {
-    return { error: "premium only" };
+    return NextResponse.json({ error: "premium only" }, { status: 403 });
   } else {
     const isExpired =
       orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
     if (isExpired) {
-      let errorMessage = `Current organization plan is expired.`;
-      return {
-        error: errorMessage,
-      };
+      const errorMessage = `Current organization plan is expired.`;
+      return NextResponse.json({ error: errorMessage }, { status: 403 });
     }
   }
   const { data: org, error } = await supabase

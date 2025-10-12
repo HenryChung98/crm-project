@@ -1,4 +1,3 @@
-// components/sidebar/UserProfile.tsx
 import { AuthUserType } from "@/types/authuser";
 
 interface UserProfileProps {

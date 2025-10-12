@@ -1,4 +1,3 @@
-// components/sidebar/BookingLinkModal.tsx
 import { Button } from "@/components/ui/Button";
 import { CopyButton } from "@/components/CopyButton";
 

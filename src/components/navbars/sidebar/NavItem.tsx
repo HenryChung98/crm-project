@@ -1,4 +1,3 @@
-// components/sidebar/NavItem.tsx
 import Link from "next/link";
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { NavItemType } from "@/utils/data/navigation";

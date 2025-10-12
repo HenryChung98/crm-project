@@ -1,4 +1,3 @@
-// components/sidebar/CRMSidebar.tsx (메인 파일)
 "use client";
 
 import Link from "next/link";

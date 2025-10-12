@@ -1,4 +1,3 @@
-// components/sidebar/ToggleButton.tsx
 interface ToggleButtonProps {
     isCollapsed: boolean;
     onClick: () => void;

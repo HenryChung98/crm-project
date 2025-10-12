@@ -68,6 +68,11 @@ export default function DashboardPage() {
             <div className="p-6 rounded-lg shadow-sm border border-border text-center">
               <h3 className="text-lg text-text-secondary">
                 Organization Plan: <span className="text-green-600">{orgPlan.plans.name}</span>
+                <br />
+                Expires:{" "}
+                <span className="text-green-600">
+                  {new Date(orgPlan.subscription.ends_at).toLocaleDateString()}
+                </span>
               </h3>
             </div>
           )}
