@@ -1,25 +1,19 @@
+// components/sidebar/CRMSidebar.tsx (메인 파일)
 "use client";
 
 import Link from "next/link";
 import { useState, useMemo } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { createCrmNavItems, NavItemType } from "@/utils/data/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import OrganizationSwitcher from "./OrganizationSwitcher";
 import { useSupabase } from "@/hooks/useSupabase";
-import { AuthUserType } from "@/types/authuser";
 import { OrganizationMembers } from "@/types/database/organizations";
-import { Button } from "@/components/ui/Button";
-import { CopyButton } from "@/components/CopyButton";
 import { usePlanByOrg } from "@/hooks/tanstack/usePlan";
-
-interface NavItemProps {
-  item: NavItemType;
-  isActive: boolean;
-  isExpanded: boolean;
-  onToggle: () => void;
-}
+import ToggleButton from "./ToggleButton";
+import UserProfile from "./UserProfile";
+import NavItem from "./NavItem";
+import BookingLinkModal from "./BookingLinkModal";
 
 interface CRMSidebarProps {
   organizations: OrganizationMembers[];
@@ -27,128 +21,6 @@ interface CRMSidebarProps {
   onOrgChange: (orgId: string) => void;
   onToggleSidebar: () => void;
 }
-
-const ToggleButton = ({ isCollapsed, onClick }: { isCollapsed: boolean; onClick: () => void }) => {
-  const baseClasses =
-    "bg-background z-50 p-2 border-2 rounded-lg shadow-sm hover:bg-accent transition-all duration-300 ease-in-out fixed top-1/2 -translate-y-1/2";
-  const positionClasses = isCollapsed ? "-left-2" : "left-60";
-  const responsiveClasses = "md:block";
-
-  return (
-    <>
-      <button onClick={onClick} className={`${baseClasses} ${positionClasses} md:hidden`}>
-        <svg className="w-2 h-15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={4}
-            d={isCollapsed ? "M6 3l12 9-12 9" : "M18 21L6 12l12-9"}
-          />
-        </svg>
-      </button>
-
-      <button
-        onClick={onClick}
-        className={`hidden ${responsiveClasses} ${baseClasses} ${positionClasses}`}
-      >
-        <svg className="w-2 h-15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={4}
-            d={isCollapsed ? "M6 3l12 9-12 9" : "M18 21L6 12l12-9"}
-          />
-        </svg>
-      </button>
-    </>
-  );
-};
-
-const NavItem = ({ item, isActive, isExpanded, onToggle }: NavItemProps) => {
-  const hasChildren = Boolean(item.children?.length);
-
-  const handleItemClick = (e: React.MouseEvent) => {
-    if (hasChildren) {
-      e.preventDefault();
-      onToggle();
-    }
-  };
-
-  const itemContent = (
-    <>
-      <span className="mr-3 text-lg">{item.icon}</span>
-      <span className="font-medium">{item.label}</span>
-    </>
-  );
-
-  return (
-    <div className="mb-1">
-      <div
-        className={`flex items-center justify-between p-3 rounded-lg transition-colors cursor-pointer ${
-          isActive ? "bg-blue-100 text-blue-700" : "hover:opacity-50"
-        }`}
-        onClick={handleItemClick}
-      >
-        {item.href ? (
-          <Link href={item.href} className="flex items-center flex-1">
-            {itemContent}
-          </Link>
-        ) : (
-          <div className="flex items-center flex-1">{itemContent}</div>
-        )}
-
-        {hasChildren && (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onToggle();
-            }}
-          >
-            {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
-          </button>
-        )}
-      </div>
-
-      {hasChildren && isExpanded && (
-        <div className="ml-6 mt-1 space-y-1">
-          {item.children?.map((child) => (
-            <div key={child.label}>
-              {child.href ? (
-                <Link
-                  href={child.href}
-                  className="block p-2 text-sm text-text-secondary hover:opacity-50 rounded transition-colors"
-                >
-                  {child.label}
-                </Link>
-              ) : (
-                <div className="block p-2 text-sm text-text-secondary opacity-50 rounded cursor-not-allowed">
-                  {child.label}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-const UserProfile = ({ user }: { user: AuthUserType | null }) => (
-  <div className="absolute top-4 left-4 right-4 p-3 bg-navbar-comp rounded-lg">
-    <div className="flex items-center">
-      <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
-        {user?.first_name?.charAt(0) || "U"}
-      </div>
-      <div className="ml-3">
-        <p className="text-sm font-medium">
-          {user?.first_name} {user?.last_name}
-        </p>
-        <p className="text-xs text-text-secondary">{user?.email}</p>
-      </div>
-    </div>
-  </div>
-);
 
 export default function CRMSidebar({
   organizations,
@@ -248,7 +120,7 @@ export default function CRMSidebar({
             </Link>
           )}
 
-          {orgPlan && orgPlan.plans.name === "premium" && (
+          {orgPlan && orgPlan.plans.name !== "free" && (
             <button
               className="border border-border rounded p-2 w-full"
               onClick={() => setShowCopyModal(true)}
@@ -269,39 +141,11 @@ export default function CRMSidebar({
         </div>
       </nav>
 
-      {showCopyModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onClick={() => setShowCopyModal(false)}
-        >
-          <div
-            className="p-6 rounded-lg max-w-md w-full bg-background"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-semibold mb-4">Select Source</h3>
-            <div className="flex flex-col gap-3">
-              <CopyButton
-                text={`${window.location.origin}/public/booking?org=${currentOrg}&src=instagram`}
-                label="Copy Instagram Booking Link"
-                currentOrgId={currentOrg}
-              />
-              <CopyButton
-                text={`${window.location.origin}/public/booking?org=${currentOrg}&src=facebook`}
-                label="Copy Facebook Booking Link"
-                currentOrgId={currentOrg}
-              />
-              <CopyButton
-                text={`${window.location.origin}/v/${currentOrg}?src=instagram`}
-                label="Copy Instagram Tracking Link"
-                currentOrgId={currentOrg}
-              />
-              <Button variant="secondary" onClick={() => setShowCopyModal(false)}>
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <BookingLinkModal
+        isOpen={showCopyModal}
+        onClose={() => setShowCopyModal(false)}
+        currentOrgId={currentOrg}
+      />
     </>
   );
 }
