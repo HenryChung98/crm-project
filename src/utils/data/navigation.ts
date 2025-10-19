@@ -40,7 +40,7 @@ export function createCrmNavItems(searchParams: URLSearchParams) {
         { label: "All Leads", href: `#` },
         { label: "Products", href: `/sales/products${queryParam}` },
         { label: "Deals", href: `#` },
-        { label: "Pipeline", href: `#` },
+        { label: "Pipeline", href: `/sales/pipeline${queryParam}` },
       ],
     },
     {

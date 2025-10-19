@@ -25,6 +25,7 @@
 ### etc
 
 - [Resend](https://resend.com/)
+- [dnd-kit](https://dndkit.com/) - npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
 
 ### restricted service
 
@@ -42,7 +43,7 @@
 - booking form(instagram, facebook, ... / premium only)
 - create end point to save customer's action from external website(premium only)
 
-<!-- 
+<!--
 1. 미용실, 네일샵, 헤어샵
 - 오프라인: 손님 방문
 - 온라인: 인스타그램 예약, 카카오톡 예약

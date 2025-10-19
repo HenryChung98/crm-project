@@ -96,6 +96,7 @@ export default function CRMSidebar({
           transition-transform duration-300 ease-in-out
           ${isCollapsed ? "-translate-x-full" : "translate-x-0"}
         `}
+        
       >
         <UserProfile user={user} />
 
