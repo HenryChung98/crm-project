@@ -10,7 +10,7 @@
   --color-navbar-comp: var(--navbar-comp);
 
   /* 카드/팝오버 같은 컨테이너 */
-  --color-card: var(--card); 
+  --color-card: var(--card);
   --color-popover: var(--popover);
 
   /* 주요 색상 계열 (버튼, 링크 등) */
@@ -42,12 +42,12 @@
   --color-info-foreground: var(--info-foreground);
 
   /* 기타 UI 색상 */
-  --color-muted: var(--muted); 
-  --color-muted-foreground: var(--muted-foreground); 
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
 
-  --color-border: var(--border); 
-  --color-input: var(--input); 
-  --color-ring: var(--ring); 
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
   --spacing-container: var(--container-padding);
   --spacing-section: var(--section-spacing);
@@ -157,6 +157,10 @@ body {
 
 button {
   cursor: pointer;
+}
+
+nav::-webkit-scrollbar {
+  display: none;
 }
 
 .animate-fade-in {
