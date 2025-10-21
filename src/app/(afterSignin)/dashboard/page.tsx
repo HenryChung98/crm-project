@@ -7,35 +7,36 @@ import { useMemo } from "react";
 // type
 import { EMPTY_ARRAY } from "@/types/customData";
 import { OrganizationInvitations } from "@/types/database/organizations";
-// import { ActivityLogs } from "@/types/database/activityLogs";
 
 // hook
 import { useOrganizationInvitationsByEmail } from "@/app/(afterSignin)/dashboard/invite-member/hook/useOrganizationInvitations";
 import { useActivityLogs } from "@/hooks/tanstack/useActivityLogs";
 import { usePlanByOrg } from "@/hooks/tanstack/usePlan";
 import { useOrgAuth } from "@/hooks/tanstack/useOrgAuth";
-// import { useDashboardStats } from "@/hooks/tanstack/useDashboardStats";
+import { useDashboardStats } from "./hook/useDashboardStats";
 
 // ui
 import JoinOrganizationButton from "@/app/(afterSignin)/dashboard/JoinOrganizationButton";
 import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { DashboardStats } from "./StatCard";
 
-const StatCard = React.memo(({ title, value }: { title: string; value?: number }) => (
-  <div className="p-6 border border-border rounded-lg shadow-sm text-center hover:shadow-md transition-shadow">
-    <h3 className="text-sm font-medium uppercase tracking-wide">{title}</h3>
-    <p className="mt-3 text-3xl font-bold">{value ?? 0}</p>
-  </div>
-));
+// const StatCard = React.memo(({ title, value }: { title: string; value?: number }) => (
+//   <div className="p-6 border border-border rounded-lg shadow-sm text-center hover:shadow-md transition-shadow">
+//     <h3 className="text-sm font-medium uppercase tracking-wide">{title}</h3>
+//     <p className="mt-3 text-3xl font-bold">{value ?? 0}</p>
+//   </div>
+// ));
 
-StatCard.displayName = "StatCard";
+// StatCard.displayName = "StatCard";
 
 export default function DashboardPage() {
   const searchParams = useSearchParams();
   const currentOrgId = searchParams.get("org") ?? "";
 
   const { hasRole } = useOrgAuth(currentOrgId);
-  // const { data, isLoading } = useDashboardStats(currentOrgId);
+  const { data: dashboardStats, isLoading: isDashboardStatLoading } =
+    useDashboardStats(currentOrgId);
 
   const { data: orgInvitations = EMPTY_ARRAY, isLoading: isInvitationLoading } =
     useOrganizationInvitationsByEmail<OrganizationInvitations>();
@@ -53,7 +54,6 @@ export default function DashboardPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
         <LoadingSpinner />
-        <p className="mt-4">Loading dashboard...</p>
       </div>
     );
   }
@@ -90,10 +90,18 @@ export default function DashboardPage() {
 
             {/* Stats */}
             {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StatCard title="Total Customers" value={data?.total} />
-              <StatCard title="New Customers (30 days)" value={data?.new} />
-              <StatCard title="Activated Customers" value={data?.active} />
+              <StatCard title="Total Customers" value={dashboardStats?.totalCustomerNum} />
+              <StatCard
+                title="New Customers (Last 30 days)"
+                value={dashboardStats?.newCustomerNum}
+              />
+              <StatCard title="Lead Customers" value={dashboardStats?.leadNum} />
+              <StatCard title="Activated Customers" value={dashboardStats?.customerNum} />
+              <StatCard title="Web Visited" value={dashboardStats?.visitWebsiteNum} />
             </div> */}
+            <div className="min-h-screen p-6">
+              <DashboardStats stats={dashboardStats || undefined} />
+            </div>
 
             {/* Activity Logs */}
             <div className="border border-border rounded-lg shadow-sm">

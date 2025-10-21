@@ -125,7 +125,7 @@ export default function CRMSidebar({
               className="border border-border rounded p-2 w-full"
               onClick={() => setShowCopyModal(true)}
             >
-              Get Booking Links
+              Get Links
             </button>
           )}
 

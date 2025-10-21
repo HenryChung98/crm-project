@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getDashboardStats } from "../hook-actions/dashboard-stats";
+import { getDashboardStats } from "./dashboard-stats";
 
 export const useDashboardStats = (organizationId: string) => {
   return useQuery({
