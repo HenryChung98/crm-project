@@ -8,7 +8,7 @@ export const STAT_GROUPS = [
   {
     title: "Customer by Source",
     stats: [
-      { key: "instaCustomerNum" as const, label: "Instagram" },
+      { key: "instagramCustomerNum" as const, label: "Instagram" },
       { key: "facebookCustomerNum" as const, label: "Facebook" },
       { key: "memberCustomerNum" as const, label: "member" },
     ],
@@ -24,7 +24,10 @@ export const STAT_GROUPS = [
   },
   {
     title: "Website Metrics",
-    stats: [{ key: "visitWebsiteNum" as const, label: "Web Visited" }],
+    stats: [
+      { key: "visitFromInstagramNum" as const, label: "Web Visited From Instagarm" },
+      { key: "visitFromFacebookNum" as const, label: "Web Visited From Facebook" },
+    ],
   },
 ] as const;
 

@@ -7,10 +7,11 @@ export interface DashboardStatsType {
   newCustomerNum: number;
   leadNum: number;
   customerNum: number;
-  instaCustomerNum: number;
+  instagramCustomerNum: number;
   facebookCustomerNum: number;
   memberCustomerNum: number;
-  visitWebsiteNum: number;
+  visitFromInstagramNum: number;
+  visitFromFacebookNum: number;
 }
 
 export async function getDashboardStats(orgId: string): Promise<DashboardStatsType | null> {
@@ -28,7 +29,8 @@ export async function getDashboardStats(orgId: string): Promise<DashboardStatsTy
     { count: instaCustomerNum, error: instaError },
     { count: facebookCustomerNum, error: facebookError },
     { count: memberCustomerNum, error: memberError },
-    { count: visitWebsiteNum, error: visitError },
+    { count: visitFromInstagramNum, error: visitFromInstagramError },
+    { count: visitFromFacebookNum, error: visitFromFacebookError },
   ] = await Promise.all([
     // total customer num
     supabase
@@ -78,12 +80,19 @@ export async function getDashboardStats(orgId: string): Promise<DashboardStatsTy
       .eq("organization_id", orgId)
       .like("source", "%@%"),
 
-    // visited num
+    // visited num from instagram
     supabase
       .from("visit_logs")
       .select("*", { count: "exact", head: true })
       .eq("organization_id", orgId)
       .eq("source", "instagram"),
+
+    // visited num from facebook
+    supabase
+      .from("visit_logs")
+      .select("*", { count: "exact", head: true })
+      .eq("organization_id", orgId)
+      .eq("source", "facebook"),
   ]);
 
   const errors = [
@@ -94,7 +103,8 @@ export async function getDashboardStats(orgId: string): Promise<DashboardStatsTy
     instaError,
     facebookError,
     memberError,
-    visitError,
+    visitFromInstagramError,
+    visitFromFacebookError,
   ];
   const firstError = errors.find((e) => e);
   if (firstError) throw firstError;
@@ -104,9 +114,10 @@ export async function getDashboardStats(orgId: string): Promise<DashboardStatsTy
     newCustomerNum: newCustomerNum || 0,
     leadNum: leadNum || 0,
     customerNum: customerNum || 0,
-    instaCustomerNum: instaCustomerNum || 0,
+    instagramCustomerNum: instaCustomerNum || 0,
     facebookCustomerNum: facebookCustomerNum || 0,
     memberCustomerNum: memberCustomerNum || 0,
-    visitWebsiteNum: visitWebsiteNum || 0,
+    visitFromInstagramNum: visitFromInstagramNum || 0,
+    visitFromFacebookNum: visitFromFacebookNum || 0,
   };
 }
