@@ -17,6 +17,12 @@ interface TableProps {
   columnCount?: number;
   selectable?: boolean;
   onSelectionChange?: (selectedIndices: number[]) => void;
+  filterOptions?: string[];
+  filterColumn?: number;
+  searchable?: boolean;
+  pagination?: boolean;
+  pageSize?: number;
+  exportable?: boolean;
 }
 
 interface CheckboxProps {
@@ -56,17 +62,121 @@ const isCellData = (cell: CellContent): cell is CellData => {
   return cell !== null && typeof cell === "object" && "value" in cell;
 };
 
+const getCellValue = (cell: CellContent): string => {
+  if (cell === null) return "";
+  if (React.isValidElement(cell)) return "";
+  if (isCellData(cell)) {
+    const value = cell.value;
+    if (value === null || React.isValidElement(value)) return "";
+    return String(value);
+  }
+  return String(cell);
+};
+
+const exportToCSV = (headers: string[], data: CellContent[][], columnCount: number) => {
+  const displayHeaders = headers.slice(0, columnCount);
+  const csvRows = [];
+
+  csvRows.push(displayHeaders.join(","));
+
+  data.forEach((row) => {
+    const values = row.slice(0, columnCount).map((cell) => {
+      const value = getCellValue(cell);
+      return `"${value.replace(/"/g, '""')}"`;
+    });
+    csvRows.push(values.join(","));
+  });
+
+  const csvContent = csvRows.join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+
+  link.setAttribute("href", url);
+  link.setAttribute("download", `export_${new Date().getTime()}.csv`);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const exportToExcel = (headers: string[], data: CellContent[][], columnCount: number) => {
+  const displayHeaders = headers.slice(0, columnCount);
+
+  let html = "<table><thead><tr>";
+  displayHeaders.forEach((header) => {
+    html += `<th>${header}</th>`;
+  });
+  html += "</tr></thead><tbody>";
+
+  data.forEach((row) => {
+    html += "<tr>";
+    row.slice(0, columnCount).forEach((cell) => {
+      const value = getCellValue(cell);
+      html += `<td>${value}</td>`;
+    });
+    html += "</tr>";
+  });
+  html += "</tbody></table>";
+
+  const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+
+  link.setAttribute("href", url);
+  link.setAttribute("download", `export_${new Date().getTime()}.xls`);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 export const Table: React.FC<TableProps> = ({
   headers,
   data,
   columnCount = headers.length,
   selectable = false,
   onSelectionChange,
+  filterOptions = [],
+  filterColumn,
+  searchable = false,
+  pagination = false,
+  pageSize = 10,
+  exportable = false,
 }) => {
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
+  const [filterValue, setFilterValue] = useState<string>("");
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const displayHeaders = headers.slice(0, columnCount);
-  const displayData = data.map((row) => {
+
+  let filteredData = data;
+
+  if (filterValue && filterColumn !== undefined) {
+    filteredData = filteredData.filter((row) => {
+      const cell = row[filterColumn];
+      const cellValue = isCellData(cell) ? cell.value : cell;
+      return String(cellValue).toLowerCase().includes(filterValue.toLowerCase());
+    });
+  }
+
+  if (searchValue) {
+    filteredData = filteredData.filter((row) => {
+      return row.slice(0, columnCount).some((cell) => {
+        const cellValue = isCellData(cell) ? cell.value : cell;
+        if (cellValue === null || React.isValidElement(cellValue)) return false;
+        return String(cellValue).toLowerCase().includes(searchValue.toLowerCase());
+      });
+    });
+  }
+
+  const totalPages = pagination ? Math.ceil(filteredData.length / pageSize) : 1;
+  const startIndex = pagination ? (currentPage - 1) * pageSize : 0;
+  const endIndex = pagination ? startIndex + pageSize : filteredData.length;
+  const paginatedData = pagination ? filteredData.slice(startIndex, endIndex) : filteredData;
+
+  const displayData = paginatedData.map((row) => {
     const slicedRow = row.slice(0, columnCount);
     while (slicedRow.length < columnCount) {
       slicedRow.push(null);
@@ -76,7 +186,7 @@ export const Table: React.FC<TableProps> = ({
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      const allIndices = new Set(data.map((_, index) => index));
+      const allIndices = new Set(paginatedData.map((_, index) => index));
       setSelectedRows(allIndices);
       onSelectionChange?.(Array.from(allIndices));
     } else {
@@ -96,78 +206,176 @@ export const Table: React.FC<TableProps> = ({
     onSelectionChange?.(Array.from(newSelected));
   };
 
-  const isAllSelected = data.length > 0 && selectedRows.size === data.length;
-  const isIndeterminate = selectedRows.size > 0 && selectedRows.size < data.length;
+  const isAllSelected = displayData.length > 0 && selectedRows.size === displayData.length;
+  const isIndeterminate = selectedRows.size > 0 && selectedRows.size < displayData.length;
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSelectedRows(new Set());
+    onSelectionChange?.([]);
+  };
 
   return (
-    <div className="w-full overflow-x-auto">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b border-gray-300">
-            {selectable && (
-              <th className="text-left py-3 px-4">
-                <Checkbox
-                  checked={isAllSelected}
-                  indeterminate={isIndeterminate}
-                  onChange={handleSelectAll}
-                />
-              </th>
-            )}
-            {displayHeaders.map((header, index) => (
-              <th key={index} className="text-left py-3 px-4 font-medium">
-                {header}
-              </th>
+    <div className="w-full">
+      <div className="mb-4 flex gap-3 items-center">
+        {searchable && (
+          <input
+            type="text"
+            value={searchValue}
+            onChange={(e) => {
+              setSearchValue(e.target.value);
+              setCurrentPage(1);
+              setSelectedRows(new Set());
+              onSelectionChange?.([]);
+            }}
+            placeholder="Search..."
+            className="px-3 py-2 border border-gray-300 rounded"
+          />
+        )}
+        {filterOptions.length > 0 && filterColumn !== undefined && (
+          <select
+            value={filterValue}
+            onChange={(e) => {
+              setFilterValue(e.target.value);
+              setCurrentPage(1);
+              setSelectedRows(new Set());
+              onSelectionChange?.([]);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded"
+          >
+            <option value="">All</option>
+            {filterOptions.map((option, index) => (
+              <option key={index} value={option}>
+                {option}
+              </option>
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {displayData.map((row, rowIndex) => (
-            <tr
-              key={rowIndex}
-              className={`border-b border-gray-100 ${
-                selectedRows.has(rowIndex) ? "opacity-50" : ""
-              }`}
+          </select>
+        )}
+        {exportable && (
+          <div className="ml-auto flex gap-2">
+            <button
+              onClick={() => exportToCSV(headers, filteredData, columnCount)}
+              className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
             >
-              {selectable && (
-                <td className="py-3 px-4">
-                  <Checkbox
-                    checked={selectedRows.has(rowIndex)}
-                    onChange={(checked) => handleSelectRow(rowIndex, checked)}
-                  />
-                </td>
-              )}
-              {row.map((cell, cellIndex) => {
-                const cellData = isCellData(cell) ? cell : { value: cell };
-                const {
-                  value,
-                  className,
-                  textColor,
-                  bgColor,
-                  icon,
-                  iconPosition = "left",
-                } = cellData;
+              Export CSV
+            </button>
+            <button
+              onClick={() => exportToExcel(headers, filteredData, columnCount)}
+              className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Export Excel
+            </button>
+          </div>
+        )}
+      </div>
 
-                return (
-                  <td
-                    key={cellIndex}
-                    className={`py-3 px-4 ${className || ""}`}
-                    style={{
-                      color: textColor,
-                      backgroundColor: bgColor,
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      {icon && iconPosition === "left" && icon}
-                      <span>{value || "-"}</span>
-                      {icon && iconPosition === "right" && icon}
-                    </div>
-                  </td>
-                );
-              })}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b border-gray-300">
+              {selectable && (
+                <th className="text-left py-3 px-4">
+                  <Checkbox
+                    checked={isAllSelected}
+                    indeterminate={isIndeterminate}
+                    onChange={handleSelectAll}
+                  />
+                </th>
+              )}
+              {displayHeaders.map((header, index) => (
+                <th key={index} className="text-left py-3 px-4 font-medium">
+                  {header}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {displayData.map((row, rowIndex) => (
+              <tr
+                key={rowIndex}
+                className={`border-b border-gray-100 ${
+                  selectedRows.has(rowIndex) ? "opacity-50" : ""
+                }`}
+              >
+                {selectable && (
+                  <td className="py-3 px-4">
+                    <Checkbox
+                      checked={selectedRows.has(rowIndex)}
+                      onChange={(checked) => handleSelectRow(rowIndex, checked)}
+                    />
+                  </td>
+                )}
+                {row.map((cell, cellIndex) => {
+                  const cellData = isCellData(cell) ? cell : { value: cell };
+                  const {
+                    value,
+                    className,
+                    textColor,
+                    bgColor,
+                    icon,
+                    iconPosition = "left",
+                  } = cellData;
+
+                  return (
+                    <td
+                      key={cellIndex}
+                      className={`py-3 px-4 ${className || ""}`}
+                      style={{
+                        color: textColor,
+                        backgroundColor: bgColor,
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        {icon && iconPosition === "left" && icon}
+                        <span>{value || "-"}</span>
+                        {icon && iconPosition === "right" && icon}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {pagination && totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            Showing {startIndex + 1} to {Math.min(endIndex, filteredData.length)} of{" "}
+            {filteredData.length} entries
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+            >
+              Previous
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`px-3 py-1 border rounded ${
+                  currentPage === page
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "border-gray-300 hover:bg-gray-100"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

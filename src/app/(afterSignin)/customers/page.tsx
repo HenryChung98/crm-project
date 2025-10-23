@@ -101,9 +101,6 @@ export default function CustomersPage() {
       }
     );
   };
-
-  const headers = ["Name", "Email", "Source", "Imported Data", "Created At", "Status"];
-
   const data =
     customers?.map((customer) => [
       customer.name,
@@ -152,7 +149,17 @@ export default function CustomersPage() {
         {isFetching ? "loading.." : "refresh"}
       </Button>
 
-      <Table headers={headers} data={data} columnCount={8} />
+      <Table
+        headers={["Name", "Email", "Source", "Imported Data", "Created At", "Status"]}
+        data={data}
+        searchable={true}
+        pagination={true}
+        pageSize={20}
+        exportable={true}
+        filterOptions={["instagram Public Lead Form", "By"]}
+        filterColumn={2}
+        columnCount={8}
+      />
 
       <ConfirmModal />
 
