@@ -23,6 +23,14 @@ interface TableProps {
   pagination?: boolean;
   pageSize?: number;
   exportable?: boolean;
+  editable?: boolean;
+  editableColumns?: number[];
+  onCellEdit?: (
+    rowIndex: number,
+    columnIndex: number,
+    newValue: string,
+    originalRowData: CellContent[]
+  ) => Promise<void>;
 }
 
 interface CheckboxProps {
@@ -143,11 +151,16 @@ export const Table: React.FC<TableProps> = ({
   pagination = false,
   pageSize = 10,
   exportable = false,
+  editable = false,
+  editableColumns = [],
+  onCellEdit,
 }) => {
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [filterValue, setFilterValue] = useState<string>("");
   const [searchValue, setSearchValue] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [editingCell, setEditingCell] = useState<{ row: number; col: number } | null>(null);
+  const [editValue, setEditValue] = useState<string>("");
 
   const displayHeaders = headers.slice(0, columnCount);
 
@@ -213,6 +226,43 @@ export const Table: React.FC<TableProps> = ({
     setCurrentPage(page);
     setSelectedRows(new Set());
     onSelectionChange?.([]);
+  };
+
+  const handleCellDoubleClick = (rowIndex: number, colIndex: number) => {
+    if (!editable || (editableColumns.length > 0 && !editableColumns.includes(colIndex))) {
+      return;
+    }
+
+    const cell = displayData[rowIndex][colIndex];
+    const currentValue = getCellValue(cell);
+    setEditingCell({ row: rowIndex, col: colIndex });
+    setEditValue(currentValue);
+  };
+
+  const handleEditSave = async (rowIndex: number, colIndex: number) => {
+    if (!onCellEdit || editValue === getCellValue(displayData[rowIndex][colIndex])) {
+      setEditingCell(null);
+      return;
+    }
+
+    const originalRowData = paginatedData[rowIndex];
+
+    try {
+      await onCellEdit(rowIndex, colIndex, editValue, originalRowData);
+      setEditingCell(null);
+    } catch (error) {
+      console.error("Edit failed:", error);
+      setEditingCell(null);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingCell(null);
+    setEditValue("");
+  };
+
+  const isEditing = (rowIndex: number, colIndex: number) => {
+    return editingCell?.row === rowIndex && editingCell?.col === colIndex;
   };
 
   return (
@@ -316,20 +366,45 @@ export const Table: React.FC<TableProps> = ({
                     iconPosition = "left",
                   } = cellData;
 
+                  const isEditableCell =
+                    editable &&
+                    (editableColumns.length === 0 || editableColumns.includes(cellIndex));
+
                   return (
                     <td
                       key={cellIndex}
-                      className={`py-3 px-4 ${className || ""}`}
+                      className={`py-3 px-4 ${className || ""} ${
+                        isEditableCell ? "cursor-pointer" : ""
+                      }`}
                       style={{
                         color: textColor,
                         backgroundColor: bgColor,
                       }}
+                      onDoubleClick={() => handleCellDoubleClick(rowIndex, cellIndex)}
                     >
-                      <div className="flex items-center gap-2">
-                        {icon && iconPosition === "left" && icon}
-                        <span>{value || "-"}</span>
-                        {icon && iconPosition === "right" && icon}
-                      </div>
+                      {isEditing(rowIndex, cellIndex) ? (
+                        <input
+                          type="text"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={() => handleEditSave(rowIndex, cellIndex)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handleEditSave(rowIndex, cellIndex);
+                            } else if (e.key === "Escape") {
+                              handleEditCancel();
+                            }
+                          }}
+                          autoFocus
+                          className="w-full px-2 py-1 border border-blue-500 rounded"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          {icon && iconPosition === "left" && icon}
+                          <span>{value || "-"}</span>
+                          {icon && iconPosition === "right" && icon}
+                        </div>
+                      )}
                     </td>
                   );
                 })}

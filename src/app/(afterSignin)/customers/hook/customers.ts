@@ -47,7 +47,7 @@ export async function updateCustomerStatus(customerId: string, orgId: string) {
         errorMessage += `\n\nAs the owner, you can upgrade your plan to increase the limit.`;
       }
       return {
-        success: false,  
+        success: false,
         error: errorMessage,
       };
     }
@@ -85,3 +85,43 @@ export async function updateCustomerStatus(customerId: string, orgId: string) {
     return { success: false, error: "Failed to update status" };
   }
 }
+
+// ===== 추가: 인라인 수정용 API 함수 =====
+export async function updateCustomerField({
+  customerId,
+  fieldName,
+  newValue,
+  orgId,
+}: {
+  customerId: string;
+  fieldName: string;
+  newValue: string;
+  orgId: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { supabase, orgMember } = await withOrgAuth(orgId, ["owner"]);
+
+    // 유효성 검사: 허용된 필드만 업데이트
+    const allowedFields = ["name", "email", "source"];
+    if (!allowedFields.includes(fieldName)) {
+      return { success: false, error: "Invalid field name" };
+    }
+
+    const { error } = await supabase
+      .from("customers")
+      .update({ [fieldName]: newValue })
+      .eq("id", customerId)
+      .eq("organization_id", orgId);
+
+    if (error) {
+      console.error("Update customer field error:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Update customer field error:", error);
+    return { success: false, error: "Server error" };
+  }
+}
+// =========================================

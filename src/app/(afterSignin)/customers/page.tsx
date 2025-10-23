@@ -4,9 +4,8 @@ import { useSearchParams } from "next/navigation";
 import { useCustomers } from "@/app/(afterSignin)/customers/hook/useCustomers";
 import Link from "next/link";
 import { removeCustomer } from "./update/[id]/action";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { updateCustomerStatus } from "./hook/customers";
-
 // ui
 import { Table } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
@@ -16,6 +15,11 @@ import { showSuccess, showError } from "@/utils/feedback";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 
 import { usePlanByOrg } from "@/hooks/tanstack/usePlan";
+
+// ===== 추가: 인라인 수정을 위한 API 함수 =====
+import { updateCustomerField } from "./hook/customers"; // 이 함수는 아래에 구현 예시 제공
+// ============================================
+
 
 export default function CustomersPage() {
   const searchParams = useSearchParams();
@@ -35,6 +39,22 @@ export default function CustomersPage() {
     refetch,
     isFetching,
   } = useCustomers(currentOrgId);
+
+  // ===== 추가: 로컬 상태로 customers 데이터 관리 (Optimistic Update용) =====
+  const [localCustomers, setLocalCustomers] = useState(customers || []);
+
+  // customers 데이터가 변경되면 로컬 상태도 업데이트
+  useState(() => {
+    if (customers) {
+      setLocalCustomers(customers);
+    }
+  });
+  useEffect(() => {
+    if (customers) {
+      setLocalCustomers(customers);
+    }
+  }, [customers]);
+  // =========================================================================
 
   if (isCustomerLoading || orgPlanLoading) return <FetchingSpinner />;
 
@@ -101,8 +121,69 @@ export default function CustomersPage() {
       }
     );
   };
+
+  // ===== 추가: 인라인 수정 핸들러 (Optimistic Update) =====
+  const handleCellEdit = async (
+    rowIndex: number,
+    columnIndex: number,
+    newValue: string,
+  ) => {
+    // 컬럼 매핑: 0=name, 1=email
+    const columnMap: { [key: number]: string } = {
+      0: "name",
+      1: "email",
+    };
+
+    const fieldName = columnMap[columnIndex];
+    if (!fieldName) return;
+
+    const customer = localCustomers[rowIndex];
+    const customerId = customer.id;
+    const previousValue = customer[fieldName as keyof typeof customer];
+
+    // 1. Optimistic Update: UI 먼저 업데이트
+    setLocalCustomers((prev) => {
+      const updated = [...prev];
+      updated[rowIndex] = {
+        ...updated[rowIndex],
+        [fieldName]: newValue,
+      };
+      return updated;
+    });
+
+    try {
+      // 2. Server Action 호출
+      const result = await updateCustomerField({
+        customerId,
+        fieldName,
+        newValue,
+        orgId: currentOrgId,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || "Update failed");
+      }
+
+      showSuccess(`${fieldName} updated successfully!`);
+    } catch (error) {
+      // 3. 실패시 롤백
+      setLocalCustomers((prev) => {
+        const rollback = [...prev];
+        rollback[rowIndex] = {
+          ...rollback[rowIndex],
+          [fieldName]: previousValue,
+        };
+        return rollback;
+      });
+
+      showError(`Failed to update ${fieldName}`);
+      console.error("Cell edit error:", error);
+    }
+  };
+  // =========================================================
+
   const data =
-    customers?.map((customer) => [
+    localCustomers?.map((customer) => [
       customer.name,
       customer.email,
       customer.source,
@@ -129,9 +210,6 @@ export default function CustomersPage() {
           ),
         textColor: customer.status === "customer" ? "#60a5fa" : "#22c55e",
       },
-      <Link key={`update-${customer.id}`} href={`/customers/update/${customer.id}`}>
-        <Button variant="secondary">Update</Button>
-      </Link>,
       <Button
         key={`delete-${customer.id}`}
         variant="danger"
@@ -148,7 +226,7 @@ export default function CustomersPage() {
       <Button onClick={refetch} variant="primary">
         {isFetching ? "loading.." : "refresh"}
       </Button>
-
+      {/* ===== 수정: editable, editableColumns, onCellEdit 추가 ===== */}
       <Table
         headers={["Name", "Email", "Source", "Imported Data", "Created At", "Status"]}
         data={data}
@@ -158,8 +236,23 @@ export default function CustomersPage() {
         exportable={true}
         filterOptions={["instagram Public Lead Form", "By"]}
         filterColumn={2}
-        columnCount={8}
+        columnCount={7}
+        editable={true}
+        editableColumns={[0, 1, 2]} // Name, Email, Source만 수정 가능
+        onCellEdit={handleCellEdit}
       />
+      {/* ========================================================== */}
+      {/* <Table
+        headers={["Name", "Email", "Source", "Imported Data", "Created At", "Status"]}
+        data={data}
+        searchable={true}
+        pagination={true}
+        pageSize={20}
+        exportable={true}
+        filterOptions={["instagram Public Lead Form", "By"]}
+        filterColumn={2}
+        columnCount={8}
+      /> */}
 
       <ConfirmModal />
 

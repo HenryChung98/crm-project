@@ -68,17 +68,6 @@ export default function ProductPage() {
     // }
   };
 
-  const headers = [
-    "name",
-    "SKU",
-    "description",
-    "type",
-    "price",
-    "cost",
-    "margin",
-    "status",
-    "note",
-  ];
   const data =
     products?.map((product) => [
       product.name,
@@ -116,12 +105,31 @@ export default function ProductPage() {
         Delete
       </Button>
       <Table
-        headers={headers}
+        headers={[
+          "name",
+          "SKU",
+          "description",
+          "type",
+          "price",
+          "cost",
+          "margin",
+          "status",
+          "note",
+        ]}
         data={data}
+        searchable={true}
+        pagination={true}
+        pageSize={20}
+        exportable={true}
         columnCount={10}
         selectable={true}
+        filterOptions={["TEST", "PROD"]}
+        filterColumn={1}
+        editable={true}
+        editableColumns={[0, 1, 2]} 
         onSelectionChange={handleSelectionChange}
       />
+
       <Link href={`/sales/products/create?org=${currentOrgId}`}>create</Link>
       <ConfirmModal />
     </>
