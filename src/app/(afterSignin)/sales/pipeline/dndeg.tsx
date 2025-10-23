@@ -87,7 +87,7 @@ function DroppableStage({
   );
 }
 
-export default function ddnegPage() {
+export default function DNDEgPage() {
   const [items, setItems] = useState<Item[]>(initialItems);
 
   const sensors = useSensors(

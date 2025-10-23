@@ -9,7 +9,6 @@ import ScrollToTop from "../components/ScrollToTop";
 import ThemeToggle from "../components/ThemeToggle";
 
 // backend
-import { AuthProvider } from "@/contexts/AuthContext";
 import { Providers } from "@/contexts/Providers";
 
 const inter = Inter({
@@ -33,12 +32,10 @@ export default function RootLayout({
       <body className={`${inter.variable} antialiased`}>
         <Suspense>
           <Providers>
-            <AuthProvider>
               {children}
               <Toaster />
               <ScrollToTop />
               <ThemeToggle />
-            </AuthProvider>
           </Providers>
         </Suspense>
       </body>

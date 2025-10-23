@@ -5,6 +5,7 @@ import { useState, useMemo } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { createCrmNavItems, NavItemType } from "@/utils/data/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSidebar } from "@/contexts/SidebarContext";
 import OrganizationSwitcher from "./OrganizationSwitcher";
 import { useSupabase } from "@/hooks/useSupabase";
 import { OrganizationMembers } from "@/types/database/organizations";
@@ -30,10 +31,10 @@ export default function CRMSidebar({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [expandedItems, setExpandedItems] = useState(new Set<string>());
-  const [isCollapsed, setIsCollapsed] = useState(true);
   const [showCopyModal, setShowCopyModal] = useState(false);
   const { user } = useAuth();
   const { signOut } = useSupabase();
+  const { isCollapsed } = useSidebar();
 
   const { data: orgPlan } = usePlanByOrg(currentOrg);
 
@@ -63,7 +64,6 @@ export default function CRMSidebar({
 
   const toggleSidebar = () => {
     onToggleSidebar();
-    setIsCollapsed((prev) => !prev);
   };
 
   const isActiveItem = (item: NavItemType) => {
@@ -96,7 +96,6 @@ export default function CRMSidebar({
           transition-transform duration-300 ease-in-out
           ${isCollapsed ? "-translate-x-full" : "translate-x-0"}
         `}
-        
       >
         <UserProfile user={user} />
 
