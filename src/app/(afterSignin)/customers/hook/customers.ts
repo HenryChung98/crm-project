@@ -4,8 +4,11 @@ import { Customers } from "@/types/database/customers";
 import { SupabaseError } from "@/types/errors";
 import { withOrgAuth } from "@/utils/auth";
 import { revalidatePath } from "next/cache";
-import { getPlanByOrg } from "@/hooks/hook-actions/get-plans";
-import { getUsageForOrg } from "@/hooks/hook-actions/get-usage";
+import {
+  validateResourceCreation,
+  validateForUpdate,
+  validatePlanAccess,
+} from "@/utils/validation";
 
 export async function getCustomers(orgId: string, select?: string): Promise<Customers[]> {
   if (!orgId) return [];
@@ -32,45 +35,13 @@ export async function updateCustomerStatus(
     const { supabase, orgMember } = await withOrgAuth(orgId);
 
     // ========================================== check plan ==========================================
-    const orgPlanData = await getPlanByOrg(orgId);
-    if (!orgPlanData?.plans) {
-      return { success: false, error: "Failed to get user plan data" };
-    }
-
-    const customerUsage = await getUsageForOrg(orgId ?? "");
-    if (!customerUsage) {
-      return { success: false, error: "Failed to get current usage data" };
-    }
-
-    // check if user can create more customer
-    const maxCustomers = orgPlanData.plans.max_customers || 0;
-    if (customerUsage.customerTotal >= maxCustomers) {
-      let errorMessage = `User limit reached. Your current plan allows up to ${maxCustomers} users.`;
-
-      if (orgMember?.role === "owner") {
-        errorMessage += `\n\nAs the owner, you can upgrade your plan to increase the limit.`;
-      }
-      return {
-        success: false,
-        error: errorMessage,
-      };
-    }
-
-    // check if expired
-    if (orgPlanData.subscription.status !== "free") {
-      const isExpired =
-        orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
-      if (isExpired) {
-        let errorMessage = `Your current organization plan is expired.`;
-
-        if (orgMember?.role === "owner") {
-          errorMessage += `\n\nAs the owner, you can renew your plan.`;
-        }
-        return {
-          success: false,
-          error: errorMessage,
-        };
-      }
+    const validation = await validateResourceCreation({
+      orgId,
+      orgMember,
+      resourceType: "customers",
+    });
+    if (!validation.success) {
+      return { success: false, error: validation.error };
     }
     // ========================================== /check plan ==========================================
 
@@ -106,48 +77,18 @@ export async function updateCustomerField({
     const { supabase, orgMember } = await withOrgAuth(orgId);
 
     // ========================================== check plan ==========================================
-    const orgPlanData = await getPlanByOrg(orgId);
-    if (!orgPlanData?.plans) {
-      return { success: false, error: "Failed to get user plan data" };
-    }
-    if (orgPlanData.plans.name !== "premium") {
-      return { success: false, error: "Invalid access" };
+    const planValidation = await validatePlanAccess(orgId, "premium");
+    if (!planValidation.success) {
+      return { success: false, error: planValidation.error };
     }
 
-    const customerUsage = await getUsageForOrg(orgId ?? "");
-    if (!customerUsage) {
-      return { success: false, error: "Failed to get current usage data" };
-    }
-
-    // check if user can create more customer
-    const maxCustomers = orgPlanData.plans.max_customers || 0;
-    if (customerUsage.customerTotal >= maxCustomers) {
-      let errorMessage = `User limit reached. Your current plan allows up to ${maxCustomers} users.`;
-
-      if (orgMember?.role === "owner") {
-        errorMessage += `\n\nAs the owner, you can upgrade your plan to increase the limit.`;
-      }
-      return {
-        success: false,
-        error: errorMessage,
-      };
-    }
-
-    // check if expired
-    if (orgPlanData.subscription.status !== "free") {
-      const isExpired =
-        orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
-      if (isExpired) {
-        let errorMessage = `Your current organization plan is expired.`;
-
-        if (orgMember?.role === "owner") {
-          errorMessage += `\n\nAs the owner, you can renew your plan.`;
-        }
-        return {
-          success: false,
-          error: errorMessage,
-        };
-      }
+    const validation = await validateResourceCreation({
+      orgId,
+      orgMember,
+      resourceType: "customers",
+    });
+    if (!validation.success) {
+      return { success: false, error: validation.error };
     }
     // ========================================== /check plan ==========================================
 

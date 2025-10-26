@@ -1,7 +1,7 @@
 "use server";
 
 import { withOrgAuth } from "@/utils/auth";
-import { getPlanByOrg } from "@/hooks/hook-actions/get-plans";
+import { validateForUpdate } from "@/utils/validation";
 import { revalidatePath } from "next/cache";
 
 export async function updateCustomer(formData: FormData) {
@@ -17,21 +17,12 @@ export async function updateCustomer(formData: FormData) {
     const { orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin"]);
 
     // ========================================== check plan expiration ==========================================
-    const orgPlanData = await getPlanByOrg(orgId);
-    if (!orgPlanData?.plans) {
-      return { error: "Failed to get user plan data" };
-    }
-
-    if (orgPlanData.subscription.status !== "free") {
-      const isExpired =
-        orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
-      if (isExpired) {
-        let errorMessage = `Your current organization plan is expired.`;
-        if (orgMember?.role === "owner") {
-          errorMessage += `\n\nAs the owner, you can renew your plan.`;
-        }
-        return { error: errorMessage };
-      }
+    const validation = await validateForUpdate({
+      orgId: orgId!,
+      orgMember,
+    });
+    if (!validation.success) {
+      return { error: validation.error };
     }
     // ========================================== /check plan expiration ==========================================
 

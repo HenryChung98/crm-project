@@ -3,8 +3,7 @@
 import { randomUUID } from "crypto";
 import { createAdminClient } from "@/utils/supabase/server";
 import { withOrgAuth } from "@/utils/auth";
-import { getUsageForOrg } from "@/hooks/hook-actions/get-usage";
-import { getPlanByOrg } from "@/hooks/hook-actions/get-plans";
+import { validateResourceCreation } from "@/utils/validation";
 
 export async function inviteUser(formData: FormData) {
   const invitedEmail = formData.get("email")?.toString().trim();
@@ -14,45 +13,13 @@ export async function inviteUser(formData: FormData) {
     const { orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin"]);
 
     // ========================================== check plan ==========================================
-    // get user's current plan using existing action
-    const orgPlanData = await getPlanByOrg(orgId);
-    if (!orgPlanData?.plans) {
-      return { error: "Failed to get user plan data" };
-    }
-
-    // get current usage using existing action
-    const currentUsage = await getUsageForOrg(orgId ?? "");
-    if (!currentUsage) {
-      return { error: "Failed to get current usage data" };
-    }
-
-    // check if user can create more invitation
-    const maxUsers = orgPlanData.plans.max_users || 0;
-    if (currentUsage.userTotal >= maxUsers) {
-      let errorMessage = `User limit reached. Your current organization allows up to ${maxUsers} users.`;
-
-      if (orgMember?.role === "owner") {
-        errorMessage += `\n\nAs the owner, you can upgrade your plan to increase the limit.`;
-      }
-      return {
-        error: errorMessage,
-      };
-    }
-
-    // check if expired
-    if (orgPlanData.subscription.status !== "free") {
-      const isExpired =
-        orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
-      if (isExpired) {
-        let errorMessage = `Your current organization plan is expired.`;
-
-        if (orgMember?.role === "owner") {
-          errorMessage += `\n\nAs the owner, you can renew your plan.`;
-        }
-        return {
-          error: errorMessage,
-        };
-      }
+    const validation = await validateResourceCreation({
+      orgId,
+      orgMember,
+      resourceType: "users",
+    });
+    if (!validation.success) {
+      return { error: validation.error };
     }
     // ========================================== /check plan ==========================================
     if (!invitedEmail || !orgId) {

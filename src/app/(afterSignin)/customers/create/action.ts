@@ -1,8 +1,7 @@
 "use server";
 
 import { withOrgAuth } from "@/utils/auth";
-import { getUsageForOrg } from "@/hooks/hook-actions/get-usage";
-import { getPlanByOrg } from "@/hooks/hook-actions/get-plans";
+import { validateResourceCreation } from "@/utils/validation";
 import { revalidatePath } from "next/cache";
 
 // resend
@@ -20,45 +19,13 @@ export async function createCustomer(formData: FormData) {
     const { orgMember, supabase } = await withOrgAuth(orgId);
 
     // ========================================== check plan ==========================================
-    // get user's current plan using existing action
-    const orgPlanData = await getPlanByOrg(orgId);
-    if (!orgPlanData?.plans) {
-      return { error: "Failed to get user plan data" };
-    }
-
-    // get current usage using existing action
-    const customerUsage = await getUsageForOrg(orgId ?? "");
-    if (!customerUsage) {
-      return { error: "Failed to get current usage data" };
-    }
-
-    // check if user can create more customer
-    const maxCustomers = orgPlanData.plans.max_customers || 0;
-    if (customerUsage.customerTotal >= maxCustomers) {
-      let errorMessage = `User limit reached. Your current plan allows up to ${maxCustomers} users.`;
-
-      if (orgMember?.role === "owner") {
-        errorMessage += `\n\nAs the owner, you can upgrade your plan to increase the limit.`;
-      }
-      return {
-        error: errorMessage,
-      };
-    }
-
-    // check if expired
-    if (orgPlanData.subscription.status !== "free") {
-      const isExpired =
-        orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
-      if (isExpired) {
-        let errorMessage = `Your current organization plan is expired.`;
-
-        if (orgMember?.role === "owner") {
-          errorMessage += `\n\nAs the owner, you can renew your plan.`;
-        }
-        return {
-          error: errorMessage,
-        };
-      }
+    const validation = await validateResourceCreation({
+      orgId: orgId!,
+      orgMember,
+      resourceType: "customers",
+    });
+    if (!validation.success) {
+      return { error: validation.error };
     }
     // ========================================== /check plan ==========================================
 
