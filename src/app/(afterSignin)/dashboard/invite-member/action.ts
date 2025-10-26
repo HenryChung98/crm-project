@@ -10,11 +10,11 @@ export async function inviteUser(formData: FormData) {
   const orgId = formData.get("orgId")?.toString().trim();
 
   try {
-    const { orgMember, supabase } = await withOrgAuth(orgId, ["owner", "admin"]);
+    const { orgMember, supabase, user } = await withOrgAuth(orgId, ["owner", "admin"]);
 
     // ========================================== check plan ==========================================
     const validation = await validateResourceCreation({
-      orgId,
+      orgId: orgId!,
       orgMember,
       resourceType: "users",
     });
@@ -24,15 +24,6 @@ export async function inviteUser(formData: FormData) {
     // ========================================== /check plan ==========================================
     if (!invitedEmail || !orgId) {
       return { error: "Email and organization are required." };
-    }
-
-    const {
-      data: { user },
-      error: sessionError,
-    } = await supabase.auth.getUser();
-
-    if (!user || sessionError) {
-      return { error: "Not authenticated." };
     }
 
     // Check if user is already a member of the organization

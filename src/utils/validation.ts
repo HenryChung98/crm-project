@@ -3,6 +3,7 @@
 import { OrganizationMembers } from "@/types/database/organizations";
 import { getPlanByOrg } from "@/hooks/hook-actions/get-plans";
 import { getUsageForOrg } from "@/hooks/hook-actions/get-usage";
+import type { User } from "@supabase/supabase-js";
 
 export interface ValidationResult {
   success: boolean;
@@ -14,6 +15,7 @@ export interface PlanValidationOptions {
   orgMember: OrganizationMembers;
   resourceType: "customers" | "users";
   customErrorMessage?: string;
+  user?: User;
 }
 
 export interface SubscriptionValidationOptions {
