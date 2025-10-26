@@ -147,7 +147,6 @@ export default function ManageOrganizationPage() {
                   value={member.role}
                   onChange={(e) => handleUpdateRole(member.id, e.target.value)}
                   disabled={isUpdateLoading}
-                  required
                 >
                   <option value="member">Member</option>
                   <option value="admin">Admin</option>

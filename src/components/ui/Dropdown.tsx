@@ -18,7 +18,7 @@ export function Dropdown({
       </label>
       <select
         className={`
-            w-full px-3 py-2 
+            px-3 py-2 
             border border-border rounded-md
             bg-input text-foreground
             focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent

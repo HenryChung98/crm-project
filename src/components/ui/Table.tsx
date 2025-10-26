@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Dropdown } from "./Dropdown";
 
 interface CellData {
   value: string | number | null | React.ReactElement;
@@ -286,6 +287,24 @@ export const Table: React.FC<TableProps> = ({
           />
         )}
         {filterOptions.length > 0 && filterColumn !== undefined && (
+          <Dropdown
+            value={filterValue}
+            onChange={(e) => {
+              setFilterValue(e.target.value);
+              setCurrentPage(1);
+              setSelectedRows(new Set());
+              onSelectionChange?.([]);
+            }}
+          >
+            <option value="">All</option>
+            {filterOptions.map((option, index) => (
+              <option key={index} value={option}>
+                {option}
+              </option>
+            ))}
+          </Dropdown>
+        )}
+        {/* {filterOptions.length > 0 && filterColumn !== undefined && (
           <select
             value={filterValue}
             onChange={(e) => {
@@ -303,7 +322,7 @@ export const Table: React.FC<TableProps> = ({
               </option>
             ))}
           </select>
-        )}
+        )} */}
         {exportable && (
           <div className="ml-auto flex gap-2">
             <button
