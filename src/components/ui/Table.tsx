@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 interface CellData {
   value: string | number | null | React.ReactElement;
+  rawValue?: string | number; // export/filter용 실제 값
   className?: string;
   textColor?: string;
   bgColor?: string;
@@ -74,6 +75,10 @@ const getCellValue = (cell: CellContent): string => {
   if (cell === null) return "";
   if (React.isValidElement(cell)) return "";
   if (isCellData(cell)) {
+    // rawValue가 있으면 우선 사용
+    if (cell.rawValue !== undefined) {
+      return String(cell.rawValue);
+    }
     const value = cell.value;
     if (value === null || React.isValidElement(value)) return "";
     return String(value);
@@ -173,13 +178,11 @@ export const Table: React.FC<TableProps> = ({
       return String(cellValue).toLowerCase().includes(filterValue.toLowerCase());
     });
   }
-
   if (searchValue) {
     filteredData = filteredData.filter((row) => {
       return row.slice(0, columnCount).some((cell) => {
-        const cellValue = isCellData(cell) ? cell.value : cell;
-        if (cellValue === null || React.isValidElement(cellValue)) return false;
-        return String(cellValue).toLowerCase().includes(searchValue.toLowerCase());
+        const searchableValue = getCellValue(cell);
+        return searchableValue.toLowerCase().includes(searchValue.toLowerCase());
       });
     });
   }

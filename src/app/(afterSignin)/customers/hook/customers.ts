@@ -23,7 +23,11 @@ export async function getCustomers(orgId: string, select?: string): Promise<Cust
   return data || [];
 }
 
-export async function updateCustomerStatus(customerId: string, orgId: string) {
+export async function updateCustomerStatus(
+  customerId: string,
+  orgId: string,
+  targetStatus: string
+) {
   try {
     const { supabase, orgMember } = await withOrgAuth(orgId);
 
@@ -72,7 +76,7 @@ export async function updateCustomerStatus(customerId: string, orgId: string) {
 
     const { error } = await supabase
       .from("customers")
-      .update({ status: "customer" })
+      .update({ status: targetStatus })
       .eq("id", customerId)
       .eq("organization_id", orgId);
 
@@ -99,7 +103,53 @@ export async function updateCustomerField({
   orgId: string;
 }): Promise<{ success: boolean; error?: string }> {
   try {
-    const { supabase, orgMember } = await withOrgAuth(orgId, ["owner"]);
+    const { supabase, orgMember } = await withOrgAuth(orgId);
+
+    // ========================================== check plan ==========================================
+    const orgPlanData = await getPlanByOrg(orgId);
+    if (!orgPlanData?.plans) {
+      return { success: false, error: "Failed to get user plan data" };
+    }
+    if (orgPlanData.plans.name !== "premium") {
+      return { success: false, error: "Invalid access" };
+    }
+
+    const customerUsage = await getUsageForOrg(orgId ?? "");
+    if (!customerUsage) {
+      return { success: false, error: "Failed to get current usage data" };
+    }
+
+    // check if user can create more customer
+    const maxCustomers = orgPlanData.plans.max_customers || 0;
+    if (customerUsage.customerTotal >= maxCustomers) {
+      let errorMessage = `User limit reached. Your current plan allows up to ${maxCustomers} users.`;
+
+      if (orgMember?.role === "owner") {
+        errorMessage += `\n\nAs the owner, you can upgrade your plan to increase the limit.`;
+      }
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+
+    // check if expired
+    if (orgPlanData.subscription.status !== "free") {
+      const isExpired =
+        orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
+      if (isExpired) {
+        let errorMessage = `Your current organization plan is expired.`;
+
+        if (orgMember?.role === "owner") {
+          errorMessage += `\n\nAs the owner, you can renew your plan.`;
+        }
+        return {
+          success: false,
+          error: errorMessage,
+        };
+      }
+    }
+    // ========================================== /check plan ==========================================
 
     // 유효성 검사: 허용된 필드만 업데이트
     const allowedFields = ["name", "email", "source"];

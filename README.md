@@ -42,6 +42,7 @@
 - create link(instagram, facebook, ...)
 - booking form(instagram, facebook, ... / premium only)
 - create end point to save customer's action from external website(premium only)
+- optimistic update(premium only)
 
 <!-- 핵심 기능:
 

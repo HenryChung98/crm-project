@@ -9,5 +9,5 @@ export interface Customers {
   source: string;
   note: string;
   imported_data?: JSON;
-  status: "lead" | "customer";
+  status: "lead" | "customer" | "inactive";
 }

@@ -1,4 +1,3 @@
-// CustomersPage.tsx (수정된 버전)
 "use client";
 import { useSearchParams } from "next/navigation";
 import { useCustomers } from "@/app/(afterSignin)/customers/hook/useCustomers";
@@ -6,6 +5,7 @@ import Link from "next/link";
 import { removeCustomer } from "./update/[id]/action";
 import { useState, useEffect } from "react";
 import { updateCustomerStatus } from "./hook/customers";
+
 // ui
 import { Table } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
@@ -13,13 +13,13 @@ import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 import { showSuccess, showError } from "@/utils/feedback";
 import { useConfirm } from "@/components/ui/ConfirmModal";
+import { Dropdown } from "@/components/ui/Dropdown";
 
 import { usePlanByOrg } from "@/hooks/tanstack/usePlan";
 
 // ===== 추가: 인라인 수정을 위한 API 함수 =====
 import { updateCustomerField } from "./hook/customers"; // 이 함수는 아래에 구현 예시 제공
 // ============================================
-
 
 export default function CustomersPage() {
   const searchParams = useSearchParams();
@@ -95,11 +95,11 @@ export default function CustomersPage() {
     );
   };
 
-  const handleStatusChange = async (customerId: string) => {
+  const handleStatusChange = async (customerId: string, targetStatus: string) => {
     confirm(
       async () => {
         try {
-          const result = await updateCustomerStatus(customerId, currentOrgId);
+          const result = await updateCustomerStatus(customerId, currentOrgId, targetStatus);
 
           if (result.error || !result.success) {
             showError(result.error || "Failed to update status");
@@ -115,7 +115,7 @@ export default function CustomersPage() {
       },
       {
         title: "Change Status",
-        message: `Are you sure you want to change status from lead to customer? This action cannot be undone.`,
+        message: `Are you sure you want to change status from lead to ${targetStatus}? This action cannot be undone.`,
         confirmText: "Change",
         variant: "primary",
       }
@@ -123,11 +123,7 @@ export default function CustomersPage() {
   };
 
   // ===== 추가: 인라인 수정 핸들러 (Optimistic Update) =====
-  const handleCellEdit = async (
-    rowIndex: number,
-    columnIndex: number,
-    newValue: string,
-  ) => {
+  const handleCellEdit = async (rowIndex: number, columnIndex: number, newValue: string) => {
     // 컬럼 매핑: 0=name, 1=email
     const columnMap: { [key: number]: string } = {
       0: "name",
@@ -161,6 +157,7 @@ export default function CustomersPage() {
       });
 
       if (!result.success) {
+        showError(result.error || "Update failed");
         throw new Error(result.error || "Update failed");
       }
 
@@ -175,8 +172,6 @@ export default function CustomersPage() {
         };
         return rollback;
       });
-
-      showError(`Failed to update ${fieldName}`);
       console.error("Cell edit error:", error);
     }
   };
@@ -200,16 +195,22 @@ export default function CustomersPage() {
       ),
       new Date(customer.created_at).toLocaleDateString(),
       {
-        value:
-          customer.status === "customer" ? (
-            customer.status
-          ) : (
-            <Button variant="accent" onClick={() => handleStatusChange(customer.id)}>
-              Lead
-            </Button>
-          ),
-        textColor: customer.status === "customer" ? "#60a5fa" : "#22c55e",
+        value: (
+          <Dropdown
+            value={customer.status}
+            onChange={(e) => handleStatusChange(customer.id, e.target.value)}
+          >
+            <option value="lead">Lead</option>
+            <option value="customer">Customer</option>
+            <option value="inactive">Inactive</option>
+          </Dropdown>
+        ),
+        // export/filter를 위한 실제 값
+        rawValue: customer.status,
       },
+      <Link key={`update-${customer.id}`} href={`/customers/update/${customer.id}`}>
+        <Button variant="secondary">Update</Button>
+      </Link>,
       <Button
         key={`delete-${customer.id}`}
         variant="danger"
@@ -226,7 +227,6 @@ export default function CustomersPage() {
       <Button onClick={refetch} variant="primary">
         {isFetching ? "loading.." : "refresh"}
       </Button>
-      {/* ===== 수정: editable, editableColumns, onCellEdit 추가 ===== */}
       <Table
         headers={["Name", "Email", "Source", "Imported Data", "Created At", "Status"]}
         data={data}
@@ -236,23 +236,11 @@ export default function CustomersPage() {
         exportable={true}
         filterOptions={["instagram Public Lead Form", "By"]}
         filterColumn={2}
-        columnCount={7}
-        editable={true}
+        columnCount={8}
+        editable={orgPlan?.plans.name === "premium"}
         editableColumns={[0, 1, 2]} // Name, Email, Source만 수정 가능
         onCellEdit={handleCellEdit}
       />
-      {/* ========================================================== */}
-      {/* <Table
-        headers={["Name", "Email", "Source", "Imported Data", "Created At", "Status"]}
-        data={data}
-        searchable={true}
-        pagination={true}
-        pageSize={20}
-        exportable={true}
-        filterOptions={["instagram Public Lead Form", "By"]}
-        filterColumn={2}
-        columnCount={8}
-      /> */}
 
       <ConfirmModal />
 

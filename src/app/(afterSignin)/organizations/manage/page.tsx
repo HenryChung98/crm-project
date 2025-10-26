@@ -11,6 +11,7 @@ import { useConfirm } from "@/components/ui/ConfirmModal";
 import { showSuccess, showError } from "@/utils/feedback";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
+import { Dropdown } from "@/components/ui/Dropdown";
 
 // type
 import { EMPTY_ARRAY } from "@/types/customData";
@@ -142,15 +143,15 @@ export default function ManageOrganizationPage() {
               <p className="mb-3">Role: {member.role}</p>
 
               <div className="flex items-center gap-4">
-                <select
+                <Dropdown
                   value={member.role}
                   onChange={(e) => handleUpdateRole(member.id, e.target.value)}
                   disabled={isUpdateLoading}
-                  className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+                  required
                 >
                   <option value="member">Member</option>
                   <option value="admin">Admin</option>
-                </select>
+                </Dropdown>
 
                 <Button
                   variant="danger"
