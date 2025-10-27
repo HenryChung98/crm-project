@@ -1,45 +1,42 @@
 "use client";
 import { useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { createProduct } from "./action";
+import { useParams, useRouter } from "next/navigation";
+import { createCustomer } from "./action";
 import { useQueryClient } from "@tanstack/react-query";
 
 // ui
 import { showSuccess, showError } from "@/utils/feedback";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 
-import { ProductForm, ProductFormData } from "../ProductForm";
+import { CustomerForm, CustomerFormData } from "../CustomerForm";
 
-export default function CreateProductPage() {
+export default function CreateCustomersPage() {
   const [buttonLoading, setButtonLoading] = useState<boolean>(false);
   const queryClient = useQueryClient();
-  const searchParams = useSearchParams();
-  const currentOrgId = searchParams.get("org") || "";
+  const params = useParams<{ orgId: string }>();
+  const currentOrgId = params.orgId || "";
   const router = useRouter();
   const { confirm, ConfirmModal } = useConfirm();
 
-  const createProductAction = async (data: ProductFormData) => {
+  const createCustomerAction = async (data: CustomerFormData) => {
     setButtonLoading(true);
     try {
       const formData = new FormData();
       formData.append("orgId", data.orgId);
       formData.append("name", data.name);
-      formData.append("sku", data.sku);
-      formData.append("description", data.description);
-      formData.append("type", data.type);
-      formData.append("price", data.price?.toString() || "0");
-      formData.append("cost", data.cost?.toString() || "0");
+      formData.append("email", data.email);
+      if (data.phone) formData.append("phone", data.phone);
       if (data.note) formData.append("note", data.note);
 
-      const res = await createProduct(formData);
+      const res = await createCustomer(formData);
       if (res?.error) {
         showError(`Error: ${res.error}` || "Failed to add customer");
       } else {
         await queryClient.invalidateQueries({
-          queryKey: ["products"],
+          queryKey: ["customers"],
         });
-        showSuccess("Product successfully created");
-        router.push(`/sales/products?org=${currentOrgId}`);
+        showSuccess("Customer successfully created");
+        router.push(`/orgs/${currentOrgId}/customers`);
       }
     } catch (error) {
       showError("An error occurred.");
@@ -48,23 +45,22 @@ export default function CreateProductPage() {
     }
   };
 
-  const handleSubmit = async (data: ProductFormData) => {
+  const handleSubmit = async (data: CustomerFormData) => {
     confirm(
       async () => {
-        await createProductAction(data);
+        await createCustomerAction(data);
       },
       {
-        title: "Create Product",
-        message: "Are you sure you want to create this product?",
+        title: "Create Customer",
+        message: "Are you sure you want to create this customer?",
         confirmText: "Create",
         variant: "primary",
       }
     );
   };
-
   return (
     <>
-      <ProductForm
+      <CustomerForm
         currentOrgId={currentOrgId}
         mode="create"
         onSubmit={handleSubmit}

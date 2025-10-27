@@ -1,5 +1,5 @@
 "use client";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useProducts } from "./hook/useProduct";
@@ -16,8 +16,8 @@ import { Dropdown } from "@/components/ui/Dropdown";
 import { showSuccess, showError } from "@/utils/feedback";
 
 export default function ProductPage() {
-  const searchParams = useSearchParams();
-  const currentOrgId = searchParams.get("org") || "";
+  const params = useParams<{ orgId: string }>();
+  const currentOrgId = params.orgId || "";
   const { confirm, ConfirmModal } = useConfirm();
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
 

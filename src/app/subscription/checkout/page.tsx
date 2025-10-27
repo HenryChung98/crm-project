@@ -56,7 +56,7 @@ export default function CheckoutPage() {
         });
 
         showSuccess("Payment successful! Plan activated.");
-        window.location.href = hasData ? "/dashboard" : "/organizations/create";
+        window.location.href = hasData ? "/orgs" : "/organizations/create";
         // router.replace("/dashboard/organizations/create");
       } else {
         showError("Payment processed but failed to activate plan");

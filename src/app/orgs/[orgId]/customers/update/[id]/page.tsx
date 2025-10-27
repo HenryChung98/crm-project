@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCustomers } from "../../hook/useCustomers";
 import { updateCustomer } from "./action";
@@ -16,8 +16,8 @@ import { CustomerForm, CustomerFormData } from "../../CustomerForm";
 export default function UpdateCustomerPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const currentOrgId = searchParams.get("org") || "";
+  const params = useParams<{ id: string; orgId: string }>();
+  const currentOrgId = params.orgId || "";
   const [buttonLoading, setButtonLoading] = useState<boolean>(false);
   const queryClient = useQueryClient();
   const { confirm, ConfirmModal } = useConfirm();
@@ -44,7 +44,7 @@ export default function UpdateCustomerPage() {
           queryKey: ["customers"],
         });
         showSuccess("Customer successfully updated");
-        router.push(`/customers?org=${currentOrgId}`);
+        router.push(`/orgs/${currentOrgId}/customers`);
       }
     } catch (error) {
       showError("An error occurred.");

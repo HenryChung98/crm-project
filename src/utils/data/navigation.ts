@@ -15,22 +15,19 @@ export interface NavItemType {
 }
 
 // after sign in navbar
-export function createCrmNavItems(searchParams: URLSearchParams) {
-  const queryString = searchParams.toString();
-  const queryParam = queryString ? `?${queryString}` : "";
-
+export function createCrmNavItems(orgId: string) {
   return [
     {
       label: "Dashboard",
-      href: `/dashboard${queryParam}`,
+      href: `/orgs/${orgId}/dashboard`,
       icon: React.createElement(RiDashboardLine),
     },
     {
       label: "Customers",
       icon: React.createElement(RiGroupLine),
       children: [
-        { label: "All Customers", href: `/customers${queryParam}` },
-        { label: "Add Customer", href: `/customers/create${queryParam}` },
+        { label: "All Customers", href: `/orgs/${orgId}/customers` },
+        { label: "Add Customer", href: `/orgs/${orgId}/customers/create` },
       ],
     },
     {
@@ -38,9 +35,9 @@ export function createCrmNavItems(searchParams: URLSearchParams) {
       icon: React.createElement(RiLineChartLine),
       children: [
         { label: "All Leads", href: `#` },
-        { label: "Products", href: `/sales/products${queryParam}` },
+        { label: "Products", href: `/orgs/${orgId}/sales/products` },
         { label: "Deals", href: `#` },
-        { label: "Pipeline", href: `/sales/pipeline${queryParam}` },
+        { label: "Pipeline", href: `/orgs/${orgId}/sales/pipeline` },
       ],
     },
     {
@@ -56,9 +53,9 @@ export function createCrmNavItems(searchParams: URLSearchParams) {
       label: "Settings",
       icon: React.createElement(RiSettings3Line),
       children: [
-        { label: "Profile", href: `/settings/profile${queryParam}` },
-        { label: "Activity Logs", href: `/settings/log${queryParam}` },
-        { label: "Billing", href: `/settings/billing${queryParam}` },
+        { label: "Profile", href: `/orgs/${orgId}/settings/profile` },
+        { label: "Activity Logs", href: `/orgs/${orgId}/settings/log` },
+        { label: "Billing", href: `/orgs/${orgId}/settings/billing` },
         { label: "Team", href: `#` },
         { label: "Integrations", href: `#` },
       ],

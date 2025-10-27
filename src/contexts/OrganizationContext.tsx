@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { createContext, useContext, useCallback, useEffect, ReactNode } from "react";
+import { useRouter, useParams, usePathname } from "next/navigation";
 import { useAllOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
 import { OrganizationMembers } from "@/types/database/organizations";
 import { EMPTY_ARRAY } from "@/types/customData";
@@ -21,10 +21,10 @@ const OrganizationContext = createContext<OrganizationContextType | undefined>(u
 
 export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const params = useParams();
   const pathname = usePathname();
 
-  const currentOrganizationId = searchParams.get("org") || "";
+  const currentOrganizationId = (params.orgId as string) || "";
 
   const {
     data: orgMembers = EMPTY_ARRAY,
@@ -44,11 +44,10 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
   const switchOrganization = useCallback(
     (orgId: string) => {
       if (!orgId) return;
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("org", orgId);
-      router.push(`${pathname}?${params.toString()}`);
+      const newPath = pathname.replace(/\/orgs\/[^\/]+/, `/orgs/${orgId}`);
+      router.push(newPath);
     },
-    [searchParams, router, pathname]
+    [pathname, router]
   );
 
   const refetchOrganizations = useCallback(() => {
@@ -64,9 +63,10 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       (!currentOrganizationId && defaultOrganizationId);
 
     if (needsRedirect && defaultOrganizationId) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("org", defaultOrganizationId);
-      router.replace(`${pathname}?${params.toString()}`);
+      const newPath = pathname.includes('/orgs/')
+        ? pathname.replace(/\/orgs\/[^\/]+/, `/orgs/${defaultOrganizationId}`)
+        : `/orgs/${defaultOrganizationId}`;
+      router.replace(newPath);
     }
   }, [
     isLoading,
@@ -74,7 +74,6 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     currentOrganizationId,
     validOrganizationIds,
     defaultOrganizationId,
-    searchParams,
     pathname,
     router,
   ]);

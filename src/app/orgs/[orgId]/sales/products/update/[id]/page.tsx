@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useProducts } from "../../hook/useProduct";
 import { updateProduct } from "./action";
@@ -14,16 +14,15 @@ import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 import { ProductForm, ProductFormData } from "../../ProductForm";
 
 export default function UpdateCustomerPage() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id: string; orgId: string }>();
+  const currentOrgId = params.orgId || "";
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const currentOrgId = searchParams.get("org") || "";
   const [buttonLoading, setButtonLoading] = useState<boolean>(false);
   const queryClient = useQueryClient();
   const { confirm, ConfirmModal } = useConfirm();
 
   const { data: products, isLoading, error } = useProducts(currentOrgId);
-  const product = products?.find((c) => c.id === id);
+  const product = products?.find((c) => c.id === params.id);
 
   const updateProductAction = async (data: ProductFormData) => {
     setButtonLoading(true);
@@ -46,7 +45,7 @@ export default function UpdateCustomerPage() {
           queryKey: ["products"],
         });
         showSuccess("Product successfully updated");
-        router.push(`/sales/products?org=${currentOrgId}`);
+        router.push(`/orgs/${currentOrgId}/sales/products`);
       }
     } catch (error) {
       showError("An error occurred.");

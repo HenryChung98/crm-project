@@ -1,6 +1,6 @@
 "use client";
-import { useSearchParams } from "next/navigation";
-import { useCustomers } from "@/app/(afterSignin)/customers/hook/useCustomers";
+import { useParams } from "next/navigation";
+import { useCustomers } from "@/app/orgs/[orgId]/customers/hook/useCustomers";
 import Link from "next/link";
 import { removeCustomer } from "./update/[id]/action";
 import { useState, useEffect } from "react";
@@ -22,8 +22,8 @@ import { updateCustomerField } from "./hook/customers"; // 이 함수는 아래�
 // ============================================
 
 export default function CustomersPage() {
-  const searchParams = useSearchParams();
-  const currentOrgId = searchParams.get("org") || "";
+  const params = useParams();
+  const currentOrgId = (params.orgId as string) || "";
   const { confirm, ConfirmModal } = useConfirm();
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
@@ -208,7 +208,10 @@ export default function CustomersPage() {
         // export/filter를 위한 실제 값
         rawValue: customer.status,
       },
-      <Link key={`update-${customer.id}`} href={`/customers/update/${customer.id}`}>
+      <Link
+        key={`update-${customer.id}`}
+        href={`/orgs/${currentOrgId}/customers/update/${customer.id}`}
+      >
         <Button variant="secondary">Update</Button>
       </Link>,
       <Button

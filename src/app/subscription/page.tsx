@@ -40,7 +40,7 @@ export default function SubscriptionPage() {
             queryKey: ["subscription"],
           });
           showSuccess("Free plan activated successfully");
-          window.location.href = hasData ? "/dashboard" : "/organizations/create";
+          window.location.href = hasData ? "/orgs" : "/organizations/create";
         } else {
           showError(result.error || "Failed to select plan");
         }

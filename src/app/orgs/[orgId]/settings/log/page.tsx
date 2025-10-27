@@ -1,13 +1,13 @@
 "use client";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useActivityLogs } from "@/hooks/tanstack/useActivityLogs";
 
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 
 export default function ActivityLogsPage() {
-  const searchParams = useSearchParams();
-  const currentOrgId = searchParams.get("org") || "";
+  const params = useParams<{ orgId: string }>();
+  const currentOrgId = params.orgId || "";
 
   const { data: logs, isLoading, refetch, error } = useActivityLogs(currentOrgId);
 

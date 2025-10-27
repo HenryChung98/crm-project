@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminOrganizationMembers } from "@/hooks/tanstack/useOrganizationMembers";
 import { updateMemberRole, removeMember } from "./action";
@@ -18,8 +18,9 @@ import { EMPTY_ARRAY } from "@/types/customData";
 import { OrganizationMembers } from "@/types/database/organizations";
 
 export default function ManageOrganizationPage() {
-  const searchParams = useSearchParams();
-  const currentOrgId = searchParams.get("org");
+  const params = useParams<{ orgId: string }>();
+  const currentOrgId = params.orgId || "";
+
   const { user } = useAuth();
   const { confirm, ConfirmModal } = useConfirm();
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);

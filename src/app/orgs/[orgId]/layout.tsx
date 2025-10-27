@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
-import CRMSideBar from "../../components/navbars/sidebar/CRMSideBar";
-import { useAuth } from "@/contexts/AuthContext";
+import CRMSideBar from "../../../components/navbars/sidebar/CRMSideBar";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -18,7 +17,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     switchOrganization,
   } = useOrganization();
   const { isCollapsed, toggleSidebar } = useSidebar();
-
 
   if (orgError) {
     console.error("Organization members error:", orgError);

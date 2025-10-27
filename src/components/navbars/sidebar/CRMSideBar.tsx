@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useMemo } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useParams } from "next/navigation";
 import { createCrmNavItems, NavItemType } from "@/utils/data/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSidebar } from "@/contexts/SidebarContext";
@@ -29,7 +29,6 @@ export default function CRMSidebar({
   onToggleSidebar,
 }: CRMSidebarProps) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [expandedItems, setExpandedItems] = useState(new Set<string>());
   const [showCopyModal, setShowCopyModal] = useState(false);
   const { user } = useAuth();
@@ -38,15 +37,13 @@ export default function CRMSidebar({
 
   const { data: orgPlan } = usePlanByOrg(currentOrg);
 
-  const { queryParam, crmNavItems, isOwner } = useMemo(() => {
-    const queryString = searchParams.toString();
-    const queryParam = queryString ? `?${queryString}` : "";
-    const crmNavItems = createCrmNavItems(searchParams);
+  const { crmNavItems, isOwner } = useMemo(() => {
+    const crmNavItems = createCrmNavItems(currentOrg);
     const isOwner =
       organizations.find((org) => org.organization_id === currentOrg)?.role === "owner";
 
-    return { queryParam, crmNavItems, isOwner };
-  }, [searchParams, organizations, currentOrg]);
+    return { crmNavItems, isOwner };
+  }, [currentOrg, organizations]);
 
   if (!organizations.length) return null;
 
@@ -113,7 +110,7 @@ export default function CRMSidebar({
           {isOwner && (
             <Link
               className="border border-border rounded p-2 block text-center"
-              href={`/organizations/manage${queryParam}`}
+              href={`/orgs/${currentOrg}/organizations/manage`}
             >
               manage organization
             </Link>

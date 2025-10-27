@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { inviteUser } from "./action";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 
 // ui
 import { Form } from "@/components/ui/Form";
@@ -13,8 +13,8 @@ import { showError, showSuccess } from "@/utils/feedback";
 export default function InviteMemberForm() {
   const [loading, setLoading] = useState(false);
 
-  const searchParams = useSearchParams();
-  const currentOrgId = searchParams.get("org") || "";
+  const params = useParams<{ orgId: string }>();
+  const currentOrgId = params.orgId || "";
 
   const handleSubmit = async (formData: FormData) => {
     setLoading(true);

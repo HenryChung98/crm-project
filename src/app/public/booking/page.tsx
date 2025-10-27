@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { usePlanByOrg } from "@/hooks/tanstack/usePlan";
 
 // ui
@@ -12,9 +12,10 @@ import { showSuccess, showError } from "@/utils/feedback";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export default function BookingFormPage() {
+  const params = useParams<{ orgId: string }>();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const currentOrgId = searchParams.get("org") || "";
+  const currentOrgId = params.orgId || "";
   const currentSource = searchParams.get("src") || "";
   const [loading, setLoading] = useState(false);
 
@@ -71,7 +72,7 @@ export default function BookingFormPage() {
   };
 
   if (isLoading) return <LoadingSpinner />;
-  
+
   return (
     <div>
       <Form action={handleSubmit} formTitle="Booking Form">

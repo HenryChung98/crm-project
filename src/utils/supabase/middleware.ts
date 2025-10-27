@@ -62,6 +62,7 @@ export async function updateSession(request: NextRequest) {
   ];
 
   const protectedPaths = [
+    "/orgs",
     "/dashboard",
     "/customers",
     "/settings",
@@ -87,7 +88,7 @@ export async function updateSession(request: NextRequest) {
   // 로그인 유저: 루트 또는 auth 페이지 접근 시 dashboard로 리다이렉트
   if (user && (currentPath === "/" || isAuthPath)) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = "/orgs";
     return NextResponse.redirect(url);
   }
 
