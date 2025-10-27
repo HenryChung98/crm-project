@@ -4,10 +4,10 @@ export interface Products {
   organization_id: string;
   name: string;
   description: string;
-  type: "inventory" | "non-inventory" | "service";
+  type: string;
   price: number;
   cost: number;
-  status: "active" | "inactive" | "discontinued";
+  status: string;
   created_by: string;
   created_at: string;
   note?: string | null;
