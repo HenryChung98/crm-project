@@ -81,31 +81,3 @@ export function useConfirm() {
     ConfirmModal: ConfirmModalComponent,
   };
 }
-
-/*
-const MyComponent = () => {
-  const { confirm, ConfirmModal } = useConfirm();
-
-  const handleDelete = () => {
-    confirm(
-      () => {
-        // 실제 삭제 로직
-        console.log('삭제됨');
-      },
-      {
-        title: '삭제 확인',
-        message: '정말로 삭제하시겠습니까?',
-        confirmText: '삭제',
-        variant: 'danger'
-      }
-    );
-  };
-
-  return (
-    <div>
-      <button onClick={handleDelete}>삭제</button>
-      <ConfirmModal />
-    </div>
-  );
-};
-*/

@@ -93,7 +93,7 @@ export async function updateCustomerField({
     // ========================================== /check plan ==========================================
 
     // 유효성 검사: 허용된 필드만 업데이트
-    const allowedFields = ["name", "email", "source"];
+    const allowedFields = ["name", "email"];
     if (!allowedFields.includes(fieldName)) {
       return { success: false, error: "Invalid field name" };
     }

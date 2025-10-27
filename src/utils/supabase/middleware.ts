@@ -34,10 +34,6 @@ export async function updateSession(request: NextRequest) {
 
   const currentPath = request.nextUrl.pathname;
 
-  // for debug (프로덕션에서는 제거)
-  // console.log("Middleware - Current path:", currentPath);
-  // console.log("Middleware - User:", user ? "Logged in" : "Not logged in");
-
   const publicPaths = [
     "/",
     "/about",

@@ -230,10 +230,10 @@ export default function CustomersPage() {
       <Table
         headers={["Name", "Email", "Source", "Imported Data", "Created At", "Status"]}
         data={data}
-        searchable={true}
-        pagination={true}
+        searchable
+        pagination
         pageSize={20}
-        exportable={true}
+        exportable
         filterOptions={["instagram Public Lead Form", "By"]}
         filterColumn={2}
         columnCount={8}

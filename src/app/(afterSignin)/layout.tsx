@@ -10,7 +10,6 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
   const {
     currentOrganizationId,
     organizations,
@@ -20,13 +19,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   } = useOrganization();
   const { isCollapsed, toggleSidebar } = useSidebar();
 
-  // ===============================================
-  if (user) {
-    // console.log(user);
-  } else {
-    console.log("not logged in");
-  }
-  // ===============================================
 
   if (orgError) {
     console.error("Organization members error:", orgError);
