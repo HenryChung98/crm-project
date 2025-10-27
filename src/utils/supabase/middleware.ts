@@ -2,6 +2,17 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
+  const currentPath = request.nextUrl.pathname;
+
+  // 정적 파일 조기 리턴
+  if (
+    currentPath.startsWith("/_next") ||
+    currentPath.startsWith("/api") ||
+    /\.(jpg|jpeg|png|gif|svg|ico|webp|css|js)$/.test(currentPath)
+  ) {
+    return NextResponse.next();
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -15,7 +26,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({
             request,
           });
@@ -26,13 +37,6 @@ export async function updateSession(request: NextRequest) {
       },
     }
   );
-
-  // IMPORTANT: DO NOT REMOVE auth.getUser()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const currentPath = request.nextUrl.pathname;
 
   const publicPaths = [
     "/",
@@ -76,25 +80,29 @@ export async function updateSession(request: NextRequest) {
   const isProtectedPath = protectedPaths.some((path) => currentPath.startsWith(path));
   const isResetPath = currentPath.startsWith("/reset/");
 
-  if (user) {
-    if (currentPath === "/" || isAuthPath) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
-      console.log("Redirecting logged-in user from", currentPath, "to /dashboard");
-      return NextResponse.redirect(url);
-    }
-    return supabaseResponse;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // 로그인 유저: 루트 또는 auth 페이지 접근 시 dashboard로 리다이렉트
+  if (user && (currentPath === "/" || isAuthPath)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
   }
 
-  if (!user) {
-    if (isProtectedPath || (!isPublicPath && !isAuthPath && !isResetPath)) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/auth/signin";
-      console.log("Redirecting non-authenticated user from", currentPath, "to /auth/signin");
-      return NextResponse.redirect(url);
-    }
-    return supabaseResponse;
+  // 비로그인 유저: protected 페이지 접근 시 signin으로 리다이렉트
+  if (!user && (isProtectedPath || (!isPublicPath && !isAuthPath && !isResetPath))) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/signin";
+    return NextResponse.redirect(url);
   }
 
   return supabaseResponse;
 }
+
+export const config = {
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
+};
