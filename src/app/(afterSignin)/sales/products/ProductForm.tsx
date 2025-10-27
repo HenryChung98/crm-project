@@ -10,7 +10,7 @@ export interface ProductFormData {
   name: string;
   sku: string;
   description: string;
-  type: "inventory" | "non-inventory" | "service" | "";
+  type: string;
   price: number | null;
   cost: number | null;
   note?: string;
