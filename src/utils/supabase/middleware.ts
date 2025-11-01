@@ -2,17 +2,6 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
-  const currentPath = request.nextUrl.pathname;
-
-  // 정적 파일 조기 리턴
-  if (
-    currentPath.startsWith("/_next") ||
-    currentPath.startsWith("/api") ||
-    /\.(jpg|jpeg|png|gif|svg|ico|webp|css|js)$/.test(currentPath)
-  ) {
-    return NextResponse.next();
-  }
-
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -26,10 +15,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+          supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
@@ -37,6 +23,8 @@ export async function updateSession(request: NextRequest) {
       },
     }
   );
+
+  const currentPath = request.nextUrl.pathname;
 
   const publicPaths = [
     "/",
@@ -50,7 +38,6 @@ export async function updateSession(request: NextRequest) {
     "/public",
     "/v",
   ];
-
   const authPaths = [
     "/auth/signin",
     "/auth/signup",
@@ -60,7 +47,6 @@ export async function updateSession(request: NextRequest) {
     "/auth/callback/reset-password",
     "/auth/signin/reset-password",
   ];
-
   const protectedPaths = [
     "/orgs",
     "/dashboard",
@@ -71,32 +57,26 @@ export async function updateSession(request: NextRequest) {
     "/subscription",
   ];
 
-  const isPublicPath = publicPaths.some((path) => {
-    if (path === "/") {
-      return currentPath === "/";
-    }
-    return currentPath.startsWith(path);
-  });
+  const isPublicPath =
+    currentPath === "/" || publicPaths.some((path) => path !== "/" && currentPath.startsWith(path));
   const isAuthPath = authPaths.some((path) => currentPath.startsWith(path));
   const isProtectedPath = protectedPaths.some((path) => currentPath.startsWith(path));
-  const isResetPath = currentPath.startsWith("/reset/");
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 로그인 유저: 루트 또는 auth 페이지 접근 시 dashboard로 리다이렉트
+  // 로그인 유저 → 루트/auth 접근 시 리다이렉트
   if (user && (currentPath === "/" || isAuthPath)) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/orgs";
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(new URL("/orgs", request.url));
   }
 
-  // 비로그인 유저: protected 페이지 접근 시 signin으로 리다이렉트
-  if (!user && (isProtectedPath || (!isPublicPath && !isAuthPath && !isResetPath))) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/signin";
-    return NextResponse.redirect(url);
+  // 비로그인 유저 → protected 접근 시 리다이렉트
+  if (
+    !user &&
+    (isProtectedPath || (!isPublicPath && !isAuthPath && !currentPath.startsWith("/reset/")))
+  ) {
+    return NextResponse.redirect(new URL("/auth/signin", request.url));
   }
 
   return supabaseResponse;
@@ -104,6 +84,6 @@ export async function updateSession(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)",
   ],
 };
