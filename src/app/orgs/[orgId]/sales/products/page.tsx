@@ -2,7 +2,7 @@
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useProducts } from "./hook/useProduct";
+import { useDBProducts } from "./hook/useDBProducts";
 import { removeBulkProducts } from "./update/[id]/action";
 import { updateProductField } from "./hook/products";
 
@@ -21,7 +21,7 @@ export default function ProductPage() {
   const { confirm, ConfirmModal } = useConfirm();
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
 
-  const { data: products, isLoading, error, refetch, isFetching } = useProducts(currentOrgId);
+  const { data: products, isLoading, error, refetch, isFetching } = useDBProducts(currentOrgId);
   const [localProducts, setLocalProducts] = useState(products || []);
 
   useEffect(() => {

@@ -34,7 +34,7 @@ export async function hasSubscription(): Promise<boolean> {
   return !!data;
 }
 
-export async function hasOrganization(): Promise<boolean> {
+export async function ownOrganization(): Promise<boolean> {
   const supabase = await createClient();
 
   const {

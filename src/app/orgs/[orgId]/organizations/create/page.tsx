@@ -44,7 +44,7 @@ export default function CreateOrganizationPage() {
 
   // check subscription
   const { hasData: hasSubscription, isLoading: isLoadingSubscription } = useSubscriptionCheck();
-  const { hasData: hasOrganization, isLoading: isLoadingOrganization } = useOrganizationCheck();
+  const { hasData: ownOrganization, isLoading: isLoadingOrganization } = useOrganizationCheck();
 
   const [formData, setFormData] = useState<OrganizationFormData>({
     orgName: "",
@@ -92,7 +92,7 @@ export default function CreateOrganizationPage() {
     isLoadingSubscription ||
     isLoadingOrganization ||
     hasSubscription === undefined ||
-    hasOrganization === undefined
+    ownOrganization === undefined
   ) {
     return <LoadingSpinner />;
   }
@@ -101,7 +101,7 @@ export default function CreateOrganizationPage() {
     return null;
   }
 
-  if (hasOrganization === true) {
+  if (ownOrganization === true) {
     return null;
   }
 

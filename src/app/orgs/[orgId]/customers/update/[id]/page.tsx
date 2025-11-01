@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { useCustomers } from "../../hook/useCustomers";
+import { useDBCustomers } from "../../hook/useDBCustomers";
 import { updateCustomer } from "./action";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -22,7 +22,7 @@ export default function UpdateCustomerPage() {
   const queryClient = useQueryClient();
   const { confirm, ConfirmModal } = useConfirm();
 
-  const { data: customers, isLoading, error } = useCustomers(currentOrgId);
+  const { data: customers, isLoading, error } = useDBCustomers(currentOrgId);
   const customer = customers?.find((c) => c.id === id);
 
   const updateCustomerAction = async (data: CustomerFormData) => {

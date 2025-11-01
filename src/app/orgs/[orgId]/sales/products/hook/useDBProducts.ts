@@ -1,18 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { NetworkError } from "@/types/errors";
-import { Customers } from "@/types/database/customers";
-import { getCustomers } from "./customers";
+import { Products } from "@/types/database/products";
+import { getProducts } from "./products";
 
 // type
 import { QueryResult } from "@/types/customData";
 
-export const useCustomers = <T = Customers>(
+export const useDBProducts = <T = Products>(
   organizationId: string,
   select?: string
 ): QueryResult<T> => {
   const result = useQuery({
-    queryKey: ["customers", organizationId, select || "*"],
-    queryFn: async () => getCustomers(organizationId, select),
+    queryKey: ["products", organizationId, select || "*"],
+    queryFn: async () => getProducts(organizationId, select),
     enabled: !!organizationId,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,

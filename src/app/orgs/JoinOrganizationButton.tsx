@@ -1,17 +1,17 @@
 "use client";
 
-import { acceptInvitation } from "./invite-member/hook/accept-invitation";
+import { acceptInvitation } from "./accept-invitation";
 import { useTransition } from "react";
 
 import { showSuccess, showError } from "@/utils/feedback";
 
-export default function JoinOrganizationButton({
+export const JoinOrganizationButton = ({
   inviteId,
   orgName,
 }: {
   inviteId: string;
   orgName: string | undefined;
-}) {
+}) => {
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -22,9 +22,12 @@ export default function JoinOrganizationButton({
           try {
             await acceptInvitation(inviteId, orgName);
             showSuccess("accepted!");
-            window.location.reload();
           } catch (err) {
-            showError("Failed to join: " + (err as Error).message);
+            if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) {
+              showSuccess("accepted!");
+            } else {
+              showError("Failed to join: " + (err as Error).message);
+            }
           }
         })
       }
@@ -33,4 +36,4 @@ export default function JoinOrganizationButton({
       {isPending ? "Loading..." : "Join"}
     </button>
   );
-}
+};

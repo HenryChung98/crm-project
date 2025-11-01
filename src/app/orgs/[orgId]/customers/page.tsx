@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import { useCustomers } from "@/app/orgs/[orgId]/customers/hook/useCustomers";
+import { useDBCustomers } from "@/app/orgs/[orgId]/customers/hook/useDBCustomers";
 import Link from "next/link";
 import { removeCustomer } from "./update/[id]/action";
 import { useState, useEffect } from "react";
@@ -38,7 +38,7 @@ export default function CustomersPage() {
     error,
     refetch,
     isFetching,
-  } = useCustomers(currentOrgId);
+  } = useDBCustomers(currentOrgId);
 
   // ===== 추가: 로컬 상태로 customers 데이터 관리 (Optimistic Update용) =====
   const [localCustomers, setLocalCustomers] = useState(customers || []);

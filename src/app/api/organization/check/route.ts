@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { hasOrganization } from "@/hooks/hook-actions/get-plans";
+import { ownOrganization } from "@/hooks/hook-actions/get-plans";
 
 // to check if the user has own organization
 export async function GET() {
   try {
-    const has = await hasOrganization();
+    const has = await ownOrganization();
     return NextResponse.json({ has });
   } catch (error: unknown) {
     if (error instanceof Error && error.message === "Unauthorized") {

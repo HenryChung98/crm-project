@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { OrganizationInvitations } from "@/types/database/organizations";
-import { getOrganizationInvitationsByEmail } from "./organization-invitations";
+import { getOrganizationInvitationsByEmail } from "./[orgId]/dashboard/invite-member/organization-invitations";
 
 // type
 import { NetworkError } from "@/types/errors";
@@ -32,20 +32,4 @@ export const useOrganizationInvitationsByEmail = <
     isFetching: result.isFetching,
     refetch: result.refetch,
   };
-};
-
-// 프리페칭
-export const usePrefetchOrganizationInvitations = () => {
-  const queryClient = useQueryClient();
-
-  const prefetchMembers = async () => {
-    await queryClient.prefetchQuery({
-      queryKey: ["organizationInvitations", "user"],
-      queryFn: () => getOrganizationInvitationsByEmail(),
-
-      staleTime: 5 * 60 * 1000,
-    });
-  };
-
-  return { prefetchMembers };
 };

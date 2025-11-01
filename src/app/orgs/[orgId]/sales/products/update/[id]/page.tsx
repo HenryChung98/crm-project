@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { useProducts } from "../../hook/useProduct";
+import { useDBProducts } from "../../hook/useDBProducts";
 import { updateProduct } from "./action";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -21,7 +21,7 @@ export default function UpdateCustomerPage() {
   const queryClient = useQueryClient();
   const { confirm, ConfirmModal } = useConfirm();
 
-  const { data: products, isLoading, error } = useProducts(currentOrgId);
+  const { data: products, isLoading, error } = useDBProducts(currentOrgId);
   const product = products?.find((c) => c.id === params.id);
 
   const updateProductAction = async (data: ProductFormData) => {
