@@ -2,7 +2,12 @@
 import Link from "next/link";
 import { EMPTY_ARRAY } from "@/types/customData";
 
+// sign out
+import { useSupabase } from "@/app/auth/useSupabase";
+
 export default function OrgPage() {
+  const { signOut } = useSupabase();
+
   return (
     <>
       <div className="rounded-lg shadow-sm border p-12 text-center">
@@ -15,6 +20,7 @@ export default function OrgPage() {
             &nbsp;create&nbsp;
           </Link>
           or join an organization
+          <button onClick={signOut}>sign out</button>
         </p>
       </div>
     </>

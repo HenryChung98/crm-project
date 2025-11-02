@@ -7,15 +7,17 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export default function AuthCallback() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    if (user) {
-      router.replace("/");
-    } else {
-      router.replace("/auth/signin");
+    if (!loading) {
+      if (user) {
+        router.replace("/orgs");
+      } else {
+        router.replace("/auth/signin");
+      }
     }
-  }, [router]);
+  }, [user, loading, router]);
 
   return <LoadingSpinner />;
 }

@@ -55,16 +55,6 @@ export async function createOrganization(formData: FormData) {
     return { error: "Unauthorized" };
   }
 
-  // insert organization data to the table
-  const orgData = {
-    name: orgName,
-    country: orgCountry,
-    state_province: orgProvince ? orgProvince.toUpperCase() : null,
-    city: orgCity,
-    created_by: user.id,
-    url: url,
-  };
-
   const { data: organizationExist } = await supabase
     .from("organizations")
     .select("id")
@@ -77,6 +67,16 @@ export async function createOrganization(formData: FormData) {
       error: "You already have an organization. Only one organization per user is allowed.",
     };
   }
+
+  // insert organization data to the table
+  const orgData = {
+    name: orgName,
+    country: orgCountry,
+    state_province: orgProvince ? orgProvince.toUpperCase() : null,
+    city: orgCity,
+    created_by: user.id,
+    url: url,
+  };
 
   const { data: orgInsertData, error: orgDataError } = await supabase
     .from("organizations")
