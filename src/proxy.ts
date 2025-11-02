@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateSession } from "./utils/supabase/middleware";
 
-export async function middleware(req: NextRequest) {
-  const res = await updateSession(req); // added
+export async function proxy(req: NextRequest) {
+  // Supabase 세션 업데이트 로직
+  const res = await updateSession(req);
+
   const publicUrls: string[] = [];
   if (publicUrls.includes(req.nextUrl.pathname)) {
     return res;
@@ -10,6 +12,8 @@ export async function middleware(req: NextRequest) {
 
   return res;
 }
+
+
 export const config = {
   matcher: [
     /*
