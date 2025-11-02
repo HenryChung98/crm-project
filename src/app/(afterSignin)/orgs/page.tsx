@@ -11,7 +11,7 @@ export default function OrgPage() {
         </h2>
         <p className="text-text-secondary text-lg">
           Please
-          <Link href="/organizations/create" className="text-blue-500">
+          <Link href="/orgs/create-organization" className="text-blue-500">
             &nbsp;create&nbsp;
           </Link>
           or join an organization

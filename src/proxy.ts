@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { updateSession } from "./utils/supabase/middleware";
 
 export async function proxy(req: NextRequest) {
-  // Supabase 세션 업데이트 로직
+  // Supabase session update logic
   const res = await updateSession(req);
 
   const publicUrls: string[] = [];
@@ -12,7 +12,6 @@ export async function proxy(req: NextRequest) {
 
   return res;
 }
-
 
 export const config = {
   matcher: [

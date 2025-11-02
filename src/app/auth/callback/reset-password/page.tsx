@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../../../contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 // ui
-import { showError } from "../../../../utils/feedback";
+import { showError } from "@/utils/feedback";
 
 export default function ResetPasswordPage() {
   const { supabase } = useAuth();
