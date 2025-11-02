@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { FiMenu, FiX } from "react-icons/fi";
-import { useAuth } from "../../contexts/AuthContext";
 
 export default function NavBar() {
-  const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -24,7 +22,7 @@ export default function NavBar() {
             href="/"
             className="text-xl font-bold text-foreground hover:opacity-80 transition-opacity"
           >
-            CRMPro
+            CRM
           </Link>
 
           {/* Desktop Navigation */}
@@ -42,29 +40,20 @@ export default function NavBar() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            {user ? (
+            <>
               <Link
-                href="/dashboard"
+                href="/auth/signin"
                 className="text-muted-foreground hover:text-foreground transition-colors font-medium"
               >
-                Dashboard
+                Sign In
               </Link>
-            ) : (
-              <>
-                <Link
-                  href="/auth/signin"
-                  className="text-muted-foreground hover:text-foreground transition-colors font-medium"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/auth/signup"
-                  className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
-                >
-                  Start For Free
-                </Link>
-              </>
-            )}
+              <Link
+                href="/auth/signup"
+                className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+              >
+                Start For Free
+              </Link>
+            </>
           </div>
 
           {/* Mobile Menu Button */}
@@ -93,32 +82,22 @@ export default function NavBar() {
               ))}
 
               <div className="border-t border-border pt-3 mt-3 px-4 space-y-3">
-                {user ? (
+                <>
                   <Link
-                    href="/dashboard"
+                    href="/auth/signin"
                     className="block py-2 text-muted-foreground hover:text-foreground transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Dashboard
+                    Sign In
                   </Link>
-                ) : (
-                  <>
-                    <Link
-                      href="/auth/signin"
-                      className="block py-2 text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Sign In
-                    </Link>
-                    <Link
-                      href="/auth/signup"
-                      className="block bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity text-center"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Start For Free
-                    </Link>
-                  </>
-                )}
+                  <Link
+                    href="/auth/signup"
+                    className="block bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity text-center"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Start For Free
+                  </Link>
+                </>
               </div>
             </div>
           </div>

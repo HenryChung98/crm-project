@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { useState } from "react";
 import { AuthProvider } from "./AuthContext";
-import { SidebarProvider } from "./SidebarContext";
 
 const createQueryClient = () =>
   new QueryClient({
@@ -30,7 +29,7 @@ const createQueryClient = () =>
     },
   });
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function GlobalProviders({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => createQueryClient());
 
   return (

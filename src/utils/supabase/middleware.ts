@@ -66,12 +66,12 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 로그인 유저 → 루트/auth 접근 시 리다이렉트
+  // if user is in root page or auth page, redirect to orgs
   if (user && (currentPath === "/" || isAuthPath)) {
     return NextResponse.redirect(new URL("/orgs", request.url));
   }
 
-  // 비로그인 유저 → protected 접근 시 리다이렉트
+  // if user is in not signed in and try to access protected page, redirect to sign in page
   if (
     !user &&
     (isProtectedPath || (!isPublicPath && !isAuthPath && !currentPath.startsWith("/reset/")))
