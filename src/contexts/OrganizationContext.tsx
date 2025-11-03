@@ -12,7 +12,6 @@ interface OrganizationContextType {
   currentOrganizationId: string;
   organizations: OrganizationMembers[];
   isLoading: boolean;
-  error: Error | null;
   switchOrganization: (orgId: string) => void;
 }
 
@@ -70,11 +69,29 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
       currentOrganizationId: currentOrganizationId || firstOrganizationId,
       organizations: orgMembers,
       isLoading,
-      error,
       switchOrganization,
     }),
-    [currentOrganizationId, firstOrganizationId, orgMembers, isLoading, error, switchOrganization]
+    [currentOrganizationId, firstOrganizationId, orgMembers, isLoading, switchOrganization]
   );
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">
+            Failed to load organizations - Context Error
+          </h2>
+          <p className="text-gray-600 mb-4">{error.message}</p>
+          <button
+            onClick={() => router.refresh()}
+            className="px-4 py-2 bg-blue-600 text-white rounded"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (shouldRedirect) {
     return <LoadingSpinner />;
