@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { selectPlan } from "../plan-selection";
 import { PlanName } from "@/types/database/plan";
 import { updatePaymentStatus } from "../subscription-management";
-import { useOwnOrganization } from "@/shared-hooks/client/useOwnOrganization";
+import { useOwnOrganization } from "@/shared-hooks/useOwnOrganization";
 
 // ui
 import { showError, showSuccess } from "@/shared-utils/feedback";

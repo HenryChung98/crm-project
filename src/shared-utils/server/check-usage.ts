@@ -1,17 +1,16 @@
 "use server";
-// import { withOrgAuth } from "../../../../../crmtrash/src-l/utils/auth";
-import { createClient } from "../../shared-utils/supabase/server";
+import { requireOrgAccess } from "@/shared-utils/server/org-access";
+import { createClient } from "../supabase/server";
 
-export interface UsageByOrganization {
+export interface Usage {
   userTotal: number;
   customerTotal: number;
 }
 
-export async function getUsage(orgId: string): Promise<UsageByOrganization | null> {
+export async function checkUsage(orgId: string): Promise<Usage | null> {
   if (!orgId) return null;
 
-  // const { supabase } = await withOrgAuth(orgId);
-  const supabase = await createClient();
+  const { supabase } = await requireOrgAccess(orgId);
 
   const [userTotalResult, customerTotalResult] = await Promise.all([
     supabase

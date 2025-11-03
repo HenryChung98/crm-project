@@ -1,5 +1,5 @@
 import { SubscribedPlan } from "../../types/database/plan";
-import { createClient } from "../../shared-utils/supabase/server";
+import { createClient } from "../supabase/server";
 
 export async function checkPlan(orgId?: string): Promise<SubscribedPlan | null> {
   if (!orgId) return null;
@@ -15,25 +15,18 @@ export async function checkPlan(orgId?: string): Promise<SubscribedPlan | null> 
     throw new Error("Unauthorized");
   }
 
-  // 조직 정보 조회
+  // check organization
   const { data: org, error: orgFetchError } = await supabase
     .from("organizations")
     .select("created_by")
     .eq("id", orgId)
     .single();
 
-  if (orgFetchError) {
-    if (orgFetchError.code === "PGRST116") {
-      throw new Error("Organization not found");
-    }
-    throw new Error(`Failed to fetch organization: ${orgFetchError.message}`);
+  if (orgFetchError || !org?.created_by) {
+    throw new Error("Organization not found");
   }
 
-  if (!org || !org.created_by) {
-    throw new Error("Organization not found or invalid");
-  }
-
-  // 조직 소유자의 구독 정보 조회
+  // check owner's subscription's status
   const { data: subscriptionData, error: subscriptionError } = await supabase
     .from("subscriptions")
     .select(`*, plans (*)`)
@@ -42,23 +35,11 @@ export async function checkPlan(orgId?: string): Promise<SubscribedPlan | null> 
     .limit(1)
     .maybeSingle();
 
-  if (subscriptionError) {
-    if (subscriptionError.code === "PGRST116") {
-      throw new Error("No subscription found for organization owner");
-    }
-    throw subscriptionError;
-  }
-
-  if (!subscriptionData) {
+  if (subscriptionError) throw subscriptionError;
+  if (!subscriptionData?.plans) {
     throw new Error("No subscription found for organization owner");
   }
 
-  // plans 데이터 유효성 검사 추가
-  if (!subscriptionData.plans) {
-    throw new Error("Plan data not found for organization");
-  }
-
-  // plans가 배열로 반환되므로 첫 번째 요소를 사용
   const planData = Array.isArray(subscriptionData.plans)
     ? subscriptionData.plans[0]
     : subscriptionData.plans;

@@ -1,15 +1,16 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getUserOrganizations, getAdminOrganizations } from "../server/organization-members";
-import { OrganizationMembers } from "../../types/database/organizations";
+import {
+  getUserOrganizations,
+  getAdminOrganizations,
+} from "../shared-utils/server/organization-members";
+import { OrganizationMembers } from "../types/database/organizations";
 
 // type
-import { NetworkError } from "../../types/errors";
-import { QueryResult } from "../../types/customData";
+import { NetworkError } from "../types/errors";
+import { QueryResult } from "../types/customData";
 
 // 사용자가 속한 모든 조직 멤버십 조회 (네비바의 조직 목록용)
-export const useUserOrganizations = <T = OrganizationMembers>(
-  select?: string
-): QueryResult<T> => {
+export const useUserOrganizations = <T = OrganizationMembers>(select?: string): QueryResult<T> => {
   const result = useQuery({
     queryKey: ["organizationMembers", "user", select || "*"],
     queryFn: () => getUserOrganizations(select),
@@ -64,7 +65,6 @@ export const useAdminOrganizations = <T = OrganizationMembers>(
     refetch: result.refetch,
   };
 };
-
 
 // 프리페칭
 export const usePrefetchOrganizations = () => {

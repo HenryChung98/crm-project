@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { selectPlan } from "./plan-selection";
 import { PlanName } from "../../types/database/plan";
 import { useQueryClient } from "@tanstack/react-query";
-import { useOwnOrganization } from "@/shared-hooks/client/useOwnOrganization";
+import { useOwnOrganization } from "@/shared-hooks/useOwnOrganization";
 // ui
 import { showError, showSuccess } from "../../shared-utils/feedback";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";

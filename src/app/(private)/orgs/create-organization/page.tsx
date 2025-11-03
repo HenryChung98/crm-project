@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 
 // custom hooks
-import { useHasSubscription } from "@/shared-hooks/client/useHasSubscription";
-import { useOwnOrganization } from "@/shared-hooks/client/useOwnOrganization";
+import { useHasSubscription } from "@/shared-hooks/useHasSubscription";
+import { useOwnOrganization } from "@/shared-hooks/useOwnOrganization";
 
 // ui
 import { Form } from "@/components/ui/Form";
@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/Button";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { showSuccess, showError } from "@/shared-utils/feedback";
-import { HookErrorBanner } from "@/components/HookErrorBanner";
+import { QueryErrorBanner } from "@/components/QueryErrorBanner";
 
 interface OrganizationFormData {
   orgName: string;
@@ -124,10 +124,10 @@ export default function CreateOrganizationPage() {
   return (
     <div>
       {hasSubscriptionError && (
-        <HookErrorBanner data="check has subscription" onRetry={() => hasSubscriptionRefetch} />
+        <QueryErrorBanner data="check has subscription" onRetry={() => hasSubscriptionRefetch} />
       )}
       {ownOrganizationError && (
-        <HookErrorBanner data="check own organization" onRetry={() => ownOrganizationRefetch} />
+        <QueryErrorBanner data="check own organization" onRetry={() => ownOrganizationRefetch} />
       )}
       <Form action={handleSubmit} formTitle="organization">
         <FormField

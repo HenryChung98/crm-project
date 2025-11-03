@@ -7,7 +7,7 @@ import { OrganizationInvitations } from "@/types/database/organizations";
 import { EMPTY_ARRAY } from "@/types/customData";
 
 // ui
-import { HookErrorBanner } from "@/components/HookErrorBanner";
+import { QueryErrorBanner } from "@/components/QueryErrorBanner";
 
 export default function InvitationPage() {
   const {
@@ -24,7 +24,7 @@ export default function InvitationPage() {
           <div className="text-blue-700">Loading invitations...</div>
         </div>
       )}
-      {error && <HookErrorBanner data="invitation" onRetry={() => refetch} />}
+      {error && <QueryErrorBanner data="invitation" onRetry={() => refetch} />}
       <div className="mt-8 rounded-lg shadow-sm border">
         <div className="p-6 border-b">
           <h3 className="text-lg font-semibold">Organization Invitations</h3>

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useCallback, useEffect, useMemo } from "react";
 import { useRouter, useParams, usePathname } from "next/navigation";
-import { useUserOrganizations } from "@/shared-hooks/client/useOrganizationMembers";
+import { useUserOrganizations } from "@/shared-hooks/useOrganizationMembers";
 import { OrganizationMembers } from "../types/database/organizations";
 import { EMPTY_ARRAY } from "../types/customData";
 

@@ -1,7 +1,7 @@
 "use client";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import Link from "next/link";
-import { SignOutButton } from "@/app/auth/SignOutButton";
+import { SignOutButton } from "@/components/SignOutButton";
 
 export default function DashboardPage() {
   const { currentOrganizationId, organizations } = useOrganization();

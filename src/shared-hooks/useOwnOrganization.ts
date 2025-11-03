@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ownOrganization } from "../server/own-organization";
+import { ownOrganization } from "../shared-utils/server/own-organization";
 
 type HasResult = {
   orgId: string | null | undefined;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hasSubscription } from "@/shared-hooks/server/has-subscription";
+import { hasSubscription } from "@/shared-utils/server/has-subscription";
 
 // to check if the user has a subscription
 export async function GET() {

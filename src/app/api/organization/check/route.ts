@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ownOrganization } from "@/shared-hooks/server/own-organization";
+import { ownOrganization } from "@/shared-utils/server/own-organization";
 
 // to check if the user has own organization
 export async function GET() {

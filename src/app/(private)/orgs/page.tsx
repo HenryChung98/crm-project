@@ -1,11 +1,11 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { SignOutButton } from "@/app/auth/SignOutButton";
+import { SignOutButton } from "@/components/SignOutButton";
 
 import { useOrganization } from "@/contexts/OrganizationContext";
-import { hasSubscription } from "@/shared-hooks/server/has-subscription";
-import { ownOrganization } from "@/shared-hooks/server/own-organization";
+import { hasSubscription } from "@/shared-utils/server/has-subscription";
+import { ownOrganization } from "@/shared-utils/server/own-organization";
 import { useInvitationCheck } from "./invitation/utils/useOrganizationInvitations";
 
 //types
@@ -15,7 +15,7 @@ import { EMPTY_ARRAY } from "@/types/customData";
 // ui
 import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { HookErrorBanner } from "@/components/HookErrorBanner";
+import { QueryErrorBanner } from "@/components/ui/QueryErrorBanner";
 
 export default function OrgPage() {
   const router = useRouter();
@@ -66,7 +66,7 @@ export default function OrgPage() {
   }
   return (
     <>
-      {invitationError && <HookErrorBanner data="invitation" onRetry={() => refetch} />}
+      {invitationError && <QueryErrorBanner data="invitation" onRetry={() => refetch} />}
       <div className="rounded-lg shadow-sm border p-12 text-center">
         <h2 className="text-2xl font-semibold text-text-secondary mb-4">
           You currently have no organizations
