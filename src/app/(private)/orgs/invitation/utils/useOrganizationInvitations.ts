@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { OrganizationInvitations } from "../../../../types/database/organizations";
+import { OrganizationInvitations } from "../../../../../types/database/organizations";
 import { checkInvitation } from "./organization-invitations";
 
 // types
@@ -7,9 +7,7 @@ import { NetworkError } from "@/types/errors";
 import { QueryResult } from "@/types/customData";
 
 // all users can invite people using email
-export const useInvitationCheck = <
-  T = OrganizationInvitations
->(): QueryResult<T> => {
+export const useInvitationCheck = <T = OrganizationInvitations>(): QueryResult<T> => {
   const result = useQuery({
     queryKey: [
       "organizationInvitations",

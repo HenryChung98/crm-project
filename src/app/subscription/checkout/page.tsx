@@ -9,7 +9,7 @@ import { updatePaymentStatus } from "../subscription-management";
 import { useOwnOrganization } from "@/shared-hooks/client/useOwnOrganization";
 
 // ui
-import { showError, showSuccess } from "@/utils/feedback";
+import { showError, showSuccess } from "@/shared-utils/feedback";
 import { useQueryClient } from "@tanstack/react-query";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 

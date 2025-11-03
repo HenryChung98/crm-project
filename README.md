@@ -27,14 +27,9 @@
 - [Resend](https://resend.com/)
 - [dnd-kit](https://dndkit.com/) - npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
 - [Mailtrap](https://mailtrap.io/)
-842910a9d7e3bf6cce75e11106cde7f3
+  842910a9d7e3bf6cce75e11106cde7f3
+
 ### restricted service
-
-<!-- ##### user
-
-- create organization
-
-##### organization -->
 
 - max invite user
 - max add customer
@@ -44,6 +39,18 @@
 - booking form(instagram, facebook, ... / premium only)
 - create end point to save customer's action from external website(premium only)
 - optimistic update(premium only)
+
+<!--
+need to setup after done
+
+- resend
+- admin email
+- support team email
+- SMTP(mailtrap)
+- payment
+- edge functions
+
+-->
 
 <!-- 핵심 기능:
 

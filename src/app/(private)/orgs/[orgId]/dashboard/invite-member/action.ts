@@ -1,6 +1,6 @@
 "use server";
-import { createAdminClient } from "@/utils/supabase/server";
-import { requireOrgAccess } from "@/utils/server/org-access";
+import { createAdminClient } from "@/shared-utils/supabase/server";
+import { requireOrgAccess } from "@/shared-utils/server/org-access";
 import { Resend } from "resend";
 import { InvitationEmail } from "@/components/resend-components/templates/InvitationEmail";
 // import { validateResourceCreation } from "../../../../../utils/validation";

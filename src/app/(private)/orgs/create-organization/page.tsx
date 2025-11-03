@@ -15,7 +15,7 @@ import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { showSuccess, showError } from "@/utils/feedback";
+import { showSuccess, showError } from "@/shared-utils/feedback";
 
 interface OrganizationFormData {
   orgName: string;

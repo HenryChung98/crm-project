@@ -8,7 +8,7 @@ import { PlanName } from "../../types/database/plan";
 import { useQueryClient } from "@tanstack/react-query";
 import { useOwnOrganization } from "@/shared-hooks/client/useOwnOrganization";
 // ui
-import { showError, showSuccess } from "../../utils/feedback";
+import { showError, showSuccess } from "../../shared-utils/feedback";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 
 export default function SubscriptionPage() {
@@ -24,7 +24,6 @@ export default function SubscriptionPage() {
   }
 
   const handlePlanSelect = async (planName: PlanName) => {
-
     if (!user || !supabase) {
       router.replace("auth/signin");
       return;

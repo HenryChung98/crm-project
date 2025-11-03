@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "../../utils/supabase/server";
+import { createClient } from "../../shared-utils/supabase/server";
 
 export async function ownOrganization(): Promise<string | null> {
   const supabase = await createClient();

@@ -2,13 +2,13 @@
 
 import { acceptInvitation } from "./accept-invitation";
 import { useTransition } from "react";
-import { showSuccess, showError } from "@/utils/feedback";
+import { showSuccess, showError } from "@/shared-utils/feedback";
 
 export const JoinOrganizationButton = ({
-  inviteId,
+  orgId,
   orgName,
 }: {
-  inviteId: string;
+  orgId: string;
   orgName: string;
 }) => {
   const [isPending, startTransition] = useTransition();
@@ -19,9 +19,9 @@ export const JoinOrganizationButton = ({
       onClick={() =>
         startTransition(async () => {
           try {
-            await acceptInvitation(inviteId, orgName);
+            await acceptInvitation(orgId, orgName);
             showSuccess("accepted!");
-            window.location.href = `/orgs/${inviteId}/dashboard`;
+            window.location.href = `/orgs/${orgId}/dashboard`;
           } catch (err) {
             if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) {
               showSuccess("accepted!");

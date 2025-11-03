@@ -1,6 +1,6 @@
 "use server";
 // import { withOrgAuth } from "../../../../../crmtrash/src-l/utils/auth";
-import { createClient } from "../../utils/supabase/server";
+import { createClient } from "../../shared-utils/supabase/server";
 
 export interface UsageByOrganization {
   userTotal: number;

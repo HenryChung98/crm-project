@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { acceptInvitation } from "@/app/(private)/orgs/invitation/accept-invitation";
+import { acceptInvitation } from "@/app/(private)/orgs/invitation/utils/accept-invitation";
 
 export default function AuthCallback() {
   const router = useRouter();

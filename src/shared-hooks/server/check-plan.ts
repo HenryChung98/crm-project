@@ -1,5 +1,5 @@
 import { SubscribedPlan } from "../../types/database/plan";
-import { createClient } from "../../utils/supabase/server";
+import { createClient } from "../../shared-utils/supabase/server";
 
 export async function checkPlan(orgId?: string): Promise<SubscribedPlan | null> {
   if (!orgId) return null;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/shared-utils/supabase/server";
 
 // this api is for OAuth (google)
 export async function GET(request: Request) {

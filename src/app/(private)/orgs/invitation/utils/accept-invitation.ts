@@ -1,9 +1,9 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/shared-utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
-export async function acceptInvitation(inviteId: string, orgName: string) {
+export async function acceptInvitation(orgId: string, orgName: string) {
   const supabase = await createClient();
 
   const {
@@ -17,7 +17,7 @@ export async function acceptInvitation(inviteId: string, orgName: string) {
   const { data: invitation, error: inviteError } = await supabase
     .from("organization_invitations")
     .select("*")
-    .eq("organization_id", inviteId)
+    .eq("organization_id", orgId)
     .eq("email", user.email)
     .eq("accepted", false)
     .gt("expires_at", "now()")
@@ -32,7 +32,7 @@ export async function acceptInvitation(inviteId: string, orgName: string) {
   const { data: checkDup, error: checkDupError } = await supabase
     .from("organization_members")
     .select("*")
-    .eq("organization_id", inviteId)
+    .eq("organization_id", orgId)
     .eq("user_id", user.id)
     .single();
 
@@ -47,7 +47,7 @@ export async function acceptInvitation(inviteId: string, orgName: string) {
   const { error: updateError } = await supabase
     .from("organization_invitations")
     .update({ accepted: true })
-    .eq("organization_id", inviteId);
+    .eq("organization_id", orgId);
 
   if (updateError) {
     throw updateError;

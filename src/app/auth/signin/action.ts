@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/shared-utils/supabase/server";
 
 export async function signIn(formData: FormData) {
   try {
@@ -20,7 +20,7 @@ export async function signIn(formData: FormData) {
     });
 
     if (signInError) {
-      console.log("Sign in error:", signInError); 
+      console.log("Sign in error:", signInError);
 
       if (
         signInError.message.includes("Invalid login credentials") ||
@@ -52,7 +52,7 @@ export async function signIn(formData: FormData) {
 
     return { success: true };
   } catch (error) {
-    console.error("Sign in catch error:", error); 
+    console.error("Sign in catch error:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred",

@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/shared-utils/supabase/server";
 import { hasSubscription } from "@/shared-hooks/server/has-subscription";
 import { revalidatePath } from "next/cache";
 
