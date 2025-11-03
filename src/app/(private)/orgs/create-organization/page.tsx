@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/Button";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { showSuccess, showError } from "@/shared-utils/feedback";
+import { HookErrorBanner } from "@/components/HookErrorBanner";
 
 interface OrganizationFormData {
   orgName: string;
@@ -45,8 +46,18 @@ export default function CreateOrganizationPage() {
   const [noProvince, setNoProvince] = useState<boolean>(false);
 
   // check subscription
-  const { hasData: hasSubscription, isLoading: isLoadingSubscription } = useHasSubscription();
-  const { orgId: ownOrgId, isLoading: isLoadingOrganization } = useOwnOrganization();
+  const {
+    hasData: hasSubscription,
+    isLoading: isLoadingSubscription,
+    error: hasSubscriptionError,
+    refetch: hasSubscriptionRefetch,
+  } = useHasSubscription();
+  const {
+    orgId: ownOrgId,
+    isLoading: isLoadingOrganization,
+    error: ownOrganizationError,
+    refetch: ownOrganizationRefetch,
+  } = useOwnOrganization();
 
   const [formData, setFormData] = useState<OrganizationFormData>({
     orgName: "",
@@ -112,6 +123,12 @@ export default function CreateOrganizationPage() {
 
   return (
     <div>
+      {hasSubscriptionError && (
+        <HookErrorBanner data="check has subscription" onRetry={() => hasSubscriptionRefetch} />
+      )}
+      {ownOrganizationError && (
+        <HookErrorBanner data="check own organization" onRetry={() => ownOrganizationRefetch} />
+      )}
       <Form action={handleSubmit} formTitle="organization">
         <FormField
           name="orgName"

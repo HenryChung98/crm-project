@@ -15,6 +15,7 @@ import { EMPTY_ARRAY } from "@/types/customData";
 // ui
 import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { HookErrorBanner } from "@/components/HookErrorBanner";
 
 export default function OrgPage() {
   const router = useRouter();
@@ -22,8 +23,12 @@ export default function OrgPage() {
   // to prevents UI flicker (UX optimization)
   const { isLoading } = useOrganization();
 
-  const { data: orgInvitations = EMPTY_ARRAY, isLoading: isInvitationLoading } =
-    useInvitationCheck<OrganizationInvitations>();
+  const {
+    data: orgInvitations = EMPTY_ARRAY,
+    isLoading: isInvitationLoading,
+    error: invitationError,
+    refetch,
+  } = useInvitationCheck<OrganizationInvitations>();
 
   const hasInvitations = orgInvitations.length > 0;
 
@@ -61,6 +66,7 @@ export default function OrgPage() {
   }
   return (
     <>
+      {invitationError && <HookErrorBanner data="invitation" onRetry={() => refetch} />}
       <div className="rounded-lg shadow-sm border p-12 text-center">
         <h2 className="text-2xl font-semibold text-text-secondary mb-4">
           You currently have no organizations
