@@ -2,9 +2,8 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
-export async function acceptInvitation(inviteId: string, orgName: string | undefined) {
+export async function acceptInvitation(inviteId: string, orgName: string) {
   const supabase = await createClient();
 
   const {
@@ -21,6 +20,7 @@ export async function acceptInvitation(inviteId: string, orgName: string | undef
     .eq("organization_id", inviteId)
     .eq("email", user.email)
     .eq("accepted", false)
+    .gt("expires_at", "now()")
     .single();
 
   if (inviteError || !invitation) {

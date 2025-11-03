@@ -3,7 +3,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { hasSubscription } from "@/shared-hooks/server/has-subscription";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 function isValidUrl(urlString: string): boolean {
   try {

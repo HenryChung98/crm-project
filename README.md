@@ -26,7 +26,8 @@
 
 - [Resend](https://resend.com/)
 - [dnd-kit](https://dndkit.com/) - npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
-
+- [Mailtrap](https://mailtrap.io/)
+842910a9d7e3bf6cce75e11106cde7f3
 ### restricted service
 
 <!-- ##### user

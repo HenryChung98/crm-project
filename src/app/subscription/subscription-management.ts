@@ -143,7 +143,7 @@ export const createSubscription = async (
       .insert([subscriptionData])
       .select("*")
       .single();
-
+ 
     if (error) {
       console.error("Error creating subscription:", error);
       return { success: false, error: error.message };

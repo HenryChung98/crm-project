@@ -9,7 +9,7 @@ export const JoinOrganizationButton = ({
   orgName,
 }: {
   inviteId: string;
-  orgName: string | undefined;
+  orgName: string;
 }) => {
   const [isPending, startTransition] = useTransition();
 

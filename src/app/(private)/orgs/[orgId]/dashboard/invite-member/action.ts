@@ -1,8 +1,8 @@
 "use server";
-
-import { randomUUID } from "crypto";
 import { createAdminClient } from "@/utils/supabase/server";
 import { requireOrgAccess } from "@/utils/server/org-access";
+import { Resend } from "resend";
+import { InvitationEmail } from "@/components/resend-components/templates/InvitationEmail";
 // import { validateResourceCreation } from "../../../../../utils/validation";
 
 export async function inviteUser(formData: FormData) {
@@ -43,7 +43,6 @@ export async function inviteUser(formData: FormData) {
     }
 
     // Check if user has already been invited to this organization
-
     const { data: existingInvite, error: inviteCheckError } = await supabase
       .from("organization_invitations")
       .select("*")
@@ -61,44 +60,87 @@ export async function inviteUser(formData: FormData) {
       return { error: "User has already been invited to this organization." };
     }
 
-    const code = randomUUID();
-
-    const { error: inviteError } = await supabase.from("organization_invitations").insert({
-      id: code,
-      email: invitedEmail,
-      organization_id: orgId,
-      invited_by: user.id,
-      accepted: false,
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    });
-
-    if (inviteError) {
-      return { error: inviteError.message };
-    }
-
-    // send invitation by admin function
-
-    const { data: orgData, error: orgError } = await supabase
-      .from("organizations")
-      .select("name")
-      .eq("id", orgId)
+    const { data: invitationData, error: invitationError } = await supabase
+      .from("organization_invitations")
+      .insert({
+        email: invitedEmail,
+        organization_id: orgId,
+        invited_by: user.id,
+        accepted: false,
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      })
+      .select("id")
       .single();
 
-    if (orgError || !orgData) {
-      return { error: "Failed to get organization details" };
+    if (invitationError) {
+      return { error: invitationError.message };
     }
 
-    const adminSupabase = await createAdminClient();
-    const { data, error: emailError } = await adminSupabase.auth.admin.inviteUserByEmail(
-      invitedEmail,
-      {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/signup`,
-        data: {
-          OrganizationName: orgData.name,
-          AppName: "CRM Project",
-        },
+    // // send invitation by admin function
+    // const { data: orgData, error: orgError } = await supabase
+    //   .from("organizations")
+    //   .select("name")
+    //   .eq("id", orgId)
+    //   .single();
+
+    // if (orgError || !orgData) {
+    //   await supabase.from("organization_invitations").delete().eq("id", invitationData.id);
+    //   return { error: "Failed to get organization name" };
+    // }
+
+    // ===============================resend=======================================================
+
+    if (invitedEmail && process.env.RESEND_API_KEY) {
+      try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+
+        // send invitation by admin function
+        const { data: orgData, error: orgError } = await supabase
+          .from("organizations")
+          .select("name")
+          .eq("id", orgId)
+          .single();
+
+        if (orgError || !orgData) {
+          await supabase.from("organization_invitations").delete().eq("id", invitationData.id);
+          return { error: "Failed to get organization name" };
+        }
+
+        const fromEmail =
+          `${orgData?.name}@${process.env.RESEND_DOMAIN}` || process.env.DEFAULT_FROM_EMAIL;
+        const fromName = orgData?.name || "CRM-Project";
+
+        await resend.emails.send({
+          from: `${fromName} <${fromEmail}>`,
+          to: [invitedEmail],
+          subject: `You have been invited`,
+          html: InvitationEmail({
+            orgId: orgId,
+            orgName: fromName,
+          }),
+        });
+      } catch (emailError) {
+        await supabase.from("organization_invitations").delete().eq("id", invitationData.id);
+        console.error("Email error:", emailError);
       }
-    );
+    }
+
+    // const adminSupabase = await createAdminClient();
+    // const { data, error: emailError } = await adminSupabase.auth.admin.inviteUserByEmail(
+    //   invitedEmail,
+    //   {
+    //     redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/signup?org_id=${orgId}&org_name=${orgData}`,
+    //     data: {
+    //       OrganizationName: orgData.name,
+    //       AppName: "CRM Project",
+    //     },
+    //   }
+    // );
+    // if (emailError) {
+    //   await supabase.from("organization_invitations").delete().eq("id", invitationData.id);
+    //   return { error: `Email sending error: ${emailError.message}` };
+    // }
+    // ===============================resend=======================================================
 
     return { success: true };
   } catch (error) {

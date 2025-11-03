@@ -13,6 +13,7 @@ export function renderContactInfo(orgEmail?: string, orgPhone?: string): string 
     return `
         <div class="contact-info">
           <p>If you have any questions, please contact our support team.</p>
+          <a href="mailto:${process.env.NEXT_PUBLIC_SUPPORT_TEAM_EMAIL}">${process.env.NEXT_PUBLIC_SUPPORT_TEAM_EMAIL}</a>
         </div>
       `;
   }

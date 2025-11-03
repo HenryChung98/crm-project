@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signUp } from "./action";
 import { BiShow, BiHide } from "react-icons/bi";
+import { useSearchParams } from "next/navigation";
 
 // ui
 import { Form } from "@/components/ui/Form";
@@ -27,6 +28,24 @@ export default function SignUpPage() {
     confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const orgId = searchParams.get("org_id");
+    const orgName = searchParams.get("org_name");
+    if (orgId) {
+      setFormData((prev) => ({
+        ...prev,
+        orgId: orgId,
+      }));
+    }
+    if (orgName) {
+      setFormData((prev) => ({
+        ...prev,
+        orgName: orgName,
+      }));
+    }
+  }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -34,6 +53,11 @@ export default function SignUpPage() {
   };
 
   const handleSubmit = async (formData: FormData) => {
+    const orgId = searchParams.get("org_id");
+    const orgName = searchParams.get("org_name");
+    document.cookie = `pending_org_id=${orgId}; path=/; max-age=3600`;
+    document.cookie = `pending_org_name=${orgName}; path=/; max-age=3600`;
+
     const res = await signUp(formData);
 
     if (res?.error) {
@@ -86,6 +110,7 @@ export default function SignUpPage() {
           onChange={handleChange}
           required
         />
+
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}

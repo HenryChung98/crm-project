@@ -20,9 +20,8 @@ export async function signIn(formData: FormData) {
     });
 
     if (signInError) {
-      console.log("Sign in error:", signInError); // 디버깅용
+      console.log("Sign in error:", signInError); 
 
-      // 더 정확한 에러 메시지 체크
       if (
         signInError.message.includes("Invalid login credentials") ||
         signInError.message.includes("invalid_credentials")
@@ -53,7 +52,7 @@ export async function signIn(formData: FormData) {
 
     return { success: true };
   } catch (error) {
-    console.error("Sign in catch error:", error); // 디버깅용
+    console.error("Sign in catch error:", error); 
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred",
