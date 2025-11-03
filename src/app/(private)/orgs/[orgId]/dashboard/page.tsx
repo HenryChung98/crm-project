@@ -1,9 +1,26 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 export default function DashboardPage() {
-  const params = useParams();
-  const currentOrgId = (params.orgId as string) ?? "";
+  const { currentOrganizationId, organizations } = useOrganization();
 
-  return <div>{currentOrgId} dashboard page</div>;
+  const currentOrg = organizations.find(
+    (member) => member.organization_id === currentOrganizationId
+  );
+
+  return (
+    <>
+      <div>{currentOrganizationId} dashboard page</div>
+      <div>{currentOrg?.organizations?.name} dashboard page</div>
+
+      <h2>All Organizations:</h2>
+      <ul>
+        {organizations.map((member) => (
+          <li key={member.id}>
+            {member.organizations?.name} - {member.role}
+          </li>
+        ))}
+      </ul>
+    </>
+  );
 }

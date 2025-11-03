@@ -65,7 +65,7 @@ export default function CheckoutPage() {
         }
 
         showSuccess("Payment successful! Plan activated.");
-        window.location.href = orgId ? `/orgs/${orgId}` : "/orgs/create-organization";
+        window.location.href = orgId ? `/orgs/${orgId}/dashboard` : "/orgs/create-organization";
       } else {
         showError("Payment processed but failed to activate plan");
       }
