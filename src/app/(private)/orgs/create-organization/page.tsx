@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createOrganization } from "./action";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { redirect } from "next/navigation";
 
+// custom hooks
 import { useHasSubscription } from "@/shared-hooks/client/useHasSubscription";
 import { useOwnOrganization } from "@/shared-hooks/client/useOwnOrganization";
 
@@ -55,9 +55,28 @@ export default function CreateOrganizationPage() {
     orgCity: "",
     url: "",
   });
-
-  // =============================for form=============================
   const [buttonLoading, setButtonLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (hasSubscription === false) {
+      router.push("/subscription");
+    }
+
+    if (ownOrgId) {
+      router.replace(`/orgs/${ownOrgId}/dashboard`);
+    }
+  }, [hasSubscription, ownOrgId, router]);
+
+  if (
+    isLoadingSubscription ||
+    isLoadingOrganization ||
+    hasSubscription === undefined ||
+    ownOrgId === undefined
+  ) {
+    return <LoadingSpinner />;
+  }
+  // =============================for form=============================
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -80,7 +99,8 @@ export default function CreateOrganizationPage() {
         });
 
         showSuccess("Organization successfully created");
-        window.location.href = "/dashboard";
+        window.location.href = `/orgs/${res.orgId}/dashboard`;
+        // router.push(`/orgs/${ownOrgId}/dashboard`);
       }
     } catch (error) {
       showError("An error occurred.");
@@ -90,28 +110,10 @@ export default function CreateOrganizationPage() {
   };
   // =============================/for form=============================
 
-  if (
-    isLoadingSubscription ||
-    isLoadingOrganization ||
-    hasSubscription === undefined ||
-    ownOrgId === undefined
-  ) {
-    return <LoadingSpinner />;
-  }
-
-  if (hasSubscription === false) {
-    redirect("/subscription");
-  }
-
-  if (ownOrgId) {
-    redirect(`/orgs${ownOrgId}`);
-  }
-
   return (
     <div>
       <Form action={handleSubmit} formTitle="organization">
         <FormField
-          label="Organization Name"
           name="orgName"
           type="text"
           placeholder="Org 1"
@@ -120,13 +122,7 @@ export default function CreateOrganizationPage() {
           required
           className="border w-full p-2"
         />
-        <Dropdown
-          name="orgCountry"
-          value={formData.orgCountry}
-          onChange={handleChange}
-          label="Country"
-          required
-        >
+        <Dropdown name="orgCountry" value={formData.orgCountry} onChange={handleChange} required>
           <option value="">Select Country</option>
           {sortedCountries.map((c: Country) => (
             <option key={c.iso} value={c.iso}>
@@ -135,7 +131,6 @@ export default function CreateOrganizationPage() {
           ))}
         </Dropdown>
         <FormField
-          label="Province / State"
           name="orgProvince"
           type="text"
           placeholder="Province / State"
@@ -159,7 +154,6 @@ export default function CreateOrganizationPage() {
           no province
         </Button>
         <FormField
-          label="City"
           name="orgCity"
           type="text"
           placeholder="City"
@@ -169,10 +163,9 @@ export default function CreateOrganizationPage() {
           className="border w-full p-2"
         />
         <FormField
-          label="URL"
           name="url"
           type="text"
-          placeholder="https://..."
+          placeholder="Your website URL"
           value={formData.url}
           onChange={handleChange}
           className="border w-full p-2"

@@ -3,6 +3,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { hasSubscription } from "@/shared-hooks/server/has-subscription";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 function isValidUrl(urlString: string): boolean {
   try {
@@ -112,6 +113,6 @@ export async function createOrganization(formData: FormData) {
     await supabase.from("organizations").delete().eq("id", orgInsertData.id);
     return { error: orgMemberDataError.message };
   }
-  revalidatePath("/dashboard");
-  return { success: true };
+  revalidatePath(`/orgs/${orgInsertData.id}/dashboard`);
+  return { success: true, orgId: orgInsertData.id };
 }

@@ -19,6 +19,7 @@ export async function hasSubscription(): Promise<boolean> {
     .select("id")
     .eq("user_id", user.id)
     .in("status", ["active", "free"])
+    .eq("payment_status", "paid")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();

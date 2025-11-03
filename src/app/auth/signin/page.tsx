@@ -50,7 +50,7 @@ export default function SigninPage() {
       }
 
       if (res?.success) {
-        router.push("/");
+        router.push("/orgs");
       }
     } catch (error) {
       showError(`Sign in error: ${error}`);

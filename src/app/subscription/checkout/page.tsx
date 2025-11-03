@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { selectPlan } from "../plan-selection";
 import { PlanName } from "@/types/database/plan";
+import { updatePaymentStatus } from "../subscription-management";
 import { useOwnOrganization } from "@/shared-hooks/client/useOwnOrganization";
 
 // ui
@@ -47,13 +48,21 @@ export default function CheckoutPage() {
       // 지금은 시뮬레이션
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // 결제 성공 후 플랜 저장
+      // 결제 후 플랜 저장
       const result = await selectPlan(supabase, userId, plan);
 
       if (result.success) {
         await queryClient.invalidateQueries({
           queryKey: ["subscription"],
         });
+
+        // 결제 성공 업데이트 실제로는 결제 성공했을때 실행되도록 수정해야 됨됨
+        const { success, error } = await updatePaymentStatus(supabase, userId, "paid");
+
+        if (!success) {
+          console.error("Payment status update failed:", error);
+          throw new Error(error || "Failed to update payment status");
+        }
 
         showSuccess("Payment successful! Plan activated.");
         window.location.href = orgId ? `/orgs/${orgId}` : "/orgs/create-organization";

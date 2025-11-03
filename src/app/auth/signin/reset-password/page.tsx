@@ -31,7 +31,7 @@ export default function UpdatePasswordPage() {
       }
       if (error) {
         showError("Failed to send reset password: " + error.message);
-      } else {  
+      } else {
         showSuccess("Password is successfully reset. Check your email.");
       }
     } catch (err) {

@@ -5,8 +5,7 @@ import { Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 
 // contexts
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { GlobalProviders } from "@/contexts/GlobalProviders";
+import { PublicProviders } from "@/contexts/PublicProviders";
 
 // components
 import ScrollToTop from "../components/ScrollToTop";
@@ -32,7 +31,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
         <Suspense>
-          <GlobalProviders>{children}</GlobalProviders>
+          <PublicProviders>{children}</PublicProviders>
           <Toaster />
           <ScrollToTop />
           <ThemeToggle />

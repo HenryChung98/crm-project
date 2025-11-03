@@ -42,7 +42,7 @@ export default function ResetPasswordPage() {
         password: formData.password,
       });
       if (resetData) {
-        router.push("/auth/signin");
+        router.replace("/auth/signin");
       }
     } catch (err) {
       showError(`Reset password error: ${err}`);

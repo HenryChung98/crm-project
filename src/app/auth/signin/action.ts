@@ -49,7 +49,6 @@ export async function signIn(formData: FormData) {
       return { success: false, error: signInError.message };
     }
 
-    // 성공시 revalidate만 하고 redirect는 클라이언트에서 처리
     revalidatePath("/", "layout");
 
     return { success: true };

@@ -29,7 +29,7 @@ const createQueryClient = () =>
     },
   });
 
-export function GlobalProviders({ children }: { children: React.ReactNode }) {
+export function PublicProviders({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => createQueryClient());
 
   return (
