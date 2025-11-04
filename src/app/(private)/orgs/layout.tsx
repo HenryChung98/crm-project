@@ -20,7 +20,7 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
 function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
   const {
     currentOrganizationId,
-    organizations,
+    allOrganizations,
     orgMemberLoading,
     switchOrganization,
   } = useOrganization();
@@ -34,7 +34,7 @@ function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <>
       <CRMSidebar
-        organizations={organizations}
+        organizations={allOrganizations}
         currentOrg={currentOrganizationId}
         currentOrgPlan={plan}
         onOrgChange={switchOrganization}

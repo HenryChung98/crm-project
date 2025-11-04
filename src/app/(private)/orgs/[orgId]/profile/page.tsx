@@ -1,7 +1,14 @@
 "use client";
 import { useAuth } from "@/contexts/AuthContext";
+import Link from "next/link";
+
 export default function ProfilePage() {
   const { user, loading } = useAuth();
 
-  return <>{user?.first_name}</>;
+  return (
+    <>
+      <Link href={`profile/edit`}>edit</Link>
+      <div>{user?.email}</div>
+    </>
+  );
 }

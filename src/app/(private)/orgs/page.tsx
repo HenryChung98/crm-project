@@ -40,7 +40,7 @@ export default function OrgPage() {
     const has = await hasSubscription();
 
     if (own) {
-      router.push(`orgs/${own}/dashboard`);
+      router.push(`/orgs/${own}/dashboard`);
     } else if (has) {
       router.push("/orgs/create-organization");
     } else {

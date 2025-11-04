@@ -13,7 +13,8 @@ import { useUserOrganizations } from "@/shared-hooks/useOrganizationMembers";
 
 interface OrganizationContextType {
   currentOrganizationId: string;
-  organizations: OrganizationMembers[];
+  allOrganizations: OrganizationMembers[];
+  member: OrganizationMembers | null;
   orgMemberLoading: boolean;
   switchOrganization: (orgId: string) => void;
 }
@@ -37,6 +38,9 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
     `id, organization_id, role, organizations:organization_id(name)`
   );
 
+  // to get organization member of current
+  const orgMember = orgMembers.find((member) => member.organization_id === currentOrganizationId);
+
   // define first organization for default organization
   const firstOrganizationId = useMemo(() => orgMembers?.[0]?.organization_id || "", [orgMembers]);
 
@@ -53,7 +57,11 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
   // Check if redirect is needed (accessing /orgs root or missing orgId in URL)
   const shouldRedirect = useMemo(() => {
     if (orgMemberLoading || !firstOrganizationId) return false;
+
+    // these paths are allowed to access with no organization
     if (pathname.startsWith("/orgs/create-organization")) return false;
+    if (pathname.startsWith("/orgs/invitation")) return false;
+
     return (firstOrganizationId && pathname === "/orgs") || !currentOrganizationId;
   }, [orgMemberLoading, firstOrganizationId, pathname, currentOrganizationId]);
 
@@ -73,10 +81,14 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
       return;
     }
 
-    // if user doesn't have organization, redirect to /orgs
+    // if user doesn't have organization and trying to access [orgId] pages
     if (!firstOrganizationId && pathname.startsWith("/orgs/")) {
-      router.replace("/orgs");
-      return;
+      const allowedPaths = ["/orgs/create-organization", "/orgs/invitation"];
+      const isAllowedPath = allowedPaths.some((path) => pathname.startsWith(path));
+
+      if (!isAllowedPath) {
+        notFound();
+      }
     }
   }, [orgMemberLoading, pathname, currentOrganizationId, firstOrganizationId, router]);
   // ============================================================================
@@ -84,7 +96,8 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
   const value = useMemo(
     () => ({
       currentOrganizationId,
-      organizations: orgMembers,
+      allOrganizations: orgMembers,
+      member: orgMember ?? null,
       orgMemberLoading,
       switchOrganization,
     }),
@@ -114,6 +127,7 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
     return <LoadingSpinner />;
   }
 
+  // if user has an organization, but trying to access another organization
   if (currentOrganizationId && !hasAccessToCurrentOrg && firstOrganizationId) {
     notFound();
   }

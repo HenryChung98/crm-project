@@ -4,11 +4,7 @@ import Link from "next/link";
 import { SignOutButton } from "@/components/SignOutButton";
 
 export default function DashboardPage() {
-  const { currentOrganizationId, organizations } = useOrganization();
-
-  const currentOrg = organizations.find(
-    (member) => member.organization_id === currentOrganizationId
-  );
+  const { currentOrganizationId, member } = useOrganization();
 
   return (
     <>
@@ -16,8 +12,8 @@ export default function DashboardPage() {
       <SignOutButton />
 
       <div>{currentOrganizationId} dashboard page</div>
-      <div>{currentOrg?.organizations?.name} dashboard page</div>
-      <div>{currentOrg?.role} dashboard page</div>
+      <div>{member?.organizations?.name} dashboard page</div>
+      <div>{member?.role} dashboard page</div>
 
       {/* <ul>
         {organizations.map((member) => (

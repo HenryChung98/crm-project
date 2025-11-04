@@ -95,7 +95,7 @@ export default function CRMSidebar({
           {isOwner && (
             <Link
               className="border border-border rounded p-2 block text-center"
-              href={`/orgs/${currentOrg}/organizations/manage`}
+              href={`/orgs/${currentOrg}/members`}
             >
               manage organization
             </Link>
