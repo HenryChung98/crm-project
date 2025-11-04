@@ -78,12 +78,7 @@ export default function CreateOrganizationPage() {
     }
   }, [hasSubscription, ownOrgId, router]);
 
-  if (
-    isLoadingSubscription ||
-    isLoadingOrganization ||
-    hasSubscription === undefined ||
-    ownOrgId === undefined
-  ) {
+  if (isLoadingSubscription || isLoadingOrganization) {
     return <LoadingSpinner />;
   }
   // =============================for form=============================

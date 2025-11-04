@@ -59,6 +59,7 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
   // Check if redirect is needed (accessing /orgs root or missing orgId in URL)
   const shouldRedirect = useMemo(() => {
     if (orgMemberLoading || planLoading || !firstOrganizationId) return false;
+    if (pathname.startsWith("/orgs/create-organization")) return false;
     return (firstOrganizationId && pathname === "/orgs") || !currentOrganizationId;
   }, [orgMemberLoading, planLoading, firstOrganizationId, pathname, currentOrganizationId]);
 
