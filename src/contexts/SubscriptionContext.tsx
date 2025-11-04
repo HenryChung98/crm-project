@@ -1,7 +1,8 @@
 "use client";
 import { createContext, useContext, useMemo, useCallback, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCheckPlan } from "@/shared-hooks/useCheckPlan";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 interface SubscriptionContextType {
   plan: "free" | "active" | "premium" | undefined;
@@ -16,6 +17,7 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
 
 export const SubscriptionProvider = ({ children }: { children: React.ReactNode }) => {
   const params = useParams();
+  const router = useRouter();
 
   // get current organization id from params
   const currentOrganizationId = (params.orgId as string) ?? "";
@@ -23,9 +25,22 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
   // get plan from subscriptions
   const { data: plan, isLoading: planLoading } = useCheckPlan(currentOrganizationId);
 
+  const shouldRedirect =
+    plan?.subscription.payment_status !== "paid" || plan?.subscription.status !== "active";
+    
   useEffect(() => {
-    if (planLoading) return;
-  }, [planLoading]);
+    if (planLoading || !plan) return;
+
+    if (plan.subscription.status === "free") return;
+
+    if (shouldRedirect) {
+      router.push(`/subscription`);
+    }
+
+    if (plan.subscription.ends_at && new Date(plan.subscription.ends_at) < new Date()) {
+      console.log("plan is expired. payment is required");
+    }
+  }, [planLoading, plan?.subscription.status, plan?.subscription.payment_status, router]);
 
   const value = useMemo(
     () => ({
@@ -37,6 +52,9 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     }),
     [plan, planLoading]
   );
+  if (shouldRedirect) {
+    return <LoadingSpinner />;
+  }
 
   return <SubscriptionContext.Provider value={value}>{children}</SubscriptionContext.Provider>;
 };

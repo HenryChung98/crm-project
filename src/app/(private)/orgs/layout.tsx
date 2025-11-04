@@ -26,7 +26,6 @@ function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
   } = useOrganization();
   const { plan, planLoading } = useSubscription();
   const { isCollapsed, toggleSidebar } = useSidebar();
-  // const planName = usePlan(currentOrganizationId);
 
   if (orgMemberLoading || planLoading) {
     return <LoadingSpinner />;

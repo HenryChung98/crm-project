@@ -3,7 +3,7 @@
 import { createContext, useContext, useCallback, useEffect, useMemo } from "react";
 import { useRouter, useParams, usePathname } from "next/navigation";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-
+import { notFound } from "next/navigation";
 // types
 import { OrganizationMembers } from "../types/database/organizations";
 import { EMPTY_ARRAY } from "../types/customData";
@@ -88,13 +88,7 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
       orgMemberLoading,
       switchOrganization,
     }),
-    [
-      currentOrganizationId,
-      firstOrganizationId,
-      orgMembers,
-      orgMemberLoading,
-      switchOrganization,
-    ]
+    [currentOrganizationId, firstOrganizationId, orgMembers, orgMemberLoading, switchOrganization]
   );
 
   if (orgMemberError) {
@@ -121,13 +115,7 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
   }
 
   if (currentOrganizationId && !hasAccessToCurrentOrg && firstOrganizationId) {
-    return (
-      <>
-        <div>404 page</div>
-        <div>access denied</div>
-        <button onClick={() => router.back()}>go back</button>
-      </>
-    );
+    notFound();
   }
   return <OrganizationContext.Provider value={value}>{children}</OrganizationContext.Provider>;
 };
