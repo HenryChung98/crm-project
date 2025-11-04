@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/Button";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { showSuccess, showError } from "@/shared-utils/feedback";
-import { QueryErrorBanner } from "@/components/QueryErrorBanner";
+import { QueryErrorBanner } from "@/components/ui/QueryErrorBanner";
 
 interface OrganizationFormData {
   orgName: string;

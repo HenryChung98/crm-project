@@ -14,8 +14,6 @@ export const useUserOrganizations = <T = OrganizationMembers>(select?: string): 
   const result = useQuery({
     queryKey: ["organizationMembers", "user", select || "*"],
     queryFn: () => getUserOrganizations(select),
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
     retry: (failureCount, error: NetworkError) => {
       if (error?.code === "PGRST301") return false;
       return failureCount < 3;
@@ -49,8 +47,6 @@ export const useAdminOrganizations = <T = OrganizationMembers>(
     ],
     queryFn: () => getAdminOrganizations(orgId, requiredRoles, select),
     enabled: !!orgId && requiredRoles.length > 0 && options.enabled !== false,
-    staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: false,
     retry: (failureCount, error: Error) => {
       if (error.message?.includes("permission required")) return false;
       return failureCount < 2;
@@ -76,14 +72,12 @@ export const usePrefetchOrganizations = () => {
       await queryClient.prefetchQuery({
         queryKey: ["organizationMembers", "org", orgId],
         queryFn: () => getAdminOrganizations(orgId, ["owner", "admin"]),
-        staleTime: 2 * 60 * 1000,
       });
     } else {
       // 사용자의 모든 조직 멤버십 프리페칭
       await queryClient.prefetchQuery({
         queryKey: ["organizationMembers", "user"],
         queryFn: () => getUserOrganizations(),
-        staleTime: 5 * 60 * 1000,
       });
     }
   };

@@ -31,8 +31,6 @@ type OrgPlanResult = {
 };
 
 const queryOptions = {
-  staleTime: 1000 * 60 * 5,
-  refetchOnWindowFocus: true,
   retry: (failureCount: number, error: NetworkError) => {
     if (error?.code === "PGRST301") return false;
     return failureCount < 3;
@@ -52,7 +50,6 @@ export const usePlan = (orgId: string): OrgPlanResult => {
     queryFn: () => checkUsage(orgId),
     enabled: !!orgId && !!planResult.data,
     staleTime: 1000 * 30,
-    refetchOnWindowFocus: true,
     retry: queryOptions.retry,
   });
 

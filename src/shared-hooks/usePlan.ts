@@ -10,14 +10,6 @@ import { checkUsage } from "../shared-utils/server/check-usage";
 import { checkPlan } from "../shared-utils/server/check-plan";
 
 // ====================================== helpers ======================================
-const queryOptions = {
-  staleTime: 1000 * 60 * 5,
-  refetchOnWindowFocus: true,
-  retry: (failureCount: number, error: NetworkError) => {
-    if (error?.code === "PGRST301") return false;
-    return failureCount < 3;
-  },
-};
 
 // check organization plan
 export const useOrgPlan = (orgId: string) => {
@@ -25,7 +17,10 @@ export const useOrgPlan = (orgId: string) => {
     queryKey: ["plans", "org", orgId],
     queryFn: () => checkPlan(orgId),
     enabled: !!orgId,
-    ...queryOptions,
+    retry: (failureCount: number, error: NetworkError) => {
+      if (error?.code === "PGRST301") return false;
+      return failureCount < 3;
+    },
   });
 };
 
@@ -35,8 +30,6 @@ export const useOrgUsage = (orgId: string, enabled: boolean = true) => {
     queryKey: ["usage", "org", orgId],
     queryFn: () => checkUsage(orgId),
     enabled: !!orgId && enabled,
-    staleTime: 1000 * 30,
-    refetchOnWindowFocus: true,
     retry: (failureCount: number, error: NetworkError) => {
       if (error?.code === "PGRST301") return false;
       return failureCount < 3;

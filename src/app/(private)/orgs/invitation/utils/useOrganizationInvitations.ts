@@ -16,7 +16,6 @@ export const useInvitationCheck = <T = OrganizationInvitations>(): QueryResult<T
     ],
     queryFn: async () => checkInvitation(),
     staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
     retry: (failureCount, error: NetworkError) => {
       if (error?.code === "PGRST301") return false;
       return failureCount < 3;

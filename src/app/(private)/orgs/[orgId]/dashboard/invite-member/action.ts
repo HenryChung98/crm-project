@@ -3,7 +3,7 @@ import { createAdminClient } from "@/shared-utils/supabase/server";
 import { requireOrgAccess } from "@/shared-utils/server/org-access";
 import { Resend } from "resend";
 import { InvitationEmail } from "@/components/resend-components/templates/InvitationEmail";
-// import { validateResourceCreation } from "../../../../../utils/validation";
+import { validateResourceCreation } from "@/shared-utils/validation";
 
 export async function inviteUser(formData: FormData) {
   const invitedEmail = formData.get("email")?.toString().trim();
@@ -13,14 +13,14 @@ export async function inviteUser(formData: FormData) {
     const { orgMember, supabase, user } = await requireOrgAccess(orgId, ["owner", "admin"]);
 
     // ========================================== check plan ==========================================
-    // const validation = await validateResourceCreation({
-    //   orgId: orgId!,
-    //   orgMember,
-    //   resourceType: "users",
-    // });
-    // if (!validation.success) {
-    //   return { error: validation.error };
-    // }
+    const validation = await validateResourceCreation({
+      orgId: orgId!,
+      orgMember,
+      resourceType: "users",
+    });
+    if (!validation.success) {
+      return { error: validation.error };
+    }
     // ========================================== /check plan ==========================================
     if (!invitedEmail || !orgId) {
       return { error: "Email and organization are required." };

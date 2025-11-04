@@ -18,9 +18,6 @@ export const useOwnOrganization = (): HasResult => {
     //   return Boolean(json?.has);
     // },
     queryFn: () => ownOrganization(),
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
     retry: 1,
   });
 

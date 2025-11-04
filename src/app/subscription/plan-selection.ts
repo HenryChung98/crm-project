@@ -59,7 +59,7 @@ const updateSubscription = async (
       plan_id: planId,
       status: targetPlan === "free" ? "free" : "active",
       starts_at: new Date().toISOString(),
-      ends_at: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+      ends_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(),
       payment_status: targetPlan === "free" ? "paid" : "pending",
     };
 

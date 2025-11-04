@@ -7,7 +7,7 @@ import { OrganizationInvitations } from "@/types/database/organizations";
 import { EMPTY_ARRAY } from "@/types/customData";
 
 // ui
-import { QueryErrorBanner } from "@/components/QueryErrorBanner";
+import { QueryErrorBanner } from "@/components/ui/QueryErrorBanner";
 
 export default function InvitationPage() {
   const {
