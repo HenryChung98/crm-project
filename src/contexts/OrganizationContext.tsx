@@ -2,16 +2,22 @@
 
 import { createContext, useContext, useCallback, useEffect, useMemo } from "react";
 import { useRouter, useParams, usePathname } from "next/navigation";
-import { useUserOrganizations } from "@/shared-hooks/useOrganizationMembers";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+
+// types
 import { OrganizationMembers } from "../types/database/organizations";
 import { EMPTY_ARRAY } from "../types/customData";
 
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+// custom hooks
+import { useUserOrganizations } from "@/shared-hooks/useOrganizationMembers";
+import { useCheckPlan } from "@/shared-hooks/useCheckPlan";
 
 interface OrganizationContextType {
   currentOrganizationId: string;
   organizations: OrganizationMembers[];
-  isLoading: boolean;
+  orgMemberLoading: boolean;
+  plan: string | undefined;
+  planLoading: boolean;
   switchOrganization: (orgId: string) => void;
 }
 
@@ -28,11 +34,14 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
   // get data from organization_members
   const {
     data: orgMembers = EMPTY_ARRAY,
-    isLoading,
-    error,
+    isLoading: orgMemberLoading,
+    error: orgMemberError,
   } = useUserOrganizations<OrganizationMembers>(
     `id, organization_id, role, organizations:organization_id(name)`
   );
+
+  // get plan from subscriptions
+  const { data: plan, isLoading: planLoading } = useCheckPlan(currentOrganizationId);
 
   // define first organization for default organization
   const firstOrganizationId = useMemo(() => orgMembers?.[0]?.organization_id || "", [orgMembers]);
@@ -49,39 +58,61 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
 
   // Check if redirect is needed (accessing /orgs root or missing orgId in URL)
   const shouldRedirect = useMemo(() => {
-    if (isLoading || !firstOrganizationId) return false;
+    if (orgMemberLoading || planLoading || !firstOrganizationId) return false;
     return (firstOrganizationId && pathname === "/orgs") || !currentOrganizationId;
-  }, [isLoading, firstOrganizationId, pathname, currentOrganizationId]);
+  }, [orgMemberLoading, planLoading, firstOrganizationId, pathname, currentOrganizationId]);
 
+  // check user has access to current organization
+  const hasAccessToCurrentOrg = useMemo(() => {
+    if (!currentOrganizationId) return false;
+    return orgMembers.some((member) => member.organization_id === currentOrganizationId);
+  }, [currentOrganizationId, orgMembers]);
+
+  // ============================================================================
   useEffect(() => {
-    if (isLoading || !firstOrganizationId) return;
+    if (orgMemberLoading || planLoading) return;
 
-    // if user is in orgs and has an organization
-    if (firstOrganizationId && pathname === "/orgs") {
+    // if user has an organization redirect to dashboard page
+    if (pathname === "/orgs" && firstOrganizationId) {
       router.replace(`/orgs/${firstOrganizationId}/dashboard`);
-    } else if (!currentOrganizationId) {
-      router.replace(`/orgs`);
+      return;
     }
-  }, [isLoading, currentOrganizationId, firstOrganizationId, router]);
+
+    // if user doesn't have organization, redirect to /orgs
+    if (!firstOrganizationId && pathname.startsWith("/orgs/")) {
+      router.replace("/orgs");
+      return;
+    }
+  }, [orgMemberLoading, planLoading, pathname, currentOrganizationId, firstOrganizationId, router]);
+  // ============================================================================
 
   const value = useMemo(
     () => ({
-      currentOrganizationId: currentOrganizationId || firstOrganizationId,
+      currentOrganizationId,
       organizations: orgMembers,
-      isLoading,
+      orgMemberLoading,
+      plan: plan?.plans.name,
+      planLoading,
       switchOrganization,
     }),
-    [currentOrganizationId, firstOrganizationId, orgMembers, isLoading, switchOrganization]
+    [
+      currentOrganizationId,
+      firstOrganizationId,
+      orgMembers,
+      orgMemberLoading,
+      planLoading,
+      switchOrganization,
+    ]
   );
 
-  if (error) {
+  if (orgMemberError) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">
             Failed to load organizations - Context Error
           </h2>
-          <p className="text-gray-600 mb-4">{error.message}</p>
+          <p className="text-gray-600 mb-4">{orgMemberError.message}</p>
           <button
             onClick={() => router.refresh()}
             className="px-4 py-2 bg-blue-600 text-white rounded"
@@ -95,6 +126,16 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
 
   if (shouldRedirect) {
     return <LoadingSpinner />;
+  }
+
+  if (currentOrganizationId && !hasAccessToCurrentOrg && firstOrganizationId) {
+    return (
+      <>
+        <div>404 page</div>
+        <div>access denied</div>
+        <button onClick={() => router.back()}>go back</button>
+      </>
+    );
   }
   return <OrganizationContext.Provider value={value}>{children}</OrganizationContext.Provider>;
 };

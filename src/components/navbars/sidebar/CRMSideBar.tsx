@@ -13,10 +13,12 @@ import { SignOutButton } from "@/components/SignOutButton";
 import { ToggleButton } from "./ToggleButton";
 import { UserProfile } from "./UserProfile";
 import { NavItem } from "./NavItem";
+import { BookingLinkModal } from "./BookingLinkModal";
 
 interface CRMSidebarProps {
   organizations: OrganizationMembers[];
   currentOrg: string;
+  currentOrgPlan: string | undefined;
   onOrgChange: (orgId: string) => void;
   onToggleSidebar: () => void;
 }
@@ -24,12 +26,13 @@ interface CRMSidebarProps {
 export default function CRMSidebar({
   organizations,
   currentOrg,
+  currentOrgPlan,
   onOrgChange,
   onToggleSidebar,
 }: CRMSidebarProps) {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState(new Set<string>());
-
+  const [showCopyModal, setShowCopyModal] = useState(false);
   const { isCollapsed } = useSidebar();
 
   const { crmNavItems, isOwner } = useMemo(() => {
@@ -72,14 +75,6 @@ export default function CRMSidebar({
 
   return (
     <>
-      {!isCollapsed && (
-        <div
-          className="fixed inset-0 bg-black z-40 md:hidden"
-          style={{ opacity: 0.5 }}
-          onClick={toggleSidebar}
-        />
-      )}
-
       <ToggleButton isCollapsed={isCollapsed} onClick={toggleSidebar} />
       <nav
         className={`
@@ -94,6 +89,7 @@ export default function CRMSidebar({
           currentOrg={currentOrg}
           onOrgChange={onOrgChange}
         />
+        <div>{currentOrgPlan}</div>
         <div className="space-y-2">
           <SignOutButton />
           {isOwner && (
@@ -103,6 +99,15 @@ export default function CRMSidebar({
             >
               manage organization
             </Link>
+          )}
+
+          {currentOrgPlan && currentOrgPlan !== "free" && (
+            <button
+              className="border border-border rounded p-2 w-full"
+              onClick={() => setShowCopyModal(true)}
+            >
+              Get Links
+            </button>
           )}
           {crmNavItems.map((item) => (
             <NavItem
@@ -115,6 +120,12 @@ export default function CRMSidebar({
           ))}
         </div>
       </nav>
+
+      <BookingLinkModal
+        isOpen={showCopyModal}
+        onClose={() => setShowCopyModal(false)}
+        currentOrgId={currentOrg}
+      />
     </>
   );
 }

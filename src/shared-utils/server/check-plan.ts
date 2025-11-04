@@ -1,3 +1,4 @@
+"use server";
 import { SubscribedPlan } from "../../types/database/plan";
 import { createClient } from "../supabase/server";
 

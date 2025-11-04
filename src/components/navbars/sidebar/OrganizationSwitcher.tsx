@@ -61,7 +61,7 @@ export const OrganizationSwitcher = ({
             >
               <div className="flex items-center">
                 <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center text-white text-sm font-medium mr-3">
-                  {org.organizations?.name?.charAt(0).toUpperCase() || "O"}
+                  {`${org.organizations?.name?.charAt(0).toUpperCase()}` || "O"}
                 </div>
                 <div className="text-left">
                   <p className="text-sm font-medium text-gray-900">
@@ -77,10 +77,12 @@ export const OrganizationSwitcher = ({
           ))}
 
           {/* buttons below the list */}
-          {orgId || (
+          {orgId ? (
+            ""
+          ) : (
             <div className="border-t border-gray-100 p-2">
               <Link
-                href="/organizations/create"
+                href="/orgs/create-organization"
                 className="block w-full p-2 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
                 onClick={closeDropdown}
                 prefetch={false}

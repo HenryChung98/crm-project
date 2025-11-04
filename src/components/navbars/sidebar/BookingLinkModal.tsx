@@ -11,10 +11,7 @@ export const BookingLinkModal = ({ isOpen, onClose, currentOrgId }: BookingLinkM
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
       <div
         className="p-6 rounded-lg max-w-md w-full bg-background"
         onClick={(e) => e.stopPropagation()}

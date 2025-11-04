@@ -21,7 +21,7 @@ export default function OrgPage() {
   const router = useRouter();
 
   // to prevents UI flicker (UX optimization)
-  const { isLoading } = useOrganization();
+  const { orgMemberLoading } = useOrganization();
 
   const {
     data: orgInvitations = EMPTY_ARRAY,
@@ -49,7 +49,7 @@ export default function OrgPage() {
   };
 
   // if organization context is loading
-  if (isLoading || isInvitationLoading) {
+  if (orgMemberLoading || isInvitationLoading) {
     return <LoadingSpinner />;
   }
 

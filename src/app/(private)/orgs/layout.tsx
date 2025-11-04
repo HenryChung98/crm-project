@@ -17,10 +17,18 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
 
 // ✅ Provider 안에서 사용
 function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
-  const { currentOrganizationId, organizations, isLoading, switchOrganization } = useOrganization();
+  const {
+    currentOrganizationId,
+    organizations,
+    orgMemberLoading,
+    plan,
+    planLoading,
+    switchOrganization,
+  } = useOrganization();
   const { isCollapsed, toggleSidebar } = useSidebar();
+  // const planName = usePlan(currentOrganizationId);
 
-  if (isLoading) {
+  if (orgMemberLoading || planLoading) {
     return <LoadingSpinner />;
   }
 
@@ -29,6 +37,7 @@ function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
       <CRMSidebar
         organizations={organizations}
         currentOrg={currentOrganizationId}
+        currentOrgPlan={plan}
         onOrgChange={switchOrganization}
         onToggleSidebar={toggleSidebar}
       />
