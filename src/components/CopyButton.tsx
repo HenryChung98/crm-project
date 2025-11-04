@@ -7,31 +7,26 @@ import { useState } from "react";
 export function CopyButton({
   text,
   label,
-  currentOrgId,
+  currentOrgPlan,
   basicPlanRequired = false,
   premiumPlanRequired = false,
 }: {
   text: string;
   label: string;
-  currentOrgId: string;
+  currentOrgPlan: string | undefined;
   basicPlanRequired?: boolean;
   premiumPlanRequired?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
-  // const { data: orgPlanData, isLoading: orgPlanLoading } = usePlan(currentOrgId);
 
   const handleCopy = async () => {
     try {
-      // if ((basicPlanRequired || premiumPlanRequired) && orgPlanLoading) {
-      //   showError("Please wait for plan to load");
-      //   return;
-      // }
-      // if (basicPlanRequired && orgPlanData?.plans.name !== "basic") {
-      //   throw new Error("You need to be on the basic plan to copy this link");
-      // }
-      // if (premiumPlanRequired && orgPlanData?.plans.name !== "premium") {
-      //   throw new Error("You need to be on the premium plan to copy this link");
-      // }
+      if (basicPlanRequired && currentOrgPlan !== "basic" && currentOrgPlan !== "premium") {
+        throw new Error("You need to be on the basic plan to copy this link");
+      }
+      if (premiumPlanRequired && currentOrgPlan !== "premium") {
+        throw new Error("You need to be on the premium plan to copy this link");
+      }
       await navigator.clipboard.writeText(text);
       setCopied(true);
       showSuccess("Link is successfully copied");

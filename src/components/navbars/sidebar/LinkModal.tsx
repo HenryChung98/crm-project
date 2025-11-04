@@ -5,13 +5,22 @@ interface BookingLinkModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentOrgId: string;
+  currentOrgPlan: string | undefined;
 }
 
-export const BookingLinkModal = ({ isOpen, onClose, currentOrgId }: BookingLinkModalProps) => {
+export const LinkModal = ({
+  isOpen,
+  onClose,
+  currentOrgId,
+  currentOrgPlan,
+}: BookingLinkModalProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={onClose}
+    >
       <div
         className="p-6 rounded-lg max-w-md w-full bg-background"
         onClick={(e) => e.stopPropagation()}
@@ -21,17 +30,19 @@ export const BookingLinkModal = ({ isOpen, onClose, currentOrgId }: BookingLinkM
           <CopyButton
             text={`${window.location.origin}/public/booking?org=${currentOrgId}&src=instagram`}
             label="Copy Instagram Booking Link"
-            currentOrgId={currentOrgId}
+            currentOrgPlan={currentOrgPlan}
+            basicPlanRequired
           />
           <CopyButton
             text={`${window.location.origin}/public/booking?org=${currentOrgId}&src=facebook`}
             label="Copy Facebook Booking Link"
-            currentOrgId={currentOrgId}
+            currentOrgPlan={currentOrgPlan}
+            premiumPlanRequired
           />
           <CopyButton
             text={`${window.location.origin}/v/${currentOrgId}?src=instagram`}
             label="Copy Instagram Tracking Link"
-            currentOrgId={currentOrgId}
+            currentOrgPlan={currentOrgPlan}
           />
           <Button variant="secondary" onClick={onClose}>
             Cancel

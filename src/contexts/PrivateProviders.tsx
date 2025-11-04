@@ -1,11 +1,14 @@
 "use client";
 import { OrganizationProvider } from "./OrganizationContext";
+import { SubscriptionProvider } from "./SubscriptionContext";
 import { SidebarProvider } from "./SidebarContext";
 
 export function PrivateProviders({ children }: { children: React.ReactNode }) {
   return (
     <OrganizationProvider>
-      <SidebarProvider>{children}</SidebarProvider>
+      <SubscriptionProvider>
+        <SidebarProvider>{children}</SidebarProvider>
+      </SubscriptionProvider>
     </OrganizationProvider>
   );
 }

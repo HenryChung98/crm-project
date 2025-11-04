@@ -10,14 +10,11 @@ import { EMPTY_ARRAY } from "../types/customData";
 
 // custom hooks
 import { useUserOrganizations } from "@/shared-hooks/useOrganizationMembers";
-import { useCheckPlan } from "@/shared-hooks/useCheckPlan";
 
 interface OrganizationContextType {
   currentOrganizationId: string;
   organizations: OrganizationMembers[];
   orgMemberLoading: boolean;
-  plan: string | undefined;
-  planLoading: boolean;
   switchOrganization: (orgId: string) => void;
 }
 
@@ -40,9 +37,6 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
     `id, organization_id, role, organizations:organization_id(name)`
   );
 
-  // get plan from subscriptions
-  const { data: plan, isLoading: planLoading } = useCheckPlan(currentOrganizationId);
-
   // define first organization for default organization
   const firstOrganizationId = useMemo(() => orgMembers?.[0]?.organization_id || "", [orgMembers]);
 
@@ -58,10 +52,10 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
 
   // Check if redirect is needed (accessing /orgs root or missing orgId in URL)
   const shouldRedirect = useMemo(() => {
-    if (orgMemberLoading || planLoading || !firstOrganizationId) return false;
+    if (orgMemberLoading || !firstOrganizationId) return false;
     if (pathname.startsWith("/orgs/create-organization")) return false;
     return (firstOrganizationId && pathname === "/orgs") || !currentOrganizationId;
-  }, [orgMemberLoading, planLoading, firstOrganizationId, pathname, currentOrganizationId]);
+  }, [orgMemberLoading, firstOrganizationId, pathname, currentOrganizationId]);
 
   // check user has access to current organization
   const hasAccessToCurrentOrg = useMemo(() => {
@@ -71,7 +65,7 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
 
   // ============================================================================
   useEffect(() => {
-    if (orgMemberLoading || planLoading) return;
+    if (orgMemberLoading) return;
 
     // if user has an organization redirect to dashboard page
     if (pathname === "/orgs" && firstOrganizationId) {
@@ -84,7 +78,7 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
       router.replace("/orgs");
       return;
     }
-  }, [orgMemberLoading, planLoading, pathname, currentOrganizationId, firstOrganizationId, router]);
+  }, [orgMemberLoading, pathname, currentOrganizationId, firstOrganizationId, router]);
   // ============================================================================
 
   const value = useMemo(
@@ -92,8 +86,6 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
       currentOrganizationId,
       organizations: orgMembers,
       orgMemberLoading,
-      plan: plan?.plans.name,
-      planLoading,
       switchOrganization,
     }),
     [
@@ -101,7 +93,6 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
       firstOrganizationId,
       orgMembers,
       orgMemberLoading,
-      planLoading,
       switchOrganization,
     ]
   );

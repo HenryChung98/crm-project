@@ -18,7 +18,7 @@ export interface SubscribedPlan {
     max_customers: number;
     max_organization_num: number;
     max_users: number;
-    name: string;
+    name: "free" | "active" | "premium";
     price_monthly: number;
     price_yearly: number;
     updated_at: string;

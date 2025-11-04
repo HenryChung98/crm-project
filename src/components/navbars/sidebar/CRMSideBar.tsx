@@ -13,7 +13,7 @@ import { SignOutButton } from "@/components/SignOutButton";
 import { ToggleButton } from "./ToggleButton";
 import { UserProfile } from "./UserProfile";
 import { NavItem } from "./NavItem";
-import { BookingLinkModal } from "./BookingLinkModal";
+import { LinkModal } from "./LinkModal";
 
 interface CRMSidebarProps {
   organizations: OrganizationMembers[];
@@ -121,10 +121,11 @@ export default function CRMSidebar({
         </div>
       </nav>
 
-      <BookingLinkModal
+      <LinkModal
         isOpen={showCopyModal}
         onClose={() => setShowCopyModal(false)}
         currentOrgId={currentOrg}
+        currentOrgPlan={currentOrgPlan}
       />
     </>
   );
