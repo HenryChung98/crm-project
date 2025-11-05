@@ -5,6 +5,8 @@ import { signUp } from "./action";
 import { BiShow, BiHide } from "react-icons/bi";
 import { useSearchParams } from "next/navigation";
 
+import { signInWithGoogle } from "../signin/signInWIthGoogle";
+
 // ui
 import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
@@ -28,23 +30,16 @@ export default function SignUpPage() {
     confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const searchParams = useSearchParams();
 
   useEffect(() => {
     const orgId = searchParams.get("org_id");
     const orgName = searchParams.get("org_name");
-    if (orgId) {
-      setFormData((prev) => ({
-        ...prev,
-        orgId: orgId,
-      }));
-    }
-    if (orgName) {
-      setFormData((prev) => ({
-        ...prev,
-        orgName: orgName,
-      }));
-    }
+
+    if (orgId) document.cookie = `pending_org_id=${orgId}; path=/; max-age=3600`;
+    if (orgName) document.cookie = `pending_org_name=${orgName}; path=/; max-age=3600`;
   }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,17 +48,19 @@ export default function SignUpPage() {
   };
 
   const handleSubmit = async (formData: FormData) => {
-    const orgId = searchParams.get("org_id");
-    const orgName = searchParams.get("org_name");
-    document.cookie = `pending_org_id=${orgId}; path=/; max-age=3600`;
-    document.cookie = `pending_org_name=${orgName}; path=/; max-age=3600`;
+    setIsLoading(true);
+    try {
+      const res = await signUp(formData);
 
-    const res = await signUp(formData);
-
-    if (res?.error) {
-      showError(res.error);
-    } else {
-      showSuccess("Sign up successful");
+      if (res?.error) {
+        showError(res.error);
+      } else {
+        showSuccess("Sign up successful");
+      }
+    } catch (error) {
+      showError(`Sign in error: ${error}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -120,9 +117,14 @@ export default function SignUpPage() {
         </button>
         <div className="flex flex-col gap-5">
           <Button type="submit"> Sign Up</Button>
+          <Button type="button" onClick={signInWithGoogle} variant="secondary" disabled={isLoading}>
+            Continue with Google
+          </Button>
           <p className="text-sm text-center mt-5 border-t pt-2">Already have an account?</p>
           <Link href="/auth/signin">
-            <Button type="button">Sign in</Button>
+            <Button type="button" disabled={isLoading}>
+              Sign in
+            </Button>
           </Link>
         </div>
       </Form>

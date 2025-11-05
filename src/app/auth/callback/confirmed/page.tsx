@@ -27,8 +27,8 @@ export default function AuthCallback() {
             ?.split("=")[1];
 
           // if user is invited
-          if (orgId) {
-            await acceptInvitation(orgId, orgName!);
+          if (orgId && orgName) {
+            await acceptInvitation(orgId, orgName);
 
             // delete cookies
             document.cookie = "pending_org_id=; path=/; max-age=0";

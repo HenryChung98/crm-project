@@ -73,6 +73,11 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // allow to render for handling cookies
+  if (currentPath === "/auth/callback/confirmed") {
+    return supabaseResponse;
+  }
+
   // if user is in root page or auth page, redirect to orgs
   if (user && (currentPath === "/" || isAuthPath)) {
     return NextResponse.redirect(new URL("/orgs", request.url));
@@ -88,4 +93,3 @@ export async function updateSession(request: NextRequest) {
 
   return supabaseResponse;
 }
-

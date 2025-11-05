@@ -49,6 +49,7 @@ need to setup after done
 - SMTP(mailtrap)
 - payment
 - edge functions
+- url configuration in supabase
 
 -->
 
