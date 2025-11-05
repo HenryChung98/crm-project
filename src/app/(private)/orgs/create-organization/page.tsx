@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 
 // custom hooks
-import { useHasSubscription } from "@/shared-hooks/useHasSubscription";
-import { useOwnOrganization } from "@/shared-hooks/useOwnOrganization";
+import { useHasSubscription } from "../subscription/utils/useHasSubscription";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 // ui
 import { Form } from "@/components/ui/Form";
@@ -45,7 +45,8 @@ export default function CreateOrganizationPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [noProvince, setNoProvince] = useState<boolean>(false);
-  const [ownOrg, setOwnOrg] = useState<boolean>(false);
+
+  const { orgMemberLoading, ownOrganization } = useOrganization();
 
   // check subscription
   const {
@@ -54,12 +55,6 @@ export default function CreateOrganizationPage() {
     error: hasSubscriptionError,
     refetch: hasSubscriptionRefetch,
   } = useHasSubscription();
-  const {
-    orgId: ownOrgId,
-    isLoading: isLoadingOrganization,
-    error: ownOrganizationError,
-    refetch: ownOrganizationRefetch,
-  } = useOwnOrganization();
 
   const [formData, setFormData] = useState<OrganizationFormData>({
     orgName: "",
@@ -72,16 +67,12 @@ export default function CreateOrganizationPage() {
 
   useEffect(() => {
     if (hasSubscription === false) {
-      router.push("/subscription");
+      router.push("/orgs/subscription");
       return;
     }
+  }, [hasSubscription, router]);
 
-    if (ownOrgId) {
-      setOwnOrg(true);
-    }
-  }, [hasSubscription, ownOrgId, router]);
-
-  if (isLoadingSubscription || isLoadingOrganization) {
+  if (isLoadingSubscription || orgMemberLoading) {
     return <LoadingSpinner />;
   }
   // =============================for form=============================
@@ -118,7 +109,7 @@ export default function CreateOrganizationPage() {
     }
   };
   // =============================/for form=============================
-  if (ownOrg) {
+  if (ownOrganization) {
     return (
       <AccessDenied
         title="Already own organization"
@@ -128,11 +119,8 @@ export default function CreateOrganizationPage() {
   }
   return (
     <div>
-      {hasSubscriptionError && (
+      {hasSubscriptionError && !ownOrganization && (
         <QueryErrorBanner data="check has subscription" onRetry={() => hasSubscriptionRefetch} />
-      )}
-      {ownOrganizationError && (
-        <QueryErrorBanner data="check own organization" onRetry={() => ownOrganizationRefetch} />
       )}
       {hasSubscription && (
         <Form action={handleSubmit} formTitle="organization">

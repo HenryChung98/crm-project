@@ -7,7 +7,7 @@ import {
   getPlanByName,
   SubscriptionData,
 } from "./subscription-management";
-import { PlanName, PaymentStatus } from "../../types/database/plan";
+import { PlanName, PaymentStatus } from "@/types/database/plan";
 
 export interface PlanActionResult {
   success: boolean;

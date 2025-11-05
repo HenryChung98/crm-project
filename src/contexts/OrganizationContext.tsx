@@ -9,12 +9,13 @@ import { OrganizationMembers } from "../types/database/organizations";
 import { EMPTY_ARRAY } from "../types/customData";
 
 // custom hooks
-import { useUserOrganizations } from "@/shared-hooks/useOrganizationMembers";
+import { useUserOrganizations } from "@/shared-hooks/useUserOrganizations";
 
 interface OrganizationContextType {
   currentOrganizationId: string;
   allOrganizations: OrganizationMembers[];
   member: OrganizationMembers | null;
+  ownOrganization: string | null;
   orgMemberLoading: boolean;
   switchOrganization: (orgId: string) => void;
 }
@@ -44,6 +45,9 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
   // define first organization for default organization
   const firstOrganizationId = useMemo(() => orgMembers?.[0]?.organization_id || "", [orgMembers]);
 
+  // define allowed path without belonging to an organization
+  const allowedPaths = ["/orgs/create-organization", "/orgs/invitation", "/orgs/subscription"];
+
   // switch organization function (for sidebar)
   const switchOrganization = useCallback(
     (orgId: string) => {
@@ -59,8 +63,7 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
     if (orgMemberLoading || !firstOrganizationId) return false;
 
     // these paths are allowed to access with no organization
-    if (pathname.startsWith("/orgs/create-organization")) return false;
-    if (pathname.startsWith("/orgs/invitation")) return false;
+    if (allowedPaths.some((path) => pathname.startsWith(path))) return false;
 
     return (firstOrganizationId && pathname === "/orgs") || !currentOrganizationId;
   }, [orgMemberLoading, firstOrganizationId, pathname, currentOrganizationId]);
@@ -70,6 +73,11 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
     if (!currentOrganizationId) return false;
     return orgMembers.some((member) => member.organization_id === currentOrganizationId);
   }, [currentOrganizationId, orgMembers]);
+
+  // if user has a role at least one "owner", set OwnOrg(true)
+  const ownOrg = useMemo(() => {
+    return orgMembers.find((member) => member.role === "owner")?.organization_id ?? null;
+  }, [orgMembers]);
 
   // ============================================================================
   useEffect(() => {
@@ -83,7 +91,6 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
 
     // if user doesn't have organization and trying to access [orgId] pages
     if (!firstOrganizationId && pathname.startsWith("/orgs/")) {
-      const allowedPaths = ["/orgs/create-organization", "/orgs/invitation"];
       const isAllowedPath = allowedPaths.some((path) => pathname.startsWith(path));
 
       if (!isAllowedPath) {
@@ -99,9 +106,17 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
       allOrganizations: orgMembers,
       member: orgMember ?? null,
       orgMemberLoading,
+      ownOrganization: ownOrg,
       switchOrganization,
     }),
-    [currentOrganizationId, firstOrganizationId, orgMembers, orgMemberLoading, switchOrganization]
+    [
+      currentOrganizationId,
+      firstOrganizationId,
+      orgMembers,
+      orgMemberLoading,
+      ownOrg,
+      switchOrganization,
+    ]
   );
 
   if (orgMemberError) {

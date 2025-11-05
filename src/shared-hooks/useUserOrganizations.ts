@@ -9,7 +9,7 @@ import { OrganizationMembers } from "../types/database/organizations";
 import { NetworkError } from "../types/errors";
 import { QueryResult } from "../types/customData";
 
-// 사용자가 속한 모든 조직 멤버십 조회 (네비바의 조직 목록용)
+// check all organizations that user belongs to
 export const useUserOrganizations = <T = OrganizationMembers>(select?: string): QueryResult<T> => {
   const result = useQuery({
     queryKey: ["organizationMembers", "user", select || "*"],
@@ -29,7 +29,7 @@ export const useUserOrganizations = <T = OrganizationMembers>(select?: string): 
   };
 };
 
-// 관리자 권한이 필요한 조직 멤버 목록 조회
+// for admin or owner
 export const useAdminOrganizations = <T = OrganizationMembers>(
   orgId: string,
   requiredRoles: ("owner" | "admin")[],

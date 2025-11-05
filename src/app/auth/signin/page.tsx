@@ -103,9 +103,11 @@ export default function SigninPage() {
               Continue with Google
             </Button>
             <p className="text-sm text-center mt-5 border-t pt-2">Don&apos;t have an account?</p>
-            <Button type="button" onClick={() => router.push("/auth/signup")} disabled={isLoading}>
-              Sign up
-            </Button>
+            <Link href="/auth/signup">
+              <Button type="button" disabled={isLoading}>
+                Sign up
+              </Button>
+            </Link>
           </div>
         </div>
       </Form>

@@ -9,7 +9,7 @@ import { EMPTY_ARRAY } from "@/types/customData";
 // ui
 import { QueryErrorBanner } from "@/components/ui/QueryErrorBanner";
 
-export default function InvitationPage() {
+export default function InvitationPage() { 
   const {
     data = EMPTY_ARRAY,
     isLoading,

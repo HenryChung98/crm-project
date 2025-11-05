@@ -24,7 +24,7 @@ function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
     orgMemberLoading,
     switchOrganization,
   } = useOrganization();
-  const { plan, planLoading } = useSubscription();
+  const { planData, planLoading } = useSubscription();
   const { isCollapsed, toggleSidebar } = useSidebar();
 
   if (orgMemberLoading || planLoading) {
@@ -36,7 +36,7 @@ function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
       <CRMSidebar
         organizations={allOrganizations}
         currentOrg={currentOrganizationId}
-        currentOrgPlan={plan}
+        currentOrgPlan={planData?.plans.name}
         onOrgChange={switchOrganization}
         onToggleSidebar={toggleSidebar}
       />

@@ -44,7 +44,7 @@ export default function OrgPage() {
     } else if (has) {
       router.push("/orgs/create-organization");
     } else {
-      router.push("/subscription");
+      router.push("/orgs/subscription");
     }
   };
 

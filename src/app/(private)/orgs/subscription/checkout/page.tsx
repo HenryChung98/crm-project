@@ -1,14 +1,18 @@
 "use client";
-import React, { useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { selectPlan } from "../plan-selection";
+import { updatePaymentStatus } from "../utils/subscription-management";
+import { selectPlan } from "../utils/plan-selection";
+
+// types
 import { PlanName } from "@/types/database/plan";
-import { updatePaymentStatus } from "../subscription-management";
-import { useOwnOrganization } from "@/shared-hooks/useOwnOrganization";
+
+// custom hooks
+import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 // ui
+import { Button } from "@/components/ui/Button";
 import { showError, showSuccess } from "@/shared-utils/feedback";
 import { useQueryClient } from "@tanstack/react-query";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -24,9 +28,9 @@ export default function CheckoutPage() {
   const plan = searchParams.get("plan") as PlanName;
   const userId = searchParams.get("userId");
 
-  const { orgId, isLoading, error } = useOwnOrganization();
+  const { ownOrganization, orgMemberLoading } = useOrganization();
 
-  if (isLoading) {
+  if (orgMemberLoading) {
     return <LoadingSpinner />;
   }
 
@@ -65,7 +69,9 @@ export default function CheckoutPage() {
         }
 
         showSuccess("Payment successful! Plan activated.");
-        window.location.href = orgId ? `/orgs/${orgId}/dashboard` : "/orgs/create-organization";
+        window.location.href = ownOrganization
+          ? `/orgs/${ownOrganization}/dashboard`
+          : "/orgs/create-organization";
       } else {
         showError("Payment processed but failed to activate plan");
       }
@@ -85,7 +91,7 @@ export default function CheckoutPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-xl font-semibold mb-4">Invalid checkout session</h1>
-          <Button onClick={() => router.replace("/subscription")}>Back to Plans</Button>
+          <Button onClick={() => router.replace("/orgs/subscription")}>Back to Plans</Button>
         </div>
       </div>
     );

@@ -1,15 +1,20 @@
 "use client";
-import React, { useState } from "react";
-import { Button } from "../../components/ui/Button";
-import { useAuth } from "../../contexts/AuthContext";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { selectPlan } from "./plan-selection";
-import { PlanName } from "../../types/database/plan";
 import { useQueryClient } from "@tanstack/react-query";
-import { useOwnOrganization } from "@/shared-hooks/useOwnOrganization";
+import { selectPlan } from "./utils/plan-selection";
+
+// types
+import { PlanName } from "@/types/database/plan";
+
+// customer hooks
+import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
+
 // ui
-import { showError, showSuccess } from "../../shared-utils/feedback";
-import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
+import { Button } from "@/components/ui/Button";
+import { showError, showSuccess } from "@/shared-utils/feedback";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export default function SubscriptionPage() {
   const { user, supabase } = useAuth();
@@ -17,9 +22,9 @@ export default function SubscriptionPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { orgId, isLoading, error } = useOwnOrganization();
+  const { ownOrganization, orgMemberLoading } = useOrganization();
 
-  if (isLoading) {
+  if (orgMemberLoading) {
     return <LoadingSpinner />;
   }
 
@@ -39,7 +44,9 @@ export default function SubscriptionPage() {
             queryKey: ["subscription"],
           });
           showSuccess("Free plan activated successfully");
-          window.location.href = orgId ? `/orgs/${orgId}/dashboard` : "/orgs/create-organization";
+          window.location.href = ownOrganization
+            ? `/orgs/${ownOrganization}/dashboard`
+            : "/orgs/create-organization";
         } else {
           showError(result.error || "Failed to select plan");
         }
@@ -55,7 +62,7 @@ export default function SubscriptionPage() {
       plan: planName,
       userId: user.id,
     });
-    router.push(`/subscription/checkout?${params.toString()}`);
+    router.push(`/orgs/subscription/checkout?${params.toString()}`);
   };
 
   const planDetails = {

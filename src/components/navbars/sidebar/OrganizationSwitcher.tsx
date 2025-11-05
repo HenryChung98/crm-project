@@ -2,7 +2,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { FiChevronDown, FiCheck } from "react-icons/fi";
 import { OrganizationMembers } from "../../../types/database/organizations";
-import { useOwnOrganization } from "@/shared-hooks/useOwnOrganization";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 interface OrganizationSwitcherProps {
   organizations: OrganizationMembers[];
@@ -23,7 +23,7 @@ export const OrganizationSwitcher = ({
   const currentOrgData = organizations.find((org) => org.organization_id === currentOrg);
   const currentOrgName = currentOrgData?.organizations?.name || "";
 
-  const { orgId } = useOwnOrganization();
+  const { ownOrganization } = useOrganization();
 
   return (
     <div className="relative mb-6">
@@ -77,7 +77,7 @@ export const OrganizationSwitcher = ({
           ))}
 
           {/* buttons below the list */}
-          {orgId ? (
+          {ownOrganization ? (
             ""
           ) : (
             <div className="border-t border-gray-100 p-2">

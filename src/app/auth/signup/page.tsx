@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { signUp } from "./action";
 import { BiShow, BiHide } from "react-icons/bi";
@@ -120,6 +120,10 @@ export default function SignUpPage() {
         </button>
         <div className="flex flex-col gap-5">
           <Button type="submit"> Sign Up</Button>
+          <p className="text-sm text-center mt-5 border-t pt-2">Already have an account?</p>
+          <Link href="/auth/signin">
+            <Button type="button">Sign in</Button>
+          </Link>
         </div>
       </Form>
     </>

@@ -2,12 +2,10 @@
 import { createContext, useContext, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { useCheckPlan } from "@/shared-hooks/useCheckPlan";
+import { SubscribedPlan } from "@/types/database/plan";
 
 interface SubscriptionContextType {
-  plan: "free" | "active" | "premium" | undefined;
-  status: "free" | "active" | "inactive" | "expired" | "canceled" | undefined;
-  paymentStatus: "paid" | "pending" | "failed" | "refunded" | undefined;
-  endsAt: string | undefined;
+  planData: SubscribedPlan | null | undefined;
   planLoading: boolean;
 }
 
@@ -30,7 +28,7 @@ const IssueModal = ({ issues }: { issues: SubscriptionIssue[] }) => {
           ))}
         </ul>
         <button
-          onClick={() => (window.location.href = "/subscription")}
+          onClick={() => (window.location.href = "/orgs/subscription")}
           className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
         >
           Go to Subscription Page or contact
@@ -89,10 +87,7 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
 
   const value = useMemo(
     () => ({
-      plan: plan?.plans.name,
-      status: plan?.subscription.status,
-      paymentStatus: plan?.subscription.payment_status,
-      endsAt: plan?.subscription.ends_at,
+      planData: plan,
       planLoading,
     }),
     [plan, planLoading]

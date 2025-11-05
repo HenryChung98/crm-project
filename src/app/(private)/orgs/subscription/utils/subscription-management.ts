@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { PlanName, SubscriptionStatus, PaymentStatus } from "../../types/database/plan";
+import { PlanName, SubscriptionStatus, PaymentStatus } from "@/types/database/plan";
 
 export interface SubscriptionData {
   user_id: string;

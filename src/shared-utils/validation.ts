@@ -158,7 +158,7 @@ export async function validateForUpdate(
   return validateSubscriptionExpiry(options);
 }
 
-/**
+/** 
  * 특정 플랜이 필요한 작업을 검증합니다.
  * @param orgId - 조직 ID
  * @param requiredPlan - 필요한 플랜 이름

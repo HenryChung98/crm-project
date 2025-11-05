@@ -61,7 +61,7 @@ export async function updateSession(request: NextRequest) {
     "/settings",
     "/organizations",
     "/sales",
-    "/subscription",
+    "/orgs/subscription",
   ];
 
   const isPublicPath =
