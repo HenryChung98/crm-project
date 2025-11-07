@@ -1,8 +1,9 @@
 "use server";
-import { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@/shared-utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
-export async function acceptInvitation(supabase: SupabaseClient, orgId: string, orgName: string) {
+export async function acceptInvitation(orgId: string, orgName: string) {
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
