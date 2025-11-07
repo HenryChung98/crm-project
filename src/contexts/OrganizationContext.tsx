@@ -5,7 +5,7 @@ import { useRouter, useParams, usePathname } from "next/navigation";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { notFound } from "next/navigation";
 // types
-import { OrganizationMembers } from "../types/database/organizations";
+import { OrganizationContextQuery } from "../types/database/organizations";
 import { EMPTY_ARRAY } from "../types/customData";
 
 // custom hooks
@@ -13,8 +13,8 @@ import { useUserOrganizations } from "@/shared-hooks/useUserOrganizations";
 
 interface OrganizationContextType {
   currentOrganizationId: string;
-  allOrganizations: OrganizationMembers[];
-  member: OrganizationMembers | null;
+  allOrganizations: OrganizationContextQuery[];
+  member: OrganizationContextQuery | null;
   ownOrganization: string | null;
   orgMemberLoading: boolean;
   switchOrganization: (orgId: string) => void;
@@ -35,8 +35,27 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
     data: orgMembers = EMPTY_ARRAY,
     isLoading: orgMemberLoading,
     error: orgMemberError,
-  } = useUserOrganizations<OrganizationMembers>(
-    `id, organization_id, role, organizations:organization_id(name)`
+  } = useUserOrganizations<OrganizationContextQuery>(
+    `
+  id,
+  organization_id,
+  organization_name,
+  role,
+  organizations:organization_id(
+    name,
+    url,
+    subscription:subscriptions(
+      id,
+      plan_id,
+      status,
+      ends_at,
+      payment_status,
+      plan:plans(
+        name
+      )
+    )
+  )
+`
   );
 
   // to get organization member of current

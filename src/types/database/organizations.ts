@@ -1,18 +1,22 @@
-export interface OrganizationMembers {
+export interface OrganizationContextQuery {
   id: string;
   organization_id: string;
   organization_name: string;
-  user_id: string;
-  invited_by: string;
   role: string;
-  created_at: string;
-  user_email: string;
   organizations: {
     name: string;
+    url: string; 
+    subscription: {
+      id: string;
+      plan_id: string;
+      status: "free" | "active" | "inactive" | "canceled" | "expired";
+      ends_at: string;
+      payment_status: "paid" | "pending" | "failed" | "refunded";
+      plan: {
+        name: string;
+      };
+    } | null;
   } | null;
-  subscriptions: {
-    plan_id: string | null;
-  };
 }
 
 export interface OrganizationInvitations {

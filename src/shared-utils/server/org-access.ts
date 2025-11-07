@@ -1,10 +1,10 @@
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "../supabase/server";
-import { OrganizationMembers } from "../../types/database/organizations";
+import { OrganizationContextQuery } from "../../types/database/organizations";
 
 export interface OrgAccessContext {
   user: User;
-  orgMember: OrganizationMembers;
+  orgMember: OrganizationContextQuery;
   supabase: Awaited<ReturnType<typeof createClient>>;
 }
 

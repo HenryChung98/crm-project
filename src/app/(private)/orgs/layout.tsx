@@ -36,7 +36,7 @@ function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
       <CRMSidebar
         organizations={allOrganizations}
         currentOrg={currentOrganizationId}
-        currentOrgPlan={planData?.plans.name}
+        currentOrgPlan={planData?.plan.name}
         onOrgChange={switchOrganization}
         onToggleSidebar={toggleSidebar}
       />

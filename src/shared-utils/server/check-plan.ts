@@ -1,8 +1,26 @@
 "use server";
-import { SubscribedPlan } from "../../types/database/plan";
+
 import { createClient } from "../supabase/server";
 
-export async function checkPlan(orgId?: string): Promise<SubscribedPlan | null> {
+export interface CheckPlanType {
+  id: string;
+  subscription: {
+    id: string;
+    plan_id: string;
+    status: "free" | "active" | "inactive" | "canceled" | "expired";
+    starts_at: string;
+    ends_at: string;
+    payment_status: "paid" | "pending" | "failed" | "refunded";
+    plan: {
+      name: string;
+      max_users: number;
+      max_customers: number;
+      email_sender: number;
+    };
+  };
+}
+
+export async function checkPlan(orgId?: string): Promise<CheckPlanType | null> {
   if (!orgId) return null;
 
   const supabase = await createClient();
@@ -16,41 +34,27 @@ export async function checkPlan(orgId?: string): Promise<SubscribedPlan | null> 
     throw new Error("Unauthorized");
   }
 
-  // check organization
-  const { data: org, error: orgFetchError } = await supabase
+  // get organizations, subscriptions, plans table
+  const { data, error } = await supabase
     .from("organizations")
-    .select("created_by")
+    .select("id, subscription:subscription_id(*, plan:plan_id(*))")
     .eq("id", orgId)
     .single();
 
-  if (orgFetchError || !org?.created_by) {
+  if (error) {
     throw new Error("Organization not found");
   }
 
-  // check owner's subscription's status
-  const { data: subscriptionData, error: subscriptionError } = await supabase
-    .from("subscriptions")
-    .select(`*, plans (*)`)
-    .eq("user_id", org.created_by)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (subscriptionError) throw subscriptionError;
-  if (!subscriptionData?.plans) {
-    throw new Error("No subscription found for organization owner");
+  // Validate the shape of 'data' before returning, converting subscription array to object if necessary
+  if (!data || !data.subscription || !data.id) {
+    throw new Error("Invalid data format from database");
   }
 
-  const planData = Array.isArray(subscriptionData.plans)
-    ? subscriptionData.plans[0]
-    : subscriptionData.plans;
-
-  if (!planData) {
-    throw new Error("Plan details not found for organization");
-  }
+  // Supabase may return "subscription" as an array due to join. If so, take the first element.
+  const subscription = Array.isArray(data.subscription) ? data.subscription[0] : data.subscription;
 
   return {
-    plans: planData,
-    subscription: subscriptionData,
-  } as SubscribedPlan;
+    id: data.id,
+    subscription: subscription,
+  };
 }

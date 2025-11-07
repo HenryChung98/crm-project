@@ -1,8 +1,7 @@
 "use client";
-import { createContext, useContext, useMemo } from "react";
-import { useParams } from "next/navigation";
-import { useCheckPlan } from "@/shared-hooks/useCheckPlan";
+import { createContext, useContext, useMemo, useEffect } from "react";
 import { SubscribedPlan } from "@/types/database/plan";
+import { useOrganization } from "./OrganizationContext";
 
 interface SubscriptionContextType {
   planData: SubscribedPlan | null | undefined;
@@ -42,20 +41,17 @@ const IssueModal = ({ issues }: { issues: SubscriptionIssue[] }) => {
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
 
 export const SubscriptionProvider = ({ children }: { children: React.ReactNode }) => {
-  const params = useParams();
-
-  // get current organization id from params
-  const currentOrganizationId = (params.orgId as string) ?? "";
-
-  // get plan from subscriptions
-  const { data: plan, isLoading: planLoading } = useCheckPlan(currentOrganizationId);
+  // get plan from subscriptions==========================================
+  const { member, orgMemberLoading: planLoading } = useOrganization();
+  const plan = member?.organizations?.subscription
+  console.log("plan", plan);
 
   // ========================= get subscription issue detail =========================
   const getSubscriptionIssues = (): SubscriptionIssue[] => {
-    if (!plan || plan.subscription.status === "free") return [];
+    if (!plan || plan.status === "free") return [];
 
     const issues: SubscriptionIssue[] = [];
-    const { payment_status, status, ends_at } = plan.subscription;
+    const { payment_status, status, ends_at } = plan;
 
     if (payment_status !== "paid") {
       issues.push({
@@ -85,6 +81,9 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
   };
   // =================================================================================
 
+  useEffect(() => {
+    if (planLoading) return;
+  }, [planLoading]);
   const value = useMemo(
     () => ({
       planData: plan,
@@ -95,8 +94,11 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
 
   const issues = getSubscriptionIssues();
 
+  // Ensure that the value provided matches the SubscriptionContextType,
+  // especially regarding the 'planData' property.
+  // If 'plan' lacks required fields (such as 'subscription'), adapt accordingly.
   return (
-    <SubscriptionContext.Provider value={value}>
+    <SubscriptionContext.Provider value={value as SubscriptionContextType}>
       {issues.length > 0 && <IssueModal issues={issues} />}
       {children}
     </SubscriptionContext.Provider>

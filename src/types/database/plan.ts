@@ -11,6 +11,21 @@ export interface Plan {
 }
 
 export interface SubscribedPlan {
+  id: string;
+  plan_id: string;
+  status: "free" | "active" | "inactive" | "canceled" | "expired";
+  starts_at: string;
+  ends_at: string;
+  payment_status: "paid" | "pending" | "failed" | "refunded";
+  plan: {
+    name: string;
+    max_users: number;
+    max_customers: number;
+    email_sender: number;
+  };
+}
+// this will be removed
+export interface SubscribedPlann {
   plans: {
     created_at: string;
     description: string;

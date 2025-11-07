@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { createOrganization } from "./action";
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 
 // custom hooks
 import { useHasSubscription } from "../subscription/utils/useHasSubscription";
@@ -43,14 +42,13 @@ const sortedCountries = countries.sort((a: Country, b: Country) => a.name.locale
 
 export default function CreateOrganizationPage() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [noProvince, setNoProvince] = useState<boolean>(false);
 
   const { orgMemberLoading, ownOrganization } = useOrganization();
 
   // check subscription
   const {
-    hasData: hasSubscription,
+    subscriptionId,
     isLoading: isLoadingSubscription,
     error: hasSubscriptionError,
     refetch: hasSubscriptionRefetch,
@@ -66,11 +64,12 @@ export default function CreateOrganizationPage() {
   const [buttonLoading, setButtonLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (hasSubscription === false) {
+    if (isLoadingSubscription) return;
+    if (!subscriptionId) {
       router.push("/orgs/subscription");
       return;
     }
-  }, [hasSubscription, router]);
+  }, [subscriptionId, router]);
 
   if (isLoadingSubscription || orgMemberLoading) {
     return <LoadingSpinner />;
@@ -90,22 +89,20 @@ export default function CreateOrganizationPage() {
   const handleSubmit = async (formData: FormData) => {
     setButtonLoading(true);
     try {
+      if (subscriptionId) {
+        formData.append("subscriptionId", subscriptionId);
+      }
       const res = await createOrganization(formData);
       if (res?.error) {
         showError(`Error: ${res.error}` || "Failed to create organization");
+        setButtonLoading(false);
       } else {
-        await queryClient.invalidateQueries({
-          queryKey: ["organizationMembers"],
-        });
-
         showSuccess("Organization successfully created");
         window.location.href = `/orgs/${res.orgId}/dashboard`;
         // router.push(`/orgs/${ownOrgId}/dashboard`);
       }
     } catch (error) {
       showError("An error occurred.");
-    } finally {
-      setButtonLoading(false);
     }
   };
   // =============================/for form=============================
@@ -122,7 +119,7 @@ export default function CreateOrganizationPage() {
       {hasSubscriptionError && !ownOrganization && (
         <QueryErrorBanner data="check has subscription" onRetry={() => hasSubscriptionRefetch} />
       )}
-      {hasSubscription && (
+      {subscriptionId && (
         <Form action={handleSubmit} formTitle="organization">
           <FormField
             name="orgName"

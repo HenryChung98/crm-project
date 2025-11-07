@@ -2,7 +2,7 @@
 
 import { createClient } from "../supabase/server";
 
-export async function hasSubscription(): Promise<boolean> {
+export async function hasSubscription(): Promise<string | null> {
   const supabase = await createClient();
 
   const {
@@ -26,10 +26,10 @@ export async function hasSubscription(): Promise<boolean> {
 
   if (error) {
     if (error.code === "PGRST116") {
-      return false;
+      return null;
     }
     throw error;
   }
 
-  return !!data;
+  return data?.id ?? null;
 }

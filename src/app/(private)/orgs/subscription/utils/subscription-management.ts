@@ -138,18 +138,28 @@ export const createSubscription = async (
   subscriptionData: SubscriptionData
 ): Promise<{ success: boolean; subscriptionId?: string; error?: string }> => {
   try {
-    const { data, error } = await supabase
+    const { data: subData, error: subError } = await supabase
       .from("subscriptions")
       .insert([subscriptionData])
       .select("*")
       .single();
- 
-    if (error) {
-      console.error("Error creating subscription:", error);
-      return { success: false, error: error.message };
+
+    if (subError) {
+      console.error("Error creating subscription:", subError);
+      return { success: false, error: subError.message };
     }
 
-    return { success: true, subscriptionId: data.id };
+    const { error: orgError } = await supabase
+      .from("organizations")
+      .update({ subscription_id: subData.id })
+      .eq("id", orgId);
+
+    if (orgError) {
+      console.error("Error updating organization's subscription:", orgError);
+      return { success: false, error: orgError.message };
+    }
+
+    return { success: true, subscriptionId: subData.id };
   } catch (error) {
     console.error("Error in createSubscription:", error);
     return {

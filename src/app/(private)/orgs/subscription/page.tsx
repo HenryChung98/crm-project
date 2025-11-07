@@ -30,7 +30,7 @@ export default function SubscriptionPage() {
 
   const handlePlanSelect = async (planName: PlanName) => {
     if (!user || !supabase) {
-      router.replace("auth/signin");
+      router.replace("/auth/signin");
       return;
     }
 

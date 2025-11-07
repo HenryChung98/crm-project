@@ -3,14 +3,14 @@ import {
   getUserOrganizations,
   getAdminOrganizations,
 } from "../shared-utils/server/organization-members";
-import { OrganizationMembers } from "../types/database/organizations";
+import { OrganizationContextQuery } from "../types/database/organizations";
 
 // type
 import { NetworkError } from "../types/errors";
 import { QueryResult } from "../types/customData";
 
 // check all organizations that user belongs to
-export const useUserOrganizations = <T = OrganizationMembers>(select?: string): QueryResult<T> => {
+export const useUserOrganizations = <T = OrganizationContextQuery>(select?: string): QueryResult<T> => {
   const result = useQuery({
     queryKey: ["organizationMembers", "user", select || "*"],
     queryFn: () => getUserOrganizations(select),
@@ -30,7 +30,7 @@ export const useUserOrganizations = <T = OrganizationMembers>(select?: string): 
 };
 
 // for admin or owner
-export const useAdminOrganizations = <T = OrganizationMembers>(
+export const useAdminOrganizations = <T = OrganizationContextQuery>(
   orgId: string,
   requiredRoles: ("owner" | "admin")[],
   select = "*",

@@ -1,10 +1,10 @@
 "use server";
 
 import { createClient } from "../supabase/server";
-import { OrganizationMembers } from "../../types/database/organizations";
+import { OrganizationContextQuery } from "../../types/database/organizations";
 import { SupabaseError } from "../../types/errors";
 
-export async function getUserOrganizations(select?: string): Promise<OrganizationMembers[]> {
+export async function getUserOrganizations(select?: string): Promise<OrganizationContextQuery[]> {
   const supabase = await createClient();
 
   const {
@@ -21,7 +21,7 @@ export async function getUserOrganizations(select?: string): Promise<Organizatio
     .select(select || "*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })) as {
-    data: OrganizationMembers[] | null;
+    data: OrganizationContextQuery[] | null;
     error: SupabaseError;
   };
 
@@ -33,7 +33,7 @@ export async function getAdminOrganizations(
   orgId: string,
   requiredRoles: ("owner" | "admin")[],
   select = "*"
-): Promise<OrganizationMembers[]> {
+): Promise<OrganizationContextQuery[]> {
   if (!orgId || requiredRoles.length === 0) {
     throw new Error("Organization ID and required roles are required");
   }
@@ -69,7 +69,7 @@ export async function getAdminOrganizations(
     .select(select)
     .eq("organization_id", orgId)
     .order("created_at", { ascending: false })) as {
-    data: OrganizationMembers[] | null;
+    data: OrganizationContextQuery[] | null;
     error: SupabaseError;
   };
 

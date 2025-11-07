@@ -1,6 +1,6 @@
 "use server";
 
-import { OrganizationMembers } from "../types/database/organizations";
+import { OrganizationContextQuery } from "../types/database/organizations";
 import { checkPlan } from "@/shared-utils/server/check-plan";
 import { checkUsage } from "@/shared-utils/server/check-usage";
 import type { User } from "@supabase/supabase-js";
@@ -12,7 +12,7 @@ export interface ValidationResult {
 
 export interface PlanValidationOptions {
   orgId: string;
-  orgMember: OrganizationMembers;
+  orgMember: OrganizationContextQuery;
   resourceType: "customers" | "users";
   customErrorMessage?: string;
   user?: User;
@@ -20,7 +20,7 @@ export interface PlanValidationOptions {
 
 export interface SubscriptionValidationOptions {
   orgId: string;
-  orgMember: OrganizationMembers;
+  orgMember: OrganizationContextQuery;
 }
 
 /**
@@ -35,7 +35,7 @@ export async function validateSubscriptionExpiry(
 
   try {
     const orgPlanData = await checkPlan(orgId);
-    if (!orgPlanData?.plans) {
+    if (!orgPlanData?.subscription.plan) {
       return { success: false, error: "Failed to get user plan data" };
     }
 
@@ -77,7 +77,7 @@ export async function validateResourceLimits(
   try {
     // get user's current plan using existing action
     const orgPlanData = await checkPlan(orgId);
-    if (!orgPlanData?.plans) {
+    if (!orgPlanData?.subscription.plan) {
       return { success: false, error: "Failed to get user plan data" };
     }
 
@@ -90,8 +90,8 @@ export async function validateResourceLimits(
     // check if user can create more resources
     const maxLimit =
       resourceType === "customers"
-        ? orgPlanData.plans.max_customers || 0
-        : orgPlanData.plans.max_users || 0;
+        ? orgPlanData.subscription.plan.max_customers || 0
+        : orgPlanData.subscription.plan.max_users || 0;
 
     const currentTotal =
       resourceType === "customers" ? currentUsage.customerTotal : currentUsage.userTotal;
@@ -128,20 +128,51 @@ export async function validateResourceLimits(
 export async function validateResourceCreation(
   options: PlanValidationOptions
 ): Promise<ValidationResult> {
-  // 1. 구독 만료 검증
-  const subscriptionValidation = await validateSubscriptionExpiry({
-    orgId: options.orgId,
-    orgMember: options.orgMember,
-  });
-
-  if (!subscriptionValidation.success) {
-    return subscriptionValidation;
+  // get organization.owner subscribed plan status
+  const orgPlanData = await checkPlan(options.orgId);
+  if (!orgPlanData?.subscription.plan) {
+    return { success: false, error: "Failed to get user plan data" };
   }
 
-  // 2. 리소스 한도 검증
-  const limitValidation = await validateResourceLimits(options);
-  if (!limitValidation.success) {
-    return limitValidation;
+  // check if expired
+  if (orgPlanData.subscription.status !== "free") {
+    const isExpired =
+      orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
+
+    if (isExpired) {
+      let errorMessage = `Your current organization plan is expired.`;
+      if (options.orgMember?.role === "owner") {
+        errorMessage += `\n\nAs the owner, you can renew your plan.`;
+      }
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  // get current usage
+  const currentUsage = await checkUsage(options.orgId);
+  if (!currentUsage) {
+    return { success: false, error: "Failed to get current usage data" };
+  }
+
+  const maxLimit =
+    options.resourceType === "customers"
+      ? orgPlanData.subscription.plan.max_customers || 0
+      : orgPlanData.subscription.plan.max_users || 0;
+
+  const currentTotal =
+    options.resourceType === "customers" ? currentUsage.customerTotal : currentUsage.userTotal;
+
+  if (currentTotal >= maxLimit) {
+    const resourceName = options.resourceType === "customers" ? "customers" : "users";
+    let errorMessage =
+      options.customErrorMessage ||
+      `User limit reached. Your current plan allows up to ${maxLimit} ${resourceName}.`;
+
+    if (options.orgMember?.role === "owner") {
+      errorMessage += `\n\nAs the owner, you can upgrade your plan to increase the limit.`;
+    }
+
+    return { success: false, error: errorMessage };
   }
 
   return { success: true };
@@ -158,7 +189,7 @@ export async function validateForUpdate(
   return validateSubscriptionExpiry(options);
 }
 
-/** 
+/**
  * 특정 플랜이 필요한 작업을 검증합니다.
  * @param orgId - 조직 ID
  * @param requiredPlan - 필요한 플랜 이름
@@ -170,11 +201,11 @@ export async function validatePlanAccess(
 ): Promise<ValidationResult> {
   try {
     const orgPlanData = await checkPlan(orgId);
-    if (!orgPlanData?.plans) {
+    if (!orgPlanData?.subscription.plan) {
       return { success: false, error: "Failed to get user plan data" };
     }
 
-    if (orgPlanData.plans.name !== requiredPlan) {
+    if (orgPlanData.subscription.plan.name !== requiredPlan) {
       return {
         success: false,
         error: `This feature requires ${requiredPlan} plan. Please upgrade your plan.`,

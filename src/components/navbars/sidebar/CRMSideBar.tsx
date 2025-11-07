@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { createCrmNavItems, NavItemType } from "./navigation";
 import { useSidebar } from "@/contexts/SidebarContext";
-import { OrganizationMembers } from "../../../types/database/organizations";
+import { OrganizationContextQuery } from "../../../types/database/organizations";
 
 // components
 import { OrganizationSwitcher } from "./OrganizationSwitcher";
@@ -16,7 +16,7 @@ import { NavItem } from "./NavItem";
 import { LinkModal } from "./LinkModal";
 
 interface CRMSidebarProps {
-  organizations: OrganizationMembers[];
+  organizations: OrganizationContextQuery[];
   currentOrg: string;
   currentOrgPlan: string | undefined;
   onOrgChange: (orgId: string) => void;

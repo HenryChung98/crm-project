@@ -4,8 +4,6 @@ import { useRouter } from "next/navigation";
 import { SignOutButton } from "@/components/SignOutButton";
 
 import { useOrganization } from "@/contexts/OrganizationContext";
-import { hasSubscription } from "@/shared-utils/server/has-subscription";
-import { ownOrganization } from "@/shared-utils/server/own-organization";
 import { useInvitationCheck } from "./invitation/utils/useOrganizationInvitations";
 
 //types
@@ -13,13 +11,10 @@ import { OrganizationInvitations } from "@/types/database/organizations";
 import { EMPTY_ARRAY } from "@/types/customData";
 
 // ui
-import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorBanner } from "@/components/ui/QueryErrorBanner";
 
 export default function OrgPage() {
-  const router = useRouter();
-
   // to prevents UI flicker (UX optimization)
   const { orgMemberLoading } = useOrganization();
 
@@ -31,22 +26,6 @@ export default function OrgPage() {
   } = useInvitationCheck<OrganizationInvitations>();
 
   const hasInvitations = orgInvitations.length > 0;
-
-  // create organization button function
-  const handleCreateOrganizationButton = async () => {
-    // check user own organization
-    const own = await ownOrganization();
-    // check user has subscription
-    const has = await hasSubscription();
-
-    if (own) {
-      router.push(`/orgs/${own}/dashboard`);
-    } else if (has) {
-      router.push("/orgs/create-organization");
-    } else {
-      router.push("/orgs/subscription");
-    }
-  };
 
   // if organization context is loading
   if (orgMemberLoading || isInvitationLoading) {
@@ -73,7 +52,7 @@ export default function OrgPage() {
         </h2>
         <p className="text-text-secondary text-lg">
           Please
-          <Button onClick={handleCreateOrganizationButton}>create</Button>
+          <Link href="/orgs/create-organization">create</Link>
           an organization
           <br />
           <SignOutButton />

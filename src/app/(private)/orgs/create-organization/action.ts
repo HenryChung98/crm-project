@@ -21,9 +21,10 @@ export async function createOrganization(formData: FormData) {
   const orgProvince = formData.get("orgProvince")?.toString().trim();
   const orgCity = formData.get("orgCity")?.toString().trim();
   const url = formData.get("url")?.toString().trim();
+  const subscriptionId = formData.get("subscriptionId")?.toString().trim();
 
   // check all fields
-  if (!orgName || !orgCountry || !orgCity) {
+  if (!orgName || !orgCountry || !orgCity || !subscriptionId) {
     return { error: "Organization's name, country, and city are required." };
   }
 
@@ -55,19 +56,6 @@ export async function createOrganization(formData: FormData) {
     return { error: "Unauthorized" };
   }
 
-  const { data: organizationExist } = await supabase
-    .from("organizations")
-    .select("id")
-    .eq("created_by", user.id)
-    .maybeSingle();
-
-  if (organizationExist) {
-    return {
-      success: false,
-      error: "You already have an organization. Only one organization per user is allowed.",
-    };
-  }
-
   // insert organization data to the table
   const orgData = {
     name: orgName,
@@ -76,6 +64,7 @@ export async function createOrganization(formData: FormData) {
     city: orgCity,
     created_by: user.id,
     url: url,
+    subscription_id: subscriptionId,
   };
 
   const { data: orgInsertData, error: orgDataError } = await supabase
@@ -86,7 +75,11 @@ export async function createOrganization(formData: FormData) {
 
   if (orgDataError) {
     if (orgDataError.code === "23505") {
-      // Unique violation
+      // unique_user_organization 위반
+      if (orgDataError.message.includes("created_by")) {
+        return { error: "You already have an organization." };
+      }
+      // 기존 name unique 위반
       return { error: "The organization name already exists." };
     }
     return { error: orgDataError.message };
