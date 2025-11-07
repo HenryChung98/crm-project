@@ -5,10 +5,7 @@ import { createClient } from "../supabase/server";
 export interface CheckPlanType {
   id: string;
   subscription: {
-    id: string;
-    plan_id: string;
     status: "free" | "active" | "inactive" | "canceled" | "expired";
-    starts_at: string;
     ends_at: string;
     payment_status: "paid" | "pending" | "failed" | "refunded";
     plan: {
@@ -37,7 +34,9 @@ export async function checkPlan(orgId?: string): Promise<CheckPlanType | null> {
   // get organizations, subscriptions, plans table
   const { data, error } = await supabase
     .from("organizations")
-    .select("id, subscription:subscription_id(*, plan:plan_id(*))")
+    .select(
+      "id, subscription:subscription_id(status, ends_at, payment_status, plan:plan_id(name, max_users, max_customers, email_sender))"
+    )
     .eq("id", orgId)
     .single();
 
@@ -53,8 +52,14 @@ export async function checkPlan(orgId?: string): Promise<CheckPlanType | null> {
   // Supabase may return "subscription" as an array due to join. If so, take the first element.
   const subscription = Array.isArray(data.subscription) ? data.subscription[0] : data.subscription;
 
+  // Handle the case where 'plan' might be an array and transform it to a single object
+  const plan = Array.isArray(subscription.plan) ? subscription.plan[0] : subscription.plan;
+
   return {
     id: data.id,
-    subscription: subscription,
+    subscription: {
+      ...subscription,
+      plan: plan,
+    },
   };
 }

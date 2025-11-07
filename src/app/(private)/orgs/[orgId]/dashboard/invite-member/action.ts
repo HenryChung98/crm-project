@@ -2,7 +2,7 @@
 import { requireOrgAccess } from "@/shared-utils/server/org-access";
 import { Resend } from "resend";
 import { InvitationEmail } from "@/components/resend-components/templates/InvitationEmail";
-import { validateResourceCreation } from "@/shared-utils/validation";
+import { validateMemberCreation } from "@/shared-utils/validation";
 
 export async function inviteUser(formData: FormData) {
   const invitedEmail = formData.get("email")?.toString().trim();
@@ -12,11 +12,7 @@ export async function inviteUser(formData: FormData) {
     const { orgMember, supabase, user } = await requireOrgAccess(orgId, ["owner", "admin"]);
 
     // ========================================== check plan ==========================================
-    const validation = await validateResourceCreation({
-      orgId: orgId!,
-      orgMember,
-      resourceType: "users",
-    });
+    const validation = await validateMemberCreation(orgId!);
     if (!validation.success) {
       return { error: validation.error };
     }

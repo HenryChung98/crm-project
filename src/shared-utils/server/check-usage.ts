@@ -1,33 +1,47 @@
 "use server";
 import { requireOrgAccess } from "@/shared-utils/server/org-access";
-import { createClient } from "../supabase/server";
 
-export interface Usage {
-  userTotal: number;
-  customerTotal: number;
-}
-
-export async function checkUsage(orgId: string): Promise<Usage | null> {
+export async function checkMemberUsage(orgId: string): Promise<number | null> {
   if (!orgId) return null;
 
   const { supabase } = await requireOrgAccess(orgId);
 
-  const [userTotalResult, customerTotalResult] = await Promise.all([
-    supabase
-      .from("organization_members")
-      .select("*", { count: "exact", head: true })
-      .eq("organization_id", orgId),
+  const { count, error } = await supabase
+    .from("organization_members")
+    .select("*", { count: "exact", head: true })
+    .eq("organization_id", orgId);
 
-    supabase
-      .from("customers")
-      .select("*", { count: "exact", head: true })
-      .eq("organization_id", orgId),
-  ]);
+  if (error) throw error;
 
-  if (userTotalResult.error) throw userTotalResult.error;
+  return count || 0;
+}
 
-  return {
-    userTotal: userTotalResult.count || 0,
-    customerTotal: customerTotalResult.count || 0,
-  };
+export async function checkCustomersUsage(orgId: string): Promise<number | null> {
+  if (!orgId) return null;
+
+  const { supabase } = await requireOrgAccess(orgId);
+
+  const { count, error } = await supabase
+    .from("customers")
+    .select("*", { count: "exact", head: true })
+    .eq("organization_id", orgId);
+
+  if (error) throw error;
+
+  return count || 0;
+}
+
+export async function checkEmailSenderUsage(orgId: string): Promise<number | null> {
+  if (!orgId) return null;
+
+  const { supabase } = await requireOrgAccess(orgId);
+
+  const { count, error } = await supabase
+    .from("customers")
+    .select("*", { count: "exact", head: true })
+    .eq("organization_id", orgId);
+
+  if (error) throw error;
+
+  return count || 0;
 }

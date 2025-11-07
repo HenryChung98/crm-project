@@ -43,8 +43,7 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
 export const SubscriptionProvider = ({ children }: { children: React.ReactNode }) => {
   // get plan from subscriptions==========================================
   const { member, orgMemberLoading: planLoading } = useOrganization();
-  const plan = member?.organizations?.subscription
-  console.log("plan", plan);
+  const plan = member?.organizations?.subscription;
 
   // ========================= get subscription issue detail =========================
   const getSubscriptionIssues = (): SubscriptionIssue[] => {
