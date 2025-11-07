@@ -13,7 +13,7 @@ import { BiShow, BiHide } from "react-icons/bi";
 import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
-import { showError } from "@/shared-utils/feedback";
+import { showError } from "@/components/feedback";
 
 interface SignInFormData {
   email: string;

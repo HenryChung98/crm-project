@@ -1,5 +1,5 @@
 "use client";
-import { showSuccess, showError } from "@/shared-utils/feedback";
+import { showSuccess, showError } from "@/components/feedback";
 import { Button } from "./ui/Button";
 import { useState } from "react";
 // import { usePlan } from "@/shared-hooks/usePlan";

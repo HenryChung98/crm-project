@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
-import { showSuccess, showError } from "@/shared-utils/feedback";
+import { showSuccess, showError } from "@/components/feedback";
 
 export default function EditProfilePage() {
   const { supabase, user } = useAuth();

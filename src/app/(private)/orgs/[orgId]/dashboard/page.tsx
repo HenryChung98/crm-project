@@ -15,6 +15,7 @@ export default function DashboardPage() {
   return (
     <>
       <Link href={`dashboard/invite-member`}>invite</Link>
+      <Link href={`/orgs/subscription`}>sub</Link>
       <SignOutButton />
 
       <div>{currentOrganizationId} dashboard page</div>

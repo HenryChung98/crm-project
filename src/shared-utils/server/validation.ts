@@ -1,6 +1,6 @@
 "use server";
 
-import { OrganizationContextQuery } from "../types/database/organizations";
+import { OrganizationContextQuery } from "../../types/database/organizations";
 import { checkPlan, CheckPlanType } from "@/shared-utils/server/check-plan";
 import { checkCustomersUsage, checkMemberUsage } from "@/shared-utils/server/check-usage";
 import type { User } from "@supabase/supabase-js";

@@ -1,19 +1,16 @@
 "use server";
 
 import { createClient } from "../supabase/server";
+import { PlanType, SubscriptionStatus, PaymentStatus } from "@/types/database/plan";
 
 export interface CheckPlanType {
   id: string;
   subscription: {
-    status: "free" | "active" | "inactive" | "canceled" | "expired";
+    status: SubscriptionStatus;
+    starts_at: string;
     ends_at: string;
-    payment_status: "paid" | "pending" | "failed" | "refunded";
-    plan: {
-      name: string;
-      max_users: number;
-      max_customers: number;
-      email_sender: number;
-    };
+    payment_status: PaymentStatus;
+    plan: PlanType;
   };
 }
 
@@ -35,7 +32,7 @@ export async function checkPlan(orgId?: string): Promise<CheckPlanType | null> {
   const { data, error } = await supabase
     .from("organizations")
     .select(
-      "id, subscription:subscription_id(status, ends_at, payment_status, plan:plan_id(name, max_users, max_customers, email_sender))"
+      "id, subscription:subscription_id(status, starts_at, ends_at, payment_status, plan:plan_id(name, max_users, max_customers, email_sender))"
     )
     .eq("id", orgId)
     .single();
@@ -48,17 +45,20 @@ export async function checkPlan(orgId?: string): Promise<CheckPlanType | null> {
   if (!data || !data.subscription || !data.id) {
     throw new Error("Invalid data format from database");
   }
+  const latestSubscription = data.subscription?.sort(
+    (a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime()
+  )[0];
 
-  // Supabase may return "subscription" as an array due to join. If so, take the first element.
-  const subscription = Array.isArray(data.subscription) ? data.subscription[0] : data.subscription;
+  if (!latestSubscription) return null;
 
-  // Handle the case where 'plan' might be an array and transform it to a single object
-  const plan = Array.isArray(subscription.plan) ? subscription.plan[0] : subscription.plan;
+  const plan = Array.isArray(latestSubscription.plan)
+    ? latestSubscription.plan[0]
+    : latestSubscription.plan;
 
   return {
     id: data.id,
     subscription: {
-      ...subscription,
+      ...latestSubscription,
       plan: plan,
     },
   };

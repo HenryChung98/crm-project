@@ -13,7 +13,7 @@ import { useOrganization } from "@/contexts/OrganizationContext";
 
 // ui
 import { Button } from "@/components/ui/Button";
-import { showError, showSuccess } from "@/shared-utils/feedback";
+import { showError, showSuccess } from "@/components/feedback";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export default function SubscriptionPage() {
@@ -38,7 +38,7 @@ export default function SubscriptionPage() {
     if (planName === "free") {
       setLoading(true);
       try {
-        const result = await selectPlan(supabase, user.id, planName);
+        const result = await selectPlan(user.id, planName);
         if (result.success) {
           await queryClient.invalidateQueries({
             queryKey: ["subscription"],

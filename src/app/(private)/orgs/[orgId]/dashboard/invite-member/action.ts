@@ -2,7 +2,7 @@
 import { requireOrgAccess } from "@/shared-utils/server/org-access";
 import { Resend } from "resend";
 import { InvitationEmail } from "@/components/resend-components/templates/InvitationEmail";
-import { validateMemberCreation } from "@/shared-utils/validation";
+import { validateMemberCreation } from "@/shared-utils/server/validation";
 
 export async function inviteUser(formData: FormData) {
   const invitedEmail = formData.get("email")?.toString().trim();

@@ -10,7 +10,7 @@ import { acceptInvitation } from "@/app/(private)/orgs/invitation/utils/accept-i
 export default function AuthCallback() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, loading } = useAuth();
+  const { user, loading, supabase } = useAuth();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -28,7 +28,7 @@ export default function AuthCallback() {
 
           // if user is invited
           if (orgId && orgName) {
-            await acceptInvitation(orgId, orgName);
+            await acceptInvitation(supabase, orgId, orgName);
 
             // delete cookies
             document.cookie = "pending_org_id=; path=/; max-age=0";

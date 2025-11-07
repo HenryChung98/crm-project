@@ -14,7 +14,7 @@ import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { showSuccess, showError } from "@/shared-utils/feedback";
+import { showSuccess, showError } from "@/components/feedback";
 import { QueryErrorBanner } from "@/components/ui/QueryErrorBanner";
 import { AccessDenied } from "@/components/AccessDenied";
 

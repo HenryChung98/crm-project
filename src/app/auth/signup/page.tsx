@@ -11,7 +11,7 @@ import { signInWithGoogle } from "../signin/signInWIthGoogle";
 import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
-import { showSuccess, showError } from "@/shared-utils/feedback";
+import { showSuccess, showError } from "@/components/feedback";
 
 interface SignupFormData {
   firstName: string;

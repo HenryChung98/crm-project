@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { updatePaymentStatus } from "../utils/subscription-management";
+import { updatePaymentStatus } from "../utils/plan-selection";
 import { selectPlan } from "../utils/plan-selection";
 
 // types
@@ -13,7 +13,7 @@ import { useOrganization } from "@/contexts/OrganizationContext";
 
 // ui
 import { Button } from "@/components/ui/Button";
-import { showError, showSuccess } from "@/shared-utils/feedback";
+import { showError, showSuccess } from "@/components/feedback";
 import { useQueryClient } from "@tanstack/react-query";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
@@ -50,34 +50,23 @@ export default function CheckoutPage() {
     try {
       // 실제로는 여기서 결제 처리 (Stripe, PayPal 등)
       // 지금은 시뮬레이션
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // 결제 후 플랜 저장
-      const result = await selectPlan(supabase, userId, plan);
+      const result = await selectPlan(userId, plan);
+      if (!result.success) throw new Error(result.error || "Failed to update plan");
 
-      if (result.success) {
-        await queryClient.invalidateQueries({
-          queryKey: ["subscription"],
-        });
+      const paymentUpdate = await updatePaymentStatus(userId, "paid");
+      if (!paymentUpdate.success) throw new Error(paymentUpdate.error);
 
-        // 결제 성공 업데이트 실제로는 결제 성공했을때 실행되도록 수정해야 됨됨
-        const { success, error } = await updatePaymentStatus(supabase, userId, "paid");
-
-        if (!success) {
-          console.error("Payment status update failed:", error);
-          throw new Error(error || "Failed to update payment status");
-        }
-
-        showSuccess("Payment successful! Plan activated.");
-        window.location.href = ownOrganization
-          ? `/orgs/${ownOrganization}/dashboard`
-          : "/orgs/create-organization";
-      } else {
-        showError("Payment processed but failed to activate plan");
-      }
+      await queryClient.invalidateQueries({ queryKey: ["subscription"] });
+      showSuccess("Payment successful! Plan activated.");
+      setLoading(false);
+      window.location.href = ownOrganization
+        ? `/orgs/${ownOrganization}/dashboard`
+        : "/orgs/create-organization";
     } catch (error) {
-      showError("Payment failed. Please try again.");
-    } finally {
+      showError(`${error}`);
       setLoading(false);
     }
   };

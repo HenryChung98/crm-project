@@ -1,3 +1,5 @@
+import { SubscriptionStatus, PaymentStatus } from "./plan";
+
 export interface OrganizationContextQuery {
   id: string;
   organization_id: string;
@@ -5,13 +7,13 @@ export interface OrganizationContextQuery {
   role: string;
   organizations: {
     name: string;
-    url: string; 
+    url: string;
     subscription: {
       id: string;
       plan_id: string;
-      status: "free" | "active" | "inactive" | "canceled" | "expired";
+      status: SubscriptionStatus;
       ends_at: string;
-      payment_status: "paid" | "pending" | "failed" | "refunded";
+      payment_status: PaymentStatus;
       plan: {
         name: string;
       };

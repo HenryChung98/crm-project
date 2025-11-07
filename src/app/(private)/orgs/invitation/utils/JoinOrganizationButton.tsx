@@ -2,15 +2,9 @@
 
 import { acceptInvitation } from "./accept-invitation";
 import { useTransition } from "react";
-import { showSuccess, showError } from "@/shared-utils/feedback";
+import { showSuccess, showError } from "@/components/feedback";
 
-export const JoinOrganizationButton = ({
-  orgId,
-  orgName,
-}: {
-  orgId: string;
-  orgName: string;
-}) => {
+export const JoinOrganizationButton = ({ orgId, orgName }: { orgId: string; orgName: string }) => {
   const [isPending, startTransition] = useTransition();
 
   return (

@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { SignOutButton } from "@/components/SignOutButton";
 
 import { useOrganization } from "@/contexts/OrganizationContext";
@@ -52,7 +51,7 @@ export default function OrgPage() {
         </h2>
         <p className="text-text-secondary text-lg">
           Please
-          <Link href="/orgs/create-organization">create</Link>
+          <Link href="/orgs/create-organization" className="text-blue-500">&nbsp;create&nbsp;</Link>
           an organization
           <br />
           <SignOutButton />
