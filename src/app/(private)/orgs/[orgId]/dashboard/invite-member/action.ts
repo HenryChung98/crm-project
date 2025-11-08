@@ -9,7 +9,7 @@ export async function inviteUser(formData: FormData) {
   const orgId = formData.get("orgId")?.toString().trim();
 
   try {
-    const { orgMember, supabase, user } = await requireOrgAccess(orgId, ["owner", "admin"]);
+    const { supabase, user } = await requireOrgAccess(orgId, ["owner", "admin"]);
 
     // ========================================== check plan ==========================================
     const validation = await validateMemberCreation(orgId!);
@@ -21,67 +21,62 @@ export async function inviteUser(formData: FormData) {
       return { error: "Email and organization are required." };
     }
 
-    // Check if user is already a member of the organization
-    const { data: existingMember, error: memberCheckError } = await supabase
-      .from("organization_members")
-      .select("id, user_email")
-      .eq("organization_id", orgId)
-      .eq("user_email", invitedEmail)
-      .maybeSingle();
+    // // Check if user is already a member of the organization
+    // const { data: existingMember, error: memberCheckError } = await supabase
+    //   .from("organization_members")
+    //   .select("user_email")
+    //   .eq("organization_id", orgId)
+    //   .eq("user_email", invitedEmail)
+    //   .maybeSingle();
 
-    if (memberCheckError) {
-      return { error: "Error checking existing membership: " + memberCheckError.message };
-    }
+    // if (memberCheckError) {
+    //   return { error: "Error checking existing membership: " + memberCheckError.message };
+    // }
 
-    if (existingMember) {
-      return { error: "User is already a member of this organization." };
-    }
+    // if (existingMember) {
+    //   return { error: "User is already a member of this organization." };
+    // }
 
-    // Check if user has already been invited to this organization
-    const { data: existingInvite, error: inviteCheckError } = await supabase
-      .from("organization_invitations")
-      .select("*")
-      .eq("email", invitedEmail)
-      .eq("organization_id", orgId)
-      .eq("accepted", false)
-      .gt("expires_at", "now()")
-      .maybeSingle();
+    // // Check if user has already been invited to this organization
+    // const { data: existingInvite, error: inviteCheckError } = await supabase
+    //   .from("organization_invitations")
+    //   .select("id")
+    //   .eq("email", invitedEmail)
+    //   .eq("organization_id", orgId)
+    //   .eq("accepted", false)
+    //   .gt("expires_at", "now()")
+    //   .maybeSingle();
 
-    if (inviteCheckError) {
-      return { error: "Error checking existing invitation: " + inviteCheckError.message };
-    }
+    // if (inviteCheckError) {
+    //   return { error: "Error checking existing invitation: " + inviteCheckError.message };
+    // }
 
-    if (existingInvite) {
-      return { error: "User has already been invited to this organization." };
-    }
+    // if (existingInvite) {
+    //   return { error: "User has already been invited to this organization." };
+    // }
 
-    const { data: invitationData, error: invitationError } = await supabase
-      .from("organization_invitations")
-      .insert({
-        email: invitedEmail,
-        organization_id: orgId,
-        invited_by: user.id,
-        accepted: false,
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      })
-      .select("id")
-      .single();
-
-    if (invitationError) {
-      return { error: invitationError.message };
-    }
-
-    // // send invitation by admin function
-    // const { data: orgData, error: orgError } = await supabase
-    //   .from("organizations")
-    //   .select("name")
-    //   .eq("id", orgId)
+    // const { data: invitationData, error: invitationError } = await supabase
+    //   .from("organization_invitations")
+    //   .insert({
+    //     email: invitedEmail,
+    //     organization_id: orgId,
+    //     invited_by: user.id,
+    //     accepted: false,
+    //     expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    //   })
+    //   .select("id")
     //   .single();
 
-    // if (orgError || !orgData) {
-    //   await supabase.from("organization_invitations").delete().eq("id", invitationData.id);
-    //   return { error: "Failed to get organization name" };
+    // if (invitationError) {
+    //   return { error: invitationError.message };
     // }
+    const { data, error } = await supabase.rpc("invite_user_rpc", {
+      p_org_id: orgId,
+      p_email: invitedEmail,
+      p_invited_by: user.id,
+    });
+  
+    if (error || data?.error) return { error: error?.message || data.error };
 
     // ===============================resend=======================================================
 
@@ -92,12 +87,12 @@ export async function inviteUser(formData: FormData) {
         // send invitation by admin function
         const { data: orgData, error: orgError } = await supabase
           .from("organizations")
-          .select("name")
+          .select("name") 
           .eq("id", orgId)
           .single();
 
         if (orgError || !orgData) {
-          await supabase.from("organization_invitations").delete().eq("id", invitationData.id);
+          await supabase.from("organization_invitations").delete().eq("id", data.invitation_id);
           return { error: "Failed to get organization name" };
         }
 
@@ -115,7 +110,7 @@ export async function inviteUser(formData: FormData) {
           }),
         });
       } catch (emailError) {
-        await supabase.from("organization_invitations").delete().eq("id", invitationData.id);
+        await supabase.from("organization_invitations").delete().eq("id", data.invitation_id);
         console.error("Email error:", emailError);
       }
     }

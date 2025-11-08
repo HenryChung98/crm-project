@@ -32,34 +32,48 @@ export async function checkPlan(orgId?: string): Promise<CheckPlanType | null> {
   const { data, error } = await supabase
     .from("organizations")
     .select(
-      "id, subscription:subscription_id(status, starts_at, ends_at, payment_status, plan:plan_id(name, max_users, max_customers, email_sender))"
+      `
+    id,
+    subscription:subscription_id!inner(
+      status,
+      starts_at,
+      ends_at,
+      payment_status,
+      plan:plan_id(
+        name,
+        max_users,
+        max_customers,
+        email_sender
+      )
+    )
+  `
     )
     .eq("id", orgId)
     .single();
 
-  if (error) {
-    throw new Error("Organization not found");
-  }
+  if (error || !data) throw new Error("Organization not found");
 
   // Validate the shape of 'data' before returning, converting subscription array to object if necessary
   if (!data || !data.subscription || !data.id) {
     throw new Error("Invalid data format from database");
   }
-  const latestSubscription = data.subscription?.sort(
+
+  const subscriptionArray = Array.isArray(data.subscription)
+    ? data.subscription
+    : [data.subscription];
+
+  // starts_at 기준으로 최신 subscription 선택
+  const latestSubscription = subscriptionArray.sort(
     (a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime()
   )[0];
-
-  if (!latestSubscription) return null;
-
-  const plan = Array.isArray(latestSubscription.plan)
-    ? latestSubscription.plan[0]
-    : latestSubscription.plan;
 
   return {
     id: data.id,
     subscription: {
       ...latestSubscription,
-      plan: plan,
+      plan: Array.isArray(latestSubscription.plan)
+        ? latestSubscription.plan[0]
+        : latestSubscription.plan,
     },
   };
 }
