@@ -175,7 +175,7 @@ export const selectPlan = async (
     const { data: currentSubData, error: currentSubError } = await supabase
       .from("subscriptions")
       .select(
-        `id, plan_id, status, ends_at, payment_status, plans (name, max_users, max_customers, email_sender)`
+        `id, plan_id, status, starts_at, ends_at, payment_status, plans (name, max_users, max_customers, email_sender)`
       )
       .eq("user_id", userId)
       .in("status", ["active", "free"])
@@ -184,6 +184,24 @@ export const selectPlan = async (
       .maybeSingle();
 
     if (currentSubError) return { success: false, error: currentSubError.message };
+
+    // to prevent to switch plan within 7 days
+    if (currentSubData?.starts_at) {
+      const startsAt = new Date(currentSubData.starts_at);
+      const now = new Date();
+      const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+      const nextChangeDate = new Date(startsAt.getTime() + sevenDaysMs);
+
+      if (now.getTime() < nextChangeDate.getTime()) {
+        return {
+          success: false,
+          error: `You cannot change your subscription until ${nextChangeDate.toLocaleDateString(
+            undefined,
+            { year: "numeric", month: "long", day: "numeric" }
+          )}. Please try again after this date.`,
+        };
+      }
+    }
 
     // Handle plans as array (Supabase foreign key relationship returns array)
     const plansArray = Array.isArray(currentSubData?.plans)
@@ -197,7 +215,12 @@ export const selectPlan = async (
     }
 
     // 4. 구독 업데이트 (검증 포함)
-    return await updateSubscription(supabase, userId, targetPlanName, currentPlan?.name as PlanName);
+    return await updateSubscription(
+      supabase,
+      userId,
+      targetPlanName,
+      currentPlan?.name as PlanName
+    );
   } catch (error) {
     console.error("Error in selectPlan:", error);
     return {
