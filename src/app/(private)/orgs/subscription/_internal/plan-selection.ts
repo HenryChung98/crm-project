@@ -1,5 +1,5 @@
 "use server";
-import { createClient } from "@/shared-utils/supabase/server";
+import { createClient } from "@/supabase/server";
 import { SupabaseClient } from "@supabase/supabase-js";
 import {
   deactivateCurrentSubscription,

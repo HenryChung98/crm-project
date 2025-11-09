@@ -1,6 +1,6 @@
 "use client";
-import { useInvitationCheck } from "./utils/useOrganizationInvitations";
-import { JoinOrganizationButton } from "./utils/JoinOrganizationButton";
+import { useInvitationCheck } from "./_internal/useOrganizationInvitations";
+import { JoinOrganizationButton } from "./_internal/JoinOrganizationButton";
 
 //types
 import { OrganizationInvitations } from "@/types/database/organizations";
@@ -9,7 +9,7 @@ import { EMPTY_ARRAY } from "@/types/customData";
 // ui
 import { QueryErrorBanner } from "@/components/ui/QueryErrorBanner";
 
-export default function InvitationPage() { 
+export default function InvitationPage() {
   const {
     data = EMPTY_ARRAY,
     isLoading,

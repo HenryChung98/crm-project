@@ -1,7 +1,7 @@
 "use server";
 
-import { createClient } from "@/shared-utils/supabase/server";
-import { hasSubscription } from "@/shared-utils/server/has-subscription";
+import { createClient } from "@/supabase/server";
+import { hasSubscription } from "@/shared-actions/has-subscription";
 import { revalidatePath } from "next/cache";
 
 function isValidUrl(urlString: string): boolean {

@@ -1,8 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  getUserOrganizations,
-  getAdminOrganizations,
-} from "../shared-utils/server/organization-members";
+import { getUserOrganizations, getAdminOrganizations } from "@/shared-actions/organization-members";
 import { OrganizationContextQuery } from "../types/database/organizations";
 
 // type
@@ -10,7 +7,9 @@ import { NetworkError } from "../types/errors";
 import { QueryResult } from "../types/customData";
 
 // check all organizations that user belongs to
-export const useUserOrganizations = <T = OrganizationContextQuery>(select?: string): QueryResult<T> => {
+export const useUserOrganizations = <T = OrganizationContextQuery>(
+  select?: string
+): QueryResult<T> => {
   const result = useQuery({
     queryKey: ["organizationMembers", "user", select || "*"],
     queryFn: () => getUserOrganizations(select),

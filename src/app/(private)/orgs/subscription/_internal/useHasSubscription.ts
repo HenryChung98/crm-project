@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { hasSubscription } from "@/shared-utils/server/has-subscription";
+import { hasSubscription } from "@/shared-actions/has-subscription";
 
 type HasResult = {
   subscriptionId: string | null | undefined;

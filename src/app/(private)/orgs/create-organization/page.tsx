@@ -5,7 +5,7 @@ import { createOrganization } from "./action";
 import { useRouter } from "next/navigation";
 
 // custom hooks
-import { useHasSubscription } from "../subscription/utils/useHasSubscription";
+import { useHasSubscription } from "../subscription/_internal/useHasSubscription";
 import { useOrganization } from "@/contexts/OrganizationContext";
 
 // ui

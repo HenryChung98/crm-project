@@ -1,8 +1,8 @@
 "use server";
 
-import { OrganizationContextQuery } from "../../types/database/organizations";
-import { checkPlan, CheckPlanType } from "@/shared-utils/server/check-plan";
-import { checkCustomersUsage, checkMemberUsage } from "@/shared-utils/server/check-usage";
+import { OrganizationContextQuery } from "@/types/database/organizations";
+import { CheckPlanType, checkPlan } from "@/shared-actions/check-plan";
+import { checkMemberUsage, checkCustomersUsage } from "./check-usage";
 import type { User } from "@supabase/supabase-js";
 
 export interface PlanValidationOptions {

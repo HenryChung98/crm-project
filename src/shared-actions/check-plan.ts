@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "../supabase/server";
+import { createClient } from "@/supabase/server";
 import { PlanType, SubscriptionStatus, PaymentStatus } from "@/types/database/plan";
 
 export interface CheckPlanType {
@@ -34,7 +34,7 @@ export async function checkPlan(orgId?: string): Promise<CheckPlanType | null> {
     .select(
       `
     id,
-    subscription:subscription_id!inner(
+    subscription:subscription_id(
       status,
       starts_at,
       ends_at,

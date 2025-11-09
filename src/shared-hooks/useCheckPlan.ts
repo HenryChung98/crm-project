@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { CheckPlanType } from "@/shared-utils/server/check-plan";
-import { checkPlan } from "@/shared-utils/server/check-plan";
+import { checkPlan,CheckPlanType } from "@/shared-actions/check-plan";
 import { NetworkError } from "@/types/errors";
 
 type CheckPlanResult = {

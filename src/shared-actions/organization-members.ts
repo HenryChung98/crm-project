@@ -1,8 +1,8 @@
 "use server";
 
 import { createClient } from "../supabase/server";
-import { OrganizationContextQuery } from "../../types/database/organizations";
-import { SupabaseError } from "../../types/errors";
+import { OrganizationContextQuery } from "@/types/database/organizations";
+import { SupabaseError } from "@/types/errors";
 
 export async function getUserOrganizations(select?: string): Promise<OrganizationContextQuery[]> {
   const supabase = await createClient();

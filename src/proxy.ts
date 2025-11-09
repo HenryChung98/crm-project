@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateSession } from "./shared-utils/supabase/middleware";
+import { updateSession } from "./supabase/middleware";
 
 export async function proxy(req: NextRequest) {
   // Supabase session update logic

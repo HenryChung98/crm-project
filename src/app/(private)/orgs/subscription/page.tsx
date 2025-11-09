@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { selectPlan } from "./utils/plan-selection";
+import { selectPlan } from "./_internal/plan-selection";
 
 // types
 import { PlanName } from "@/types/database/plan";

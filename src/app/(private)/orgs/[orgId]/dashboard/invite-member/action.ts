@@ -1,8 +1,8 @@
 "use server";
-import { requireOrgAccess } from "@/shared-utils/server/org-access";
+import { requireOrgAccess } from "@/shared-utils/org-access";
 import { Resend } from "resend";
 import { InvitationEmail } from "@/components/resend-components/templates/InvitationEmail";
-import { validateMemberCreation } from "@/shared-utils/server/validation";
+import { validateMemberCreation } from "@/shared-actions/validation";
 
 export async function inviteUser(formData: FormData) {
   const invitedEmail = formData.get("email")?.toString().trim();
@@ -75,7 +75,7 @@ export async function inviteUser(formData: FormData) {
       p_email: invitedEmail,
       p_invited_by: user.id,
     });
-  
+
     if (error || data?.error) return { error: error?.message || data.error };
 
     // ===============================resend=======================================================
@@ -87,7 +87,7 @@ export async function inviteUser(formData: FormData) {
         // send invitation by admin function
         const { data: orgData, error: orgError } = await supabase
           .from("organizations")
-          .select("name") 
+          .select("name")
           .eq("id", orgId)
           .single();
 

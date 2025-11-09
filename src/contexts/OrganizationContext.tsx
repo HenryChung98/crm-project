@@ -71,7 +71,7 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
   const switchOrganization = useCallback(
     (orgId: string) => {
       if (!orgId) return;
-      const newPath = pathname.replace(/\/orgs\/[^\/]+/, `/orgs/${orgId}/dashboard`);
+      const newPath = pathname.replace(/\/orgs\/[^\/]+/, `/orgs/${orgId}`);
       router.push(newPath);
     },
     [pathname, router]

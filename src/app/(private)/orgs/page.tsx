@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SignOutButton } from "@/components/SignOutButton";
 
 import { useOrganization } from "@/contexts/OrganizationContext";
-import { useInvitationCheck } from "./invitation/utils/useOrganizationInvitations";
+import { useInvitationCheck } from "./invitation/_internal/useOrganizationInvitations";
 
 //types
 import { OrganizationInvitations } from "@/types/database/organizations";
@@ -51,7 +51,9 @@ export default function OrgPage() {
         </h2>
         <p className="text-text-secondary text-lg">
           Please
-          <Link href="/orgs/create-organization" className="text-blue-500">&nbsp;create&nbsp;</Link>
+          <Link href="/orgs/create-organization" className="text-blue-500">
+            &nbsp;create&nbsp;
+          </Link>
           an organization
           <br />
           <SignOutButton />

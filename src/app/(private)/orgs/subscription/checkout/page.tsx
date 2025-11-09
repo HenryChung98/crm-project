@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { updatePaymentStatus } from "../utils/plan-selection";
-import { selectPlan } from "../utils/plan-selection";
+import { updatePaymentStatus } from "../_internal/plan-selection";
+import { selectPlan } from "../_internal/plan-selection";
 
 // types
 import { PlanName } from "@/types/database/plan";

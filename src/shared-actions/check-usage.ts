@@ -1,5 +1,5 @@
 "use server";
-import { requireOrgAccess } from "@/shared-utils/server/org-access";
+import { requireOrgAccess } from "@/shared-utils/org-access";
 
 export async function checkMemberUsage(orgId: string): Promise<number | null> {
   if (!orgId) return null;

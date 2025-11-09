@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/shared-utils/supabase/server";
+import { createClient } from "@/supabase/server";
 
 export async function signIn(formData: FormData) {
   try {

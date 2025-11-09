@@ -1,7 +1,7 @@
 "use server";
 // fixx
 import { redirect } from "next/navigation";
-import { createClient } from "@/shared-utils/supabase/server";
+import { createClient } from "@/supabase/server";
 
 export async function signUp(formData: FormData) {
   const supabase = await createClient();

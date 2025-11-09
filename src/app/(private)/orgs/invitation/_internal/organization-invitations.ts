@@ -1,6 +1,6 @@
 "use server";
 import { SupabaseError } from "@/types/errors";
-import { createClient } from "@/shared-utils/supabase/server";
+import { createClient } from "@/supabase/server";
 // type
 import { OrganizationInvitations } from "@/types/database/organizations";
 
