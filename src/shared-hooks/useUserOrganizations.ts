@@ -1,18 +1,16 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getUserOrganizations, getAdminOrganizations } from "@/shared-actions/organization-members";
-import { OrganizationContextQuery } from "../types/database/organizations";
 
 // type
+import { OrganizationContextQuery } from "../types/database/organizations";
 import { NetworkError } from "../types/errors";
-import { QueryResult } from "../types/customData";
+import { QueryResultArray } from "../types/customData";
 
 // check all organizations that user belongs to
-export const useUserOrganizations = <T = OrganizationContextQuery>(
-  select?: string
-): QueryResult<T> => {
+export const useUserOrganizations = (): QueryResultArray<OrganizationContextQuery> => {
   const result = useQuery({
-    queryKey: ["organizationMembers", "user", select || "*"],
-    queryFn: () => getUserOrganizations(select),
+    queryKey: ["organizationMembers", "user", "context"],
+    queryFn: () => getUserOrganizations(),
     retry: (failureCount, error: NetworkError) => {
       if (error?.code === "PGRST301") return false;
       return failureCount < 3;
@@ -20,7 +18,7 @@ export const useUserOrganizations = <T = OrganizationContextQuery>(
   });
 
   return {
-    data: (result.data as T[]) || [],
+    data: result.data || [],
     error: result.error,
     isLoading: result.isLoading,
     isFetching: result.isFetching,
@@ -29,37 +27,37 @@ export const useUserOrganizations = <T = OrganizationContextQuery>(
 };
 
 // for admin or owner
-export const useAdminOrganizations = <T = OrganizationContextQuery>(
-  orgId: string,
-  requiredRoles: ("owner" | "admin")[],
-  select = "*",
-  options: { enabled?: boolean } = {}
-): QueryResult<T> => {
-  const result = useQuery({
-    queryKey: [
-      "organizationMembers",
-      "org",
-      orgId,
-      select,
-      "members-by-role",
-      requiredRoles.sort(),
-    ],
-    queryFn: () => getAdminOrganizations(orgId, requiredRoles, select),
-    enabled: !!orgId && requiredRoles.length > 0 && options.enabled !== false,
-    retry: (failureCount, error: Error) => {
-      if (error.message?.includes("permission required")) return false;
-      return failureCount < 2;
-    },
-  });
+// export const useAdminOrganizations = <T = OrganizationContextQuery>(
+//   orgId: string,
+//   requiredRoles: ("owner" | "admin")[],
+//   select = "*",
+//   options: { enabled?: boolean } = {}
+// ): QueryResult<T> => {
+//   const result = useQuery({
+//     queryKey: [
+//       "organizationMembers",
+//       "org",
+//       orgId,
+//       select,
+//       "members-by-role",
+//       requiredRoles.sort(),
+//     ],
+//     queryFn: () => getAdminOrganizations(orgId, requiredRoles, select),
+//     enabled: !!orgId && requiredRoles.length > 0 && options.enabled !== false,
+//     retry: (failureCount, error: Error) => {
+//       if (error.message?.includes("permission required")) return false;
+//       return failureCount < 2;
+//     },
+//   });
 
-  return {
-    data: (result.data as T[]) || [],
-    error: result.error,
-    isLoading: result.isLoading,
-    isFetching: result.isFetching,
-    refetch: result.refetch,
-  };
-};
+//   return {
+//     data: (result.data as T[]) || [],
+//     error: result.error,
+//     isLoading: result.isLoading,
+//     isFetching: result.isFetching,
+//     refetch: result.refetch,
+//   };
+// };
 
 // 프리페칭
 export const usePrefetchOrganizations = () => {

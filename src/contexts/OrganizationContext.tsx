@@ -35,28 +35,7 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
     data: orgMembers = EMPTY_ARRAY,
     isLoading: orgMemberLoading,
     error: orgMemberError,
-  } = useUserOrganizations<OrganizationContextQuery>(
-    `
-  id,
-  organization_id,
-  organization_name,
-  role,
-  organizations:organization_id(
-    name,
-    url,
-    subscription:subscriptions(
-      id,
-      plan_id,
-      status,
-      ends_at,
-      payment_status,
-      plan:plans(
-        name
-      )
-    )
-  )
-`
-  );
+  } = useUserOrganizations();
 
   // to get organization member of current
   const orgMember = orgMembers.find((member) => member.organization_id === currentOrganizationId);

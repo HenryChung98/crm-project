@@ -4,7 +4,7 @@ import { createClient } from "../supabase/server";
 import { OrganizationContextQuery } from "@/types/database/organizations";
 import { SupabaseError } from "@/types/errors";
 
-export async function getUserOrganizations(select?: string): Promise<OrganizationContextQuery[]> {
+export async function getUserOrganizations(): Promise<OrganizationContextQuery[]> {
   const supabase = await createClient();
 
   const {
@@ -16,17 +16,35 @@ export async function getUserOrganizations(select?: string): Promise<Organizatio
     throw new Error("User not authenticated");
   }
 
-  const { data, error } = (await supabase
+  const { data, error } = await supabase
     .from("organization_members")
-    .select(select || "*")
+    .select(
+      `
+      id,
+      organization_id,
+      organization_name,
+      role,
+      organizations:organization_id(
+        name,
+        url,
+        subscription:subscriptions(
+          id,
+          plan_id,
+          status,
+          ends_at,
+          payment_status,
+          plan:plans(
+            name
+          )
+        )
+      )
+    `
+    )
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false })) as {
-    data: OrganizationContextQuery[] | null;
-    error: SupabaseError;
-  };
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  return (data as unknown as OrganizationContextQuery[]) || [];
 }
 
 export async function getAdminOrganizations(
