@@ -4,10 +4,10 @@ import { checkInvitation } from "./organization-invitations";
 
 // types
 import { NetworkError } from "@/types/errors";
-import { QueryResult } from "@/types/customData";
+import { QueryResultArray } from "@/types/customData";
 
 // all users can invite people using email
-export const useInvitationCheck = <T = OrganizationInvitations>(): QueryResult<T> => {
+export const useInvitationCheck = (): QueryResultArray<OrganizationInvitations> => {
   const result = useQuery({
     queryKey: [
       "organizationInvitations",
@@ -23,7 +23,7 @@ export const useInvitationCheck = <T = OrganizationInvitations>(): QueryResult<T
   });
 
   return {
-    data: result.data as T[],
+    data: result.data ?? [],
     error: result.error,
     isLoading: result.isLoading,
     isFetching: result.isFetching,

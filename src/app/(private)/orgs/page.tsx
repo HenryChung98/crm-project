@@ -22,9 +22,7 @@ export default function OrgPage() {
     isLoading: isInvitationLoading,
     error: invitationError,
     refetch,
-  } = useInvitationCheck<OrganizationInvitations>();
-
-  const hasInvitations = orgInvitations.length > 0;
+  } = useInvitationCheck();
 
   // if organization context is loading
   if (orgMemberLoading || isInvitationLoading) {
@@ -32,7 +30,7 @@ export default function OrgPage() {
   }
 
   // if user has an invitation
-  if (hasInvitations) {
+  if (orgInvitations && orgInvitations.length > 0) {
     return (
       <>
         <div>

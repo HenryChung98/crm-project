@@ -15,7 +15,7 @@ export default function InvitationPage() {
     isLoading,
     error,
     refetch,
-  } = useInvitationCheck<OrganizationInvitations>();
+  } = useInvitationCheck();
 
   return (
     <>
@@ -30,7 +30,7 @@ export default function InvitationPage() {
           <h3 className="text-lg font-semibold">Organization Invitations</h3>
         </div>
         <div className="p-6 space-y-4">
-          {data.map((invitation) => (
+          {data!.map((invitation) => (
             <div key={invitation.id} className="bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="text-green-800 font-medium mb-3">
                 Invited to: {invitation.organizations?.name || "Unknown Organization"}
