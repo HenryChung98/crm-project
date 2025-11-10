@@ -60,9 +60,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Track component mount state to prevent state updates after unmount
     let mounted = true;
 
+    // Check initial session on mount
+    const checkInitialSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!mounted) return;
+      await handleSession(session);
+    };
+
+    checkInitialSession();
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
+      console.log("auth state change:", event, session);
       if (!mounted) return;
       await handleSession(session);
     });
@@ -86,7 +98,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// { user, loading, isAuthenticated, supabase }
 export const useAuth = () => {
   const context = useContext(AuthContext);
 
