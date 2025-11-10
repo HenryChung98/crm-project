@@ -4,6 +4,7 @@ import { OrganizationContextQuery } from "@/types/database/organizations";
 import { CheckPlanType, checkPlan } from "@/shared-actions/check-plan";
 import { checkMemberUsage, checkCustomersUsage } from "./check-usage";
 import type { User } from "@supabase/supabase-js";
+import { isExpired } from "@/shared-utils/validations";
 
 export interface PlanValidationOptions {
   orgId: string;
@@ -25,10 +26,7 @@ export async function validateSubscription(
 
     // check if expired
     if (orgPlanData.subscription.status !== "free") {
-      const isExpired =
-        orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
-
-      if (isExpired) {
+      if (isExpired(orgPlanData.subscription.ends_at)) {
         return { success: false, error: "Your current organization plan is expired." };
       }
       if (orgPlanData.subscription.status !== "active") {

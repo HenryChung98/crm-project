@@ -1,15 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { checkMemberUsage, checkCustomersUsage } from "@/shared-actions/check-usage";
 import { NetworkError } from "@/types/errors";
+import { QueryResult } from "../types/customData";
 
-type CheckUsageResult = {
-  data: number | null | undefined;
-  isLoading: boolean;
-  error: NetworkError | null;
-  refetch: () => void;
-};
-
-export function useCheckMemberUsage(orgId?: string, enabled: boolean = true): CheckUsageResult {
+export const useCheckMemberUsage = (
+  orgId: string,
+  enabled: boolean = true
+): QueryResult<number> => {
   const { data, isLoading, error, refetch } = useQuery<number | null, NetworkError>({
     queryKey: ["usage", orgId],
     queryFn: () => checkMemberUsage(orgId!),
@@ -21,9 +18,9 @@ export function useCheckMemberUsage(orgId?: string, enabled: boolean = true): Ch
   });
 
   return {
-    data,
+    data: data ?? null,
     isLoading,
     error,
     refetch,
   };
-}
+};

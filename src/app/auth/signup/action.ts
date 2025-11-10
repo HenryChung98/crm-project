@@ -1,7 +1,7 @@
 "use server";
-// fixx
 import { redirect } from "next/navigation";
 import { createClient } from "@/supabase/server";
+import { isValidPassword } from "@/shared-utils/validations";
 
 export async function signUp(formData: FormData) {
   const supabase = await createClient();
@@ -21,8 +21,8 @@ export async function signUp(formData: FormData) {
   if (password !== confirmPassword) {
     return { error: "Passwords do not match" };
   }
-  const pwRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
-  if (!pwRegex.test(password)) {
+
+  if (!isValidPassword(password)) {
     return {
       error: "Password must be at least 8 characters long and contain letters and numbers.",
     };

@@ -1,15 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { checkPlan,CheckPlanType } from "@/shared-actions/check-plan";
+import { checkPlan, CheckPlanType } from "@/shared-actions/check-plan";
 import { NetworkError } from "@/types/errors";
+import { QueryResult } from "../types/customData";
 
-type CheckPlanResult = {
-  data: CheckPlanType | null | undefined;
-  isLoading: boolean;
-  error: NetworkError | null;
-  refetch: () => void;
-};
-
-export function useCheckPlan(orgId?: string): CheckPlanResult {
+export const useCheckPlan = (orgId: string): QueryResult<CheckPlanType> => {
   const { data, isLoading, error, refetch } = useQuery<CheckPlanType | null, NetworkError>({
     queryKey: ["plan", orgId],
     queryFn: () => checkPlan(orgId),
@@ -21,9 +15,9 @@ export function useCheckPlan(orgId?: string): CheckPlanResult {
   });
 
   return {
-    data,
+    data: data ?? null,
     isLoading,
     error,
     refetch,
   };
-}
+};

@@ -12,20 +12,20 @@ export interface Plan {
 
 export interface SubscribedPlan {
   id: string;
-  plan_id: string;
-  status: SubscriptionStatus;
-  starts_at: string;
   ends_at: string;
-  payment_status: PaymentStatus;
   plan: PlanType;
+  plan_id?: string;
+  status?: SubscriptionStatus;
+  starts_at?: string;
+  payment_status?: PaymentStatus;
 }
 
 export interface PlanType {
   name: string;
-  max_users: number;
-  max_customers: number;
-  email_sender: number;
-  track_visit: number;
+  max_users?: number;
+  max_customers?: number;
+  email_sender?: number;
+  track_visit?: number;
 }
 
 export type PlanName = "free" | "basic" | "premium";

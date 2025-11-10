@@ -37,6 +37,10 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
     error: orgMemberError,
   } = useUserOrganizations();
 
+  if (!orgMembers) {
+    return;
+  }
+
   // to get organization member of current
   const orgMember = orgMembers.find((member) => member.organization_id === currentOrganizationId);
 

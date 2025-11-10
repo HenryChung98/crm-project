@@ -1,35 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/supabase/server";
 import { Resend } from "resend";
+import { notFound } from "next/navigation";
+
+import { isExpired } from "@/shared-utils/validations";
 import { WelcomeEmail } from "@/components/resend-components/templates/WelcomeEmail";
 import { checkPlan } from "@/shared-actions/check-plan";
-import { createClient } from "@/supabase/server";
+import { isValidEmail } from "@/shared-utils/validations";
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { orgId, source, name, email, phone } = body;
     const supabase = await createClient();
 
-    // ========================================== check plan ==========================================
-    // get user's current plan using existing action
-    const orgPlanData = await getPlanByOrg(orgId);
-    if (!orgPlanData?.plans) {
+    // check plan
+    const orgPlanData = await checkPlan(orgId);
+    if (!orgPlanData) {
       return NextResponse.json({ error: "Failed to get user plan data" }, { status: 500 });
     }
 
     // check if expired
-    if (orgPlanData.subscription.plan_id !== "75e0250f-909b-4074-bfa9-5dd140195fc2") {
-      return NextResponse.json({ error: "premium only" }, { status: 403 });
-    } else {
-      const isExpired =
-        orgPlanData.subscription.ends_at && new Date(orgPlanData.subscription.ends_at) < new Date();
-      if (isExpired) {
-        const errorMessage = `Current organization plan is expired.`;
-        return NextResponse.json({ error: errorMessage }, { status: 403 });
-      }
+    if (orgPlanData.subscription.plan.name !== "premium") {
+      notFound();
     }
-    // ========================================== /check plan ==========================================
+    if (isExpired(orgPlanData.subscription.ends_at)) {
+      notFound();
+    }
 
-    // IP 가져오기
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
 
     // ============ Spam Protection ============
@@ -63,11 +61,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. 이메일 검증
-    if (email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return NextResponse.json({ error: "Invalid email address." }, { status: 400 });
-      }
+    if (email && !isValidEmail(email)) {
+      return NextResponse.json({ error: "Invalid email address." }, { status: 400 });
     }
 
     // 5. 중복 체크
@@ -129,15 +124,9 @@ export async function POST(request: NextRequest) {
       try {
         const resend = new Resend(process.env.RESEND_API_KEY);
 
-        const { data: orgData } = await supabase
-          .from("organizations")
-          .select("name, email, phone")
-          .eq("id", orgId)
-          .single();
-
         const fromEmail =
-          `${orgData?.name}@${process.env.RESEND_DOMAIN}` || process.env.DEFAULT_FROM_EMAIL;
-        const fromName = orgData?.name || "CRM-Project";
+          `${orgPlanData?.name}@${process.env.RESEND_DOMAIN}` || process.env.DEFAULT_FROM_EMAIL;
+        const fromName = orgPlanData?.name || "CRM-Project";
 
         await resend.emails.send({
           from: `${fromName} <${fromEmail}>`,
@@ -146,13 +135,13 @@ export async function POST(request: NextRequest) {
           html: WelcomeEmail({
             name,
             orgName: fromName,
-            orgEmail: orgData?.email,
-            orgPhone: orgData?.phone,
+            orgEmail: orgPlanData?.email,
+            orgPhone: orgPlanData?.phone,
           }),
         });
       } catch (emailError) {
+        await supabase.from("customers").delete().eq("id", customer.id);
         console.error("Email error:", emailError);
-        // 이메일 실패해도 customer는 생성됨
       }
     }
 

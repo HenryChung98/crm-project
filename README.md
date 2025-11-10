@@ -35,9 +35,8 @@
 - max add customer
 - email sender
 - customer status
-- create link(instagram, facebook, ...)
-- booking form(instagram, facebook, ... / premium only)
-- create end point to save customer's action from external website(premium only)
+- link - booking form(instagram, facebook, ... / premium only)
+- link - create end point to save customer's action from external website(premium only)
 - optimistic update(premium only)
 
 <!--

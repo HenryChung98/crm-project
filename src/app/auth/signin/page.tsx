@@ -50,7 +50,8 @@ export default function SigninPage() {
       }
 
       if (res?.success) {
-        router.push("/orgs");
+        // Use window.location to ensure cookies are set and session is available
+        window.location.href = "/orgs";
       }
     } catch (error) {
       showError(`Sign in error: ${error}`);

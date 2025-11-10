@@ -8,21 +8,23 @@ import { QueryResultArray } from "../types/customData";
 
 // check all organizations that user belongs to
 export const useUserOrganizations = (): QueryResultArray<OrganizationContextQuery> => {
-  const result = useQuery({
+  const { data, isLoading, error, refetch } = useQuery<
+    OrganizationContextQuery[] | null,
+    NetworkError
+  >({
     queryKey: ["organizationMembers", "user", "context"],
     queryFn: () => getUserOrganizations(),
-    retry: (failureCount, error: NetworkError) => {
+    retry: (failureCount: number, error: NetworkError) => {
       if (error?.code === "PGRST301") return false;
       return failureCount < 3;
     },
   });
 
   return {
-    data: result.data || [],
-    error: result.error,
-    isLoading: result.isLoading,
-    isFetching: result.isFetching,
-    refetch: result.refetch,
+    data: data ?? [],
+    isLoading,
+    error,
+    refetch,
   };
 };
 

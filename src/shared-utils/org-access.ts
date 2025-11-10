@@ -85,22 +85,35 @@ export async function requireOrgAccess(
     const requiredRoleLevel = ROLE_HIERARCHY[requiredRole].level;
 
     if (userRoleLevel < requiredRoleLevel) {
-      throw new Error(`Insufficient permissions. Required: ${requiredRole} or higher`);
+      const allowedRoles = Object.values(ROLE_HIERARCHY)
+        .filter((role) => role.level >= requiredRoleLevel)
+        .map((role) => role.name)
+        .join(", ");
+
+      throw new Error(`Insufficient permissions. Required: ${allowedRoles}`);
     }
   }
-
   // verify access based on plan
   if (!orgMember.organizations?.subscription?.plan.name) {
     throw new Error(`Insufficient permissions.`);
   }
 
   if (requiredPlan) {
-    const userPlanLevel =
-      PLAN_HIERARCHY[orgMember.organizations.subscription.plan.name as PlanName]?.level ?? -1;
+    const planName = orgMember.organizations?.subscription?.plan?.name;
+    if (!planName) {
+      throw new Error("No active subscription");
+    }
+
+    const userPlanLevel = PLAN_HIERARCHY[planName as PlanName]?.level ?? -1;
     const requiredPlanLevel = PLAN_HIERARCHY[requiredPlan].level;
 
     if (userPlanLevel < requiredPlanLevel) {
-      throw new Error(`Insufficient plan. Required: ${requiredPlan} or higher`);
+      const allowedPlans = Object.values(PLAN_HIERARCHY)
+        .filter((plan) => plan.level >= requiredPlanLevel)
+        .map((plan) => plan.name)
+        .join(", ");
+
+      throw new Error(`Insufficient plan. Required: ${allowedPlans}`);
     }
   }
 

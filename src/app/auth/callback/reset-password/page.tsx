@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { isValidPassword } from "@/shared-utils/validations";
 
 // icons
 import { BiShow, BiHide } from "react-icons/bi";
@@ -35,6 +36,11 @@ export default function ResetPasswordPage() {
       const { password, confirmPassword } = formData;
       if (password !== confirmPassword) {
         showError("Passwords do not match");
+        setIsLoading(false);
+        return;
+      }
+      if (!isValidPassword(password)) {
+        showError("Password must be at least 8 characters long and contain letters and numbers.");
         setIsLoading(false);
         return;
       }

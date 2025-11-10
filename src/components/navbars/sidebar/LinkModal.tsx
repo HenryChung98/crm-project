@@ -40,7 +40,7 @@ export const LinkModal = ({
             premiumPlanRequired
           />
           <CopyButton
-            text={`${window.location.origin}/v/${currentOrgId}?src=instagram`}
+            text={`${window.location.origin}/visit/${currentOrgId}?src=instagram`}
             label="Copy Instagram Tracking Link"
             currentOrgPlan={currentOrgPlan}
           />

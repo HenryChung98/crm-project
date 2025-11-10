@@ -3,9 +3,8 @@
 import { createClient } from "@/supabase/server";
 import { PlanType, SubscriptionStatus, PaymentStatus } from "@/types/database/plan";
 
-export interface CheckPlanType {
+export interface CheckPlanPublicType {
   id: string;
-  url: string;
   name: string;
   email: string;
   phone: string;
@@ -13,12 +12,11 @@ export interface CheckPlanType {
     status: SubscriptionStatus;
     starts_at: string;
     ends_at: string;
-    payment_status: PaymentStatus;
     plan: PlanType;
   };
 }
 
-export async function checkPlan(orgId?: string): Promise<CheckPlanType | null> {
+export async function checkPlanPublic(orgId?: string): Promise<CheckPlanPublicType | null> {
   if (!orgId) return null;
 
   const supabase = await createClient();
@@ -38,7 +36,6 @@ export async function checkPlan(orgId?: string): Promise<CheckPlanType | null> {
     .select(
       `
     id,
-    url,
     name,
     email,
     phone,
@@ -46,13 +43,8 @@ export async function checkPlan(orgId?: string): Promise<CheckPlanType | null> {
       status,
       starts_at,
       ends_at,
-      payment_status,
       plan:plan_id(
-        name,
-        max_users,
-        max_customers,
-        email_sender,
-        track_visit
+        name
       )
     )
   `
@@ -78,7 +70,6 @@ export async function checkPlan(orgId?: string): Promise<CheckPlanType | null> {
 
   return {
     id: data.id,
-    url: data.url,
     name: data.name,
     email: data.email,
     phone: data.phone,
