@@ -6,7 +6,9 @@ import {
   createSubscription,
   SubscriptionData,
 } from "./subscription-management";
-import { PlanName, PlanType, PaymentStatus } from "@/types/database/plan";
+
+// types
+import { PlanName, PlanType, PaymentStatus, PLAN_HIERARCHY } from "@/types/database/plan";
 
 interface ValidationViolation {
   type: "members" | "customers";
@@ -25,8 +27,7 @@ export interface PlanActionResult {
 }
 
 const isDowngrade = (currentPlan: PlanName, targetPlan: PlanName): boolean => {
-  const planOrder = { free: 0, basic: 1, premium: 2 };
-  return planOrder[targetPlan] < planOrder[currentPlan];
+  return PLAN_HIERARCHY[targetPlan].level < PLAN_HIERARCHY[currentPlan].level;
 };
 
 const updateSubscription = async (

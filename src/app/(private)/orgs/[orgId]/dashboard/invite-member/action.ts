@@ -9,7 +9,7 @@ export async function inviteUser(formData: FormData) {
   const orgId = formData.get("orgId")?.toString().trim();
 
   try {
-    const { supabase, user } = await requireOrgAccess(orgId, ["owner", "admin"]);
+    const { supabase, user } = await requireOrgAccess(orgId, "admin");
 
     // ========================================== check plan ==========================================
     const validation = await validateMemberCreation(orgId!);

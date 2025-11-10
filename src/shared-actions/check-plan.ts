@@ -43,7 +43,8 @@ export async function checkPlan(orgId?: string): Promise<CheckPlanType | null> {
         name,
         max_users,
         max_customers,
-        email_sender
+        email_sender,
+        track_visit
       )
     )
   `

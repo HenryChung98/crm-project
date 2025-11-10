@@ -4,7 +4,7 @@ export interface OrganizationContextQuery {
   id: string;
   organization_id: string;
   organization_name: string;
-  role: string;
+  role: RoleName;
   organizations: {
     name: string;
     url: string;
@@ -34,3 +34,11 @@ export interface OrganizationInvitations {
     name: string;
   } | null;
 }
+
+export type RoleName = "member" | "admin" | "owner";
+
+export const ROLE_HIERARCHY = {
+  member: { level: 0, name: "member" },
+  admin: { level: 1, name: "admin" },
+  owner: { level: 2, name: "owner" },
+} as const;

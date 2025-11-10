@@ -25,8 +25,15 @@ export interface PlanType {
   max_users: number;
   max_customers: number;
   email_sender: number;
+  track_visit: number;
 }
 
 export type PlanName = "free" | "basic" | "premium";
 export type SubscriptionStatus = "free" | "active" | "inactive" | "canceled" | "expired";
 export type PaymentStatus = "paid" | "pending" | "failed" | "refunded";
+
+export const PLAN_HIERARCHY = {
+  free: { level: 0, name: "free" },
+  basic: { level: 1, name: "basic" },
+  premium: { level: 2, name: "premium" },
+} as const;
