@@ -4,14 +4,12 @@ import { SignOutButton } from "@/components/SignOutButton";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useEffect } from "react";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export default function DashboardPage() {
   const { currentOrganizationId, member, ownOrganization } = useOrganization();
   const { planData, planLoading } = useSubscription();
 
-  if (planLoading) {
-    return <>loading..</>;
-  }
   return (
     <>
       <Link href={`dashboard/invite-member`}>invite</Link>
@@ -24,14 +22,6 @@ export default function DashboardPage() {
       <div>{member?.organizations?.subscription?.plan.name} dashboard page</div>
       <div>{planData?.payment_status} dashboard page</div>
       <div>{ownOrganization} dashboard page</div>
-
-      {/* <ul>
-        {organizations.map((member) => (
-          <li key={member.id}>
-            {member.organizations?.name} - {member.role}
-          </li>
-        ))}
-      </ul> */}
     </>
   );
 }

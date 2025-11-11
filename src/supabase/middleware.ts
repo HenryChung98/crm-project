@@ -43,7 +43,7 @@ export async function updateSession(request: NextRequest) {
     "/terms",
     "/privacy",
     "/public",
-    "/v",
+    "/visit",
   ];
   const authPaths = [
     "/auth/signin",

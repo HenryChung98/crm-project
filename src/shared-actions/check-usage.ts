@@ -4,7 +4,7 @@ import { requireOrgAccess } from "@/shared-utils/org-access";
 export async function checkMemberUsage(orgId: string): Promise<number | null> {
   if (!orgId) return null;
 
-  const { supabase } = await requireOrgAccess(orgId);
+  const { supabase } = await requireOrgAccess(orgId, null, null, true);
 
   const { count, error } = await supabase
     .from("organization_members")
@@ -19,7 +19,7 @@ export async function checkMemberUsage(orgId: string): Promise<number | null> {
 export async function checkCustomersUsage(orgId: string): Promise<number | null> {
   if (!orgId) return null;
 
-  const { supabase } = await requireOrgAccess(orgId);
+  const { supabase } = await requireOrgAccess(orgId, null, null, true);
 
   const { count, error } = await supabase
     .from("customers")
@@ -34,7 +34,7 @@ export async function checkCustomersUsage(orgId: string): Promise<number | null>
 export async function checkEmailSenderUsage(orgId: string): Promise<number | null> {
   if (!orgId) return null;
 
-  const { supabase } = await requireOrgAccess(orgId);
+  const { supabase } = await requireOrgAccess(orgId, null, null, true);
 
   const { count, error } = await supabase
     .from("customers")

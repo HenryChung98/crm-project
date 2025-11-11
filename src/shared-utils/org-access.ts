@@ -7,16 +7,38 @@ import { RoleName, ROLE_HIERARCHY } from "@/types/database/organizations";
 import { PlanName, PLAN_HIERARCHY } from "@/types/database/plan";
 import { SupabaseError } from "@/types/errors";
 
-export interface OrgAccessContext {
+interface OrgAccessContext {
   user: User;
   orgMember: OrganizationContextQuery;
   supabase: Awaited<ReturnType<typeof createClient>>;
 }
 
+/**
+ * 2 API Calls
+ *
+ * Ensures the currently authenticated user has access to a specific organization,
+ * optionally verifying their role and subscription plan.
+ *
+ * @param orgId - The ID of the organization to check access
+ * @param requiredRole - Optional minimum role required (e.g., 'owner', 'admin').
+ * @param requiredPlan - Optional minimum plan required (e.g., 'basic', 'premium').
+ * @param idOnly - if orgMember is not need, true.
+ * @returns An object containing:
+ *   - `user`: the authenticated Supabase user object
+ *   - `orgMember`: the organization membership record with optional nested organization and subscription info
+ *   - `supabase`: Supabase client instance for further queries
+ * @throws Error if:
+ *   - `orgId` is invalid or missing
+ *   - user is not authenticated
+ *   - user is not a member of the organization
+ *   - user role is insufficient (if `requiredRole` is specified)
+ *   - subscription plan is insufficient or missing (if `requiredPlan` is specified)
+ */
 export async function requireOrgAccess(
-  orgId: string | undefined,
-  requiredRole?: RoleName,
-  requiredPlan?: PlanName
+  orgId: string | null | undefined,
+  requiredRole?: RoleName | null,
+  requiredPlan?: PlanName | null,
+  idOnly?: boolean
 ): Promise<OrgAccessContext> {
   if (!orgId || typeof orgId !== "string" || orgId.trim() === "") {
     throw new Error("Valid organization ID is required");
@@ -37,26 +59,36 @@ export async function requireOrgAccess(
   const { data: orgMember, error: orgError } = (await supabase
     .from("organization_members")
     .select(
-      `
-        id,
-        organization_id,
-        organization_name,
-        role,
-        organizations:organization_id(
-          name,
-          url,
-          subscription:subscriptions(
-            id,
-            plan_id,
-            status,
-            ends_at,
-            payment_status,
-            plan:plans(
-              name
+      idOnly
+        ? `
+          id,
+          role,
+          organizations:organization_id(
+            subscription:subscriptions(
+              plan:plans(name)
             )
           )
-        )
-      `
+        `
+        : `
+          id,
+          organization_id,
+          organization_name,
+          role,
+          organizations:organization_id(
+            name,
+            url,
+            subscription:subscriptions(
+              id,
+              plan_id,
+              status,
+              ends_at,
+              payment_status,
+              plan:plans(
+                name
+              )
+            )
+          )
+        `
     )
     .eq("organization_id", orgId)
     .eq("user_id", user.id)
