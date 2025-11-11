@@ -8,6 +8,8 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {
   return (
     <PrivateProviders>
@@ -18,12 +20,8 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
 
 // ✅ Provider 안에서 사용
 function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
-  const {
-    currentOrganizationId,
-    allOrganizations,
-    orgMemberLoading,
-    switchOrganization,
-  } = useOrganization();
+  const { currentOrganizationId, allOrganizations, orgMemberLoading, switchOrganization } =
+    useOrganization();
   const { planData, planLoading } = useSubscription();
   const { isCollapsed, toggleSidebar } = useSidebar();
 
@@ -33,6 +31,7 @@ function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <ReactQueryDevtools initialIsOpen={false} position="bottom" />
       <CRMSidebar
         organizations={allOrganizations}
         currentOrg={currentOrganizationId}
@@ -40,7 +39,11 @@ function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
         onOrgChange={switchOrganization}
         onToggleSidebar={toggleSidebar}
       />
-      <div className={isCollapsed ? "" : "pl-64"}>{children}</div>
+      <div className={isCollapsed ? "" : "pl-64"}>
+        <div className="min-h-screen px-20 py-8">
+          <div className="max-w-8xl mx-auto">{children}</div>
+        </div>
+      </div>
     </>
   );
 }

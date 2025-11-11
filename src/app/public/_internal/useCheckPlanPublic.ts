@@ -4,7 +4,7 @@ import { QueryResult } from "@/types/customData";
 import { NetworkError } from "@/types/errors";
 
 export const useCheckPlanPublic = (orgId: string): QueryResult<CheckPlanPublicType> => {
-    const { data, isLoading, error, refetch } = useQuery<CheckPlanPublicType | null, NetworkError>({
+    const { data, isLoading, error } = useQuery<CheckPlanPublicType | null, NetworkError>({
       queryKey: ["plan", orgId],
       queryFn: () => checkPlanPublic(orgId),
       enabled: !!orgId,
@@ -18,6 +18,5 @@ export const useCheckPlanPublic = (orgId: string): QueryResult<CheckPlanPublicTy
       data: data ?? null,
       isLoading,
       error,
-      refetch,
     };
   };

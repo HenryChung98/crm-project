@@ -7,7 +7,7 @@ export interface QueryResult<T> {
   data: T | null;
   isLoading: boolean;
   error: NetworkError | null;
-  refetch: () => void;
+  refetch?: () => void;
   isFetching?: boolean;
   isRefetching?: boolean;
   isSuccess?: boolean;

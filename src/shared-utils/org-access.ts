@@ -20,9 +20,9 @@ interface OrgAccessContext {
  * optionally verifying their role and subscription plan.
  *
  * @param orgId - The ID of the organization to check access
+ * @param idOnly - if orgMember is not need, true.
  * @param requiredRole - Optional minimum role required (e.g., 'owner', 'admin').
  * @param requiredPlan - Optional minimum plan required (e.g., 'basic', 'premium').
- * @param idOnly - if orgMember is not need, true.
  * @returns An object containing:
  *   - `user`: the authenticated Supabase user object
  *   - `orgMember`: the organization membership record with optional nested organization and subscription info
@@ -36,9 +36,9 @@ interface OrgAccessContext {
  */
 export async function requireOrgAccess(
   orgId: string | null | undefined,
+  idOnly: boolean,
   requiredRole?: RoleName | null,
   requiredPlan?: PlanName | null,
-  idOnly?: boolean
 ): Promise<OrgAccessContext> {
   if (!orgId || typeof orgId !== "string" || orgId.trim() === "") {
     throw new Error("Valid organization ID is required");

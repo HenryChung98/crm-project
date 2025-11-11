@@ -1,0 +1,24 @@
+import { useQuery } from "@tanstack/react-query";
+import { getDashboardStats, DashboardStatsType } from "./dashboard-stats";
+import { QueryResult } from "@/types/customData";
+import { NetworkError } from "@/types/errors";
+
+export const useDashboardStats = (organizationId: string): QueryResult<DashboardStatsType> => {
+  const { data, isLoading, error, refetch, isFetching } = useQuery<DashboardStatsType | null, NetworkError>({
+    queryKey: ["dashboardStats", organizationId],
+    queryFn: () => getDashboardStats(organizationId),
+    enabled: !!organizationId && organizationId.trim().length > 0,
+    retry: (failureCount, error) => {
+      if (error?.code === "PGRST301") return false;
+      return failureCount < 3;
+    },
+  });
+
+  return {
+    data: data ?? null,
+    isLoading,
+    error,
+    refetch,
+    isFetching,
+  };
+};

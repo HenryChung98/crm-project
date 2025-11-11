@@ -89,7 +89,6 @@ export default function CRMSidebar({
           currentOrg={currentOrg}
           onOrgChange={onOrgChange}
         />
-        <div>{currentOrgPlan}</div>
         <div className="space-y-2">
           <SignOutButton />
           {isOwner && (
