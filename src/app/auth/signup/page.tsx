@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { signUp } from "./action";
 import { BiShow, BiHide } from "react-icons/bi";
-import { useSearchParams } from "next/navigation";
+// import { useSearchParams } from "next/navigation";
 
 import { signInWithGoogle } from "../signin/signInWIthGoogle";
 
@@ -32,15 +32,15 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const searchParams = useSearchParams();
+  // const searchParams = useSearchParams();
 
-  useEffect(() => {
-    const orgId = searchParams.get("org_id");
-    const orgName = searchParams.get("org_name");
+  // useEffect(() => {
+    // const orgId = searchParams.get("org_id");
+    // const orgName = searchParams.get("org_name");
 
-    if (orgId) document.cookie = `pending_org_id=${orgId}; path=/; max-age=3600`;
-    if (orgName) document.cookie = `pending_org_name=${orgName}; path=/; max-age=3600`;
-  }, [searchParams]);
+    // if (orgId) document.cookie = `pending_org_id=${orgId}; path=/; max-age=3600`;
+    // if (orgName) document.cookie = `pending_org_name=${orgName}; path=/; max-age=3600`;
+  // }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
