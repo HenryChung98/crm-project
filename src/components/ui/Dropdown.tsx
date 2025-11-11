@@ -12,19 +12,18 @@ export function Dropdown({
   ...props
 }: DropdownProps) {
   return (
-    <div className="w-full">
-      <label className="block text-sm font-medium mb-1">
+    <div className={`${className}`}>
+      <label className="block mb-1">
         {label} {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       <select
         className={`
-            px-3 py-2 
+            px-1 py-1 w-30
             border border-border rounded-md
             bg-input text-foreground
             focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent
             disabled:opacity-50 disabled:cursor-not-allowed
             ${error ? "border-destructive" : ""}
-            ${className}
           `}
         {...props}
       >
