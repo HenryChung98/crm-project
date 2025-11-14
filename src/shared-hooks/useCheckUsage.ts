@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { checkMemberUsage, checkCustomersUsage } from "@/shared-actions/check-usage";
+import { checkMemberUsage, checkContactsUsage } from "@/shared-actions/check-usage";
 import { NetworkError } from "@/types/errors";
 import { QueryResult } from "../types/customData";
 

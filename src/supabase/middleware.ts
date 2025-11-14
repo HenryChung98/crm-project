@@ -57,7 +57,7 @@ export async function updateSession(request: NextRequest) {
   const protectedPaths = [
     "/orgs",
     "/dashboard",
-    "/customers",
+    "/crmcontact",
     "/settings",
     "/organizations",
     "/sales",

@@ -63,6 +63,7 @@ export async function requireOrgAccess(
         ? `
           id,
           role,
+          user_email,
           organizations:organization_id(
             subscription:subscriptions(
               plan:plans(name)

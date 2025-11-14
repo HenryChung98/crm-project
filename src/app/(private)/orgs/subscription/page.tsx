@@ -7,7 +7,7 @@ import { selectPlan } from "./_internal/plan-selection";
 // types
 import { PlanName } from "@/types/database/plan";
 
-// customer hooks
+// custom hooks
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
 

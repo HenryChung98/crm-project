@@ -151,6 +151,20 @@ export const OrganizationProvider = ({ children }: { children: React.ReactNode }
   return <OrganizationContext.Provider value={value}>{children}</OrganizationContext.Provider>;
 };
 
+/**
+ *`currentOrganizationId`: The active organization ID from route params.
+
+ *`allOrganizations`: List of all organizations the user is a member of.
+
+ *`member`: Current organization membership details.
+
+ *`ownOrganization`: The organization ID where the user is an owner.
+
+ *`orgMemberLoading`: Loading state for organization membership data.
+
+ *`switchOrganization()`: Function to navigate between organizations.
+ 
+ */
 export const useOrganization = () => {
   const context = useContext(OrganizationContext);
   if (context === undefined) {

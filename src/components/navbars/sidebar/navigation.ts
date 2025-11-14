@@ -23,11 +23,11 @@ export function createCrmNavItems(orgId: string) {
       icon: React.createElement(RiDashboardLine),
     },
     {
-      label: "Customers",
+      label: "Contacts",
       icon: React.createElement(RiGroupLine),
       children: [
-        { label: "All Customers", href: `/orgs/${orgId}/customers` },
-        { label: "Add Customer", href: `/orgs/${orgId}/customers/create` },
+        { label: "All Contacts", href: `/orgs/${orgId}/crmcontact` },
+        { label: "Add Contact", href: `/orgs/${orgId}/contacts/create` },
       ],
     },
     {

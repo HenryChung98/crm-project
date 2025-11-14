@@ -1,4 +1,4 @@
-export interface Customers {
+export interface ContactType {
   id: string;
   organization_id: string;
   name: string;

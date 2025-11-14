@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "./Button";
+import { createPortal } from "react-dom";
 
 interface ConfirmOptions {
   title?: string;
@@ -27,8 +28,8 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center slide-in-fwd-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[999] flex items-center justify-center slide-in-fwd-center">
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
 
@@ -39,14 +40,17 @@ export function ConfirmModal({
         <p className="mb-6">{message}</p>
 
         <div className="flex gap-3 justify-end">
-          <Button onClick={onClose} className="bg-secondary">{cancelText}</Button>
+          <Button onClick={onClose} className="bg-secondary">
+            {cancelText}
+          </Button>
 
           <Button onClick={onConfirm} className={`bg-${variant}`}>
             {confirmText}
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

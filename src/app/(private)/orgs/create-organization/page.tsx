@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { showSuccess, showError } from "@/components/feedback";
-import { QueryErrorBanner } from "@/components/ui/QueryErrorBanner";
+import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 import { AccessDenied } from "@/components/AccessDenied";
 
 interface OrganizationFormData {
@@ -117,7 +117,11 @@ export default function CreateOrganizationPage() {
   return (
     <div>
       {hasSubscriptionError && !ownOrganization && (
-        <QueryErrorBanner data="check has subscription" onRetry={() => hasSubscriptionRefetch} />
+        <QueryErrorUI
+          data="check has subscription"
+          error={hasSubscriptionError}
+          onRetry={() => hasSubscriptionRefetch}
+        />
       )}
       {subscriptionId && (
         <Form action={handleSubmit} formTitle="organization">

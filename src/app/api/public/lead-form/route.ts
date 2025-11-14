@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     // 5. 중복 체크
     if (email) {
       const { data: existing } = await supabase
-        .from("customers")
+        .from("contacts")
         .select("id")
         .eq("organization_id", orgId)
         .eq("email", email)
@@ -82,9 +82,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // ============ Customer 생성 ============
+    // ============ contact 생성 ============
 
-    const customerData = {
+    const contactData = {
       organization_id: orgId,
       name,
       email: email || null,
@@ -94,9 +94,9 @@ export async function POST(request: NextRequest) {
       status: "lead",
     };
 
-    const { data: customer, error: insertError } = await supabase
-      .from("customers")
-      .insert([customerData])
+    const { data: contact, error: insertError } = await supabase
+      .from("contacts")
+      .insert([contactData])
       .select("id")
       .single();
 
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     await supabase.from("public_form_submissions").insert([
       {
         organization_id: orgId,
-        customer_id: customer.id,
+        contact_id: contact.id,
         ip_address: ip,
       },
     ]);
@@ -140,14 +140,14 @@ export async function POST(request: NextRequest) {
           }),
         });
       } catch (emailError) {
-        await supabase.from("customers").delete().eq("id", customer.id);
+        await supabase.from("contacts").delete().eq("id", contact.id);
         console.error("Email error:", emailError);
       }
     }
 
     return NextResponse.json({
       success: true,
-      customerId: customer.id,
+      contactId: contact.id,
     });
   } catch (error) {
     console.error("Public form error:", error);

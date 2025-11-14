@@ -7,15 +7,10 @@ import { OrganizationInvitations } from "@/types/database/organizations";
 import { EMPTY_ARRAY } from "@/types/customData";
 
 // ui
-import { QueryErrorBanner } from "@/components/ui/QueryErrorBanner";
+import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 
 export default function InvitationPage() {
-  const {
-    data = EMPTY_ARRAY,
-    isLoading,
-    error,
-    refetch,
-  } = useInvitationCheck();
+  const { data = EMPTY_ARRAY, isLoading, error, refetch } = useInvitationCheck();
 
   return (
     <>
@@ -24,7 +19,7 @@ export default function InvitationPage() {
           <div className="text-blue-700">Loading invitations...</div>
         </div>
       )}
-      {error && <QueryErrorBanner data="invitation" onRetry={() => refetch} />}
+      {error && <QueryErrorUI data="invitation" error={error} onRetry={() => refetch} />}
       <div className="mt-8 rounded-lg shadow-sm border">
         <div className="p-6 border-b">
           <h3 className="text-lg font-semibold">Organization Invitations</h3>

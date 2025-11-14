@@ -5,6 +5,7 @@ export interface OrganizationContextQuery {
   organization_id: string;
   organization_name: string;
   role: RoleName;
+  user_email?: string;
   organizations: {
     name: string;
     url: string;

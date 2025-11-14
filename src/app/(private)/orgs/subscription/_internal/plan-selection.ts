@@ -11,7 +11,7 @@ import {
 import { PlanName, PlanType, PaymentStatus, PLAN_HIERARCHY } from "@/types/database/plan";
 
 interface ValidationViolation {
-  type: "members" | "customers";
+  type: "members" | "contacts";
   orgId?: string;
   current: number;
   limit: number;
@@ -40,7 +40,7 @@ const updateSubscription = async (
     // get target plan's limits
     const { data: targetPlanData, error: targetPlanError } = await supabase
       .from("plans")
-      .select("id, max_users, max_customers")
+      .select("id, max_users, max_contacts")
       .eq("name", targetPlan)
       .single();
 
@@ -52,7 +52,7 @@ const updateSubscription = async (
     if (currentPlan && isDowngrade(currentPlan, targetPlan)) {
       const limits = {
         maxMembersPerOrg: targetPlanData.max_users || 0,
-        maxCustomersPerOrg: targetPlanData.max_customers || 0,
+        maxContactsPerOrg: targetPlanData.max_contacts || 0,
       };
       const violations: ValidationViolation[] = [];
 
@@ -67,24 +67,24 @@ const updateSubscription = async (
         throw new Error("Unable to retrieve organization.");
       }
       // get current all usage
-      const [memberResult, customerResult] = await Promise.all([
+      const [memberResult, contactResult] = await Promise.all([
         supabase
           .from("organization_members")
           .select("*", { count: "exact", head: true })
           .eq("organization_id", organization.id),
         supabase
-          .from("customers")
+          .from("contacts")
           .select("*", { count: "exact", head: true })
           .eq("organization_id", organization.id),
       ]);
 
       const memberCount = memberResult.count ?? 0;
-      const customerCount = customerResult.count ?? 0;
+      const contactCount = contactResult.count ?? 0;
 
-      if (memberResult.error || customerResult.error) {
+      if (memberResult.error || contactResult.error) {
         throw new Error(
-          `Failed to count members/customers: ${
-            memberResult.error?.message || customerResult.error?.message
+          `Failed to count members/contacts: ${
+            memberResult.error?.message || contactResult.error?.message
           }`
         );
       }
@@ -98,15 +98,15 @@ const updateSubscription = async (
         });
       }
 
-      if (customerCount > limits.maxCustomersPerOrg) {
+      if (contactCount > limits.maxContactsPerOrg) {
         violations.push({
-          type: "customers",
-          current: customerCount,
-          limit: limits.maxCustomersPerOrg,
-          message: `There are ${customerCount} customers in your organization.
+          type: "contacts",
+          current: contactCount,
+          limit: limits.maxContactsPerOrg,
+          message: `There are ${contactCount} contacts in your organization.
             \n${targetPlan.toUpperCase()} plan allows up to ${
-            limits.maxCustomersPerOrg
-          } customers.`,
+            limits.maxContactsPerOrg
+          } contacts.`,
         });
       }
 
@@ -176,7 +176,7 @@ export const selectPlan = async (
     const { data: currentSubData, error: currentSubError } = await supabase
       .from("subscriptions")
       .select(
-        `id, plan_id, status, starts_at, ends_at, payment_status, plans (name, max_users, max_customers, email_sender)`
+        `id, plan_id, status, starts_at, ends_at, payment_status, plans (name, max_users, max_contacts, email_sender)`
       )
       .eq("user_id", userId)
       .in("status", ["active", "free"])

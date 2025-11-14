@@ -104,6 +104,12 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
   );
 };
 
+/**
+ *`planData`: plan data regards current organization id
+
+ *`planLoading`: Loading state for organization membership data.
+
+ */
 export const useSubscription = () => {
   const context = useContext(SubscriptionContext);
 

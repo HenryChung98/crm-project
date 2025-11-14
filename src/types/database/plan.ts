@@ -3,7 +3,7 @@ export interface Plan {
   name: string;
   description: string;
   max_users: number;
-  max_customers: number;
+  max_contacts: number;
   price_monthly: number;
   price_yearly: number;
   created_at: string;
@@ -23,7 +23,7 @@ export interface SubscribedPlan {
 export interface PlanType {
   name: string;
   max_users?: number;
-  max_customers?: number;
+  max_contacts?: number;
   email_sender?: number;
   track_visit?: number;
 }

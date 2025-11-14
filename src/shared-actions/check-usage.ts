@@ -16,13 +16,13 @@ export async function checkMemberUsage(orgId: string): Promise<number | null> {
   return count || 0;
 }
 
-export async function checkCustomersUsage(orgId: string): Promise<number | null> {
+export async function checkContactUsage(orgId: string): Promise<number | null> {
   if (!orgId) return null;
 
   const { supabase } = await requireOrgAccess(orgId, true);
 
   const { count, error } = await supabase
-    .from("customers")
+    .from("contacts")
     .select("*", { count: "exact", head: true })
     .eq("organization_id", orgId);
 
@@ -37,7 +37,7 @@ export async function checkEmailSenderUsage(orgId: string): Promise<number | nul
   const { supabase } = await requireOrgAccess(orgId, true);
 
   const { count, error } = await supabase
-    .from("customers")
+    .from("contacts")
     .select("*", { count: "exact", head: true })
     .eq("organization_id", orgId);
 

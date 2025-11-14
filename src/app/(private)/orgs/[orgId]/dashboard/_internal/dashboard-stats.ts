@@ -2,14 +2,14 @@
 import { requireOrgAccess } from "@/shared-utils/org-access";
 
 export interface DashboardStatsType {
-  totalCustomer: number;
-  newCustomer: number;
+  totalContact: number;
+  newContact: number;
   lead: number;
-  customerFromLead: number;
+  contactFromLead: number;
 
-  customerFromInstagram: number;
-  customerFromFacebook: number;
-  customerFromMember: number;
+  contactFromInstagram: number;
+  contactFromFacebook: number;
+  contactFromMember: number;
 
   visitTotal: number;
   visitFromInstagram: number;
@@ -23,30 +23,30 @@ export async function getDashboardStats(orgId: string): Promise<DashboardStatsTy
 
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [customersResult, visitsResult] = await Promise.all([
-    supabase.from("customers").select("status, source, created_at").eq("organization_id", orgId),
+  const [contactsResult, visitsResult] = await Promise.all([
+    supabase.from("contacts").select("status, source, created_at").eq("organization_id", orgId),
     supabase.from("visit_logs").select("source, visited_at").eq("organization_id", orgId),
   ]);
 
-  if (customersResult.error) throw customersResult.error;
+  if (contactsResult.error) throw contactsResult.error;
   if (visitsResult.error) throw visitsResult.error;
 
-  const customers = customersResult.data || [];
+  const contacts = contactsResult.data || [];
   const visits = visitsResult.data || [];
-  const customersLastThirtyDays = customers.filter((c) => c.created_at >= thirtyDaysAgo);
+  const contactsLastThirtyDays = contacts.filter((c) => c.created_at >= thirtyDaysAgo);
   const visitsLastThirtyDays = visits.filter((v) => v.visited_at >= thirtyDaysAgo);
 
   // aggregate from memory
   return {
-    totalCustomer: customers.length,
-    newCustomer: customersLastThirtyDays.length,
-    lead: customers.filter((c) => c.status === "lead").length,
-    customerFromLead: customers.filter((c) => c.status === "customer").length,
+    totalContact: contacts.length,
+    newContact: contactsLastThirtyDays.length,
+    lead: contacts.filter((c) => c.status === "lead").length,
+    contactFromLead: contacts.filter((c) => c.status === "customer").length,
 
-    customerFromInstagram: customers.filter((c) => c.source === "instagram Public Lead Form")
+    contactFromInstagram: contacts.filter((c) => c.source === "instagram Public Lead Form")
       .length,
-    customerFromFacebook: customers.filter((c) => c.source === "facebook Public Lead Form").length,
-    customerFromMember: customers.filter((c) => c.source?.includes("@")).length,
+      contactFromFacebook: contacts.filter((c) => c.source === "facebook Public Lead Form").length,
+      contactFromMember: contacts.filter((c) => c.source?.includes("@")).length,
 
     visitTotal: visits.length,
     visitFromInstagram: visits.filter((v) => v.source === "instagram").length,

@@ -2,15 +2,14 @@
 
 import { OrganizationContextQuery } from "@/types/database/organizations";
 import { CheckPlanType, checkPlan } from "@/shared-actions/check-plan";
-import { checkMemberUsage, checkCustomersUsage } from "./check-usage";
+import { checkMemberUsage, checkContactUsage } from "./check-usage";
 import type { User } from "@supabase/supabase-js";
 import { isExpired } from "@/shared-utils/validations";
 
 export interface PlanValidationOptions {
   orgId: string;
   orgMember: OrganizationContextQuery;
-  resourceType: "customers" | "users";
-  customErrorMessage?: string;
+  contactErrorMessage?: string;
   user?: User;
 }
 
@@ -69,6 +68,27 @@ export async function validateMemberCreation(
     return {
       success: false,
       error: `User limit reached. Your current plan allows up to ${maxLimit} members.`,
+    };
+  }
+
+  return { success: true };
+}
+
+
+export async function validateContactCreation(
+  orgId: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  // check expiry and if expired, return success: false
+  const result = await validateSubscription(orgId);
+  if (!result.success) return result;
+
+  const maxLimit = result.orgPlanData.subscription.plan.max_contacts || 0;
+  const currentTotal = await checkContactUsage(orgId);
+
+  if ((currentTotal ?? 0) >= maxLimit) {
+    return {
+      success: false,
+      error: `User limit reached. Your current plan allows up to ${maxLimit} contacts.`,
     };
   }
 

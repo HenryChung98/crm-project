@@ -53,10 +53,10 @@ export default function DashboardPage() {
           />
           <StatCard
             title="Form Submission Total"
-            value={data.customerFromInstagram + data.customerFromFacebook}
+            value={data.contactFromInstagram + data.contactFromFacebook}
             subValues={{
-              instagram: data.customerFromInstagram,
-              facebook: data.customerFromFacebook,
+              instagram: data.contactFromInstagram,
+              facebook: data.contactFromFacebook,
               test: 30,
               test2: 100,
               test3: 30,

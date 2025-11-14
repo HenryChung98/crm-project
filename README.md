@@ -32,11 +32,11 @@
 ### restricted service
 
 - max invite user
-- max add customer
+- max add contact
 - email sender
-- customer status
+- contact status
 - link - booking form(instagram, facebook, ... / premium only)
-- link - create end point to save customer's action from external website(premium only)
+- link - create end point to save contact's action from external website(premium only)
 - optimistic update(premium only)
 
 <!--
