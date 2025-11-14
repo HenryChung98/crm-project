@@ -11,7 +11,6 @@ import { EMPTY_ARRAY } from "@/types/customData";
 
 // ui
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { QueryErrorBanner } from "@/components/ui/QueryErrorBanner";
 
 export default function OrgPage() {
   // to prevents UI flicker (UX optimization)
@@ -42,7 +41,17 @@ export default function OrgPage() {
   }
   return (
     <>
-      {invitationError && <QueryErrorBanner data="invitation" onRetry={() => refetch} />}
+      {/* query error banner */}
+      {invitationError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded flex items-center justify-between">
+          <span className="text-sm text-red-800">Unable to check invitation</span>
+
+          <button onClick={refetch} className="text-sm text-red-600 hover:text-red-800 underline">
+            Retry
+          </button>
+        </div>
+      )}
+
       <div className="rounded-lg shadow-sm border p-12 text-center">
         <h2 className="text-2xl font-semibold text-text-secondary mb-4">
           You currently have no organizations
