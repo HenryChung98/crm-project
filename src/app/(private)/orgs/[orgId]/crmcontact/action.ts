@@ -13,6 +13,7 @@ export async function createContact(formData: FormData) {
   const name = formData.get("name")?.toString().trim();
   const email = formData.get("email")?.toString().trim();
   const phone = formData.get("phone")?.toString().trim();
+  const status = formData.get("status")?.toString().trim();
   const jobTitle = formData.get("jobTitle")?.toString().trim();
   const note = formData.get("note")?.toString().trim();
 
@@ -26,8 +27,8 @@ export async function createContact(formData: FormData) {
     }
 
     // check all fields
-    if (!orgId || !name || (!email && !phone)) {
-      return { error: "Customer's name, and either email or phone number are required." };
+    if (!orgId || !name || !status || !email) {
+      return { error: "Customer's name, status, and email are required." };
     }
 
     if (name.length < 2 || /^\d+$/.test(name)) {
@@ -72,7 +73,7 @@ export async function createContact(formData: FormData) {
       phone: phone || null,
       job_title: jobTitle || null,
       note: note || null,
-      status: "customer",
+      status: status,
     };
 
     const { data: contactInsertData, error: contactDataError } = await supabase
@@ -107,17 +108,18 @@ export async function createContact(formData: FormData) {
     // resend logic
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const { data: orgData } = await supabase
-      .from("organizations")
-      .select("name, email, phone")
-      .eq("id", orgId)
-      .single();
+    // const { data: orgData } = await supabase
+    //   .from("organizations")
+    //   .select("name, email, phone")
+    //   .eq("id", orgId)
+    //   .single();
 
     if (email && process.env.RESEND_API_KEY) {
       try {
         const fromEmail =
-          `${orgData?.name}@${process.env.RESEND_DOMAIN}` || process.env.DEFAULT_FROM_EMAIL;
-        const fromName = orgData?.name || "CRM-Project";
+          `${orgMember.organizations?.name}@${process.env.RESEND_DOMAIN}` ||
+          process.env.DEFAULT_FROM_EMAIL;
+        const fromName = orgMember.organizations?.name || "CRM-Project";
         // const orgEmail = orgData?.email || "this guy has no email";
         // const orgPhone = orgData?.phone || "this guy has no phone";
 
@@ -128,8 +130,8 @@ export async function createContact(formData: FormData) {
           html: WelcomeEmail({
             name,
             orgName: fromName,
-            orgEmail: orgData?.email,
-            orgPhone: orgData?.phone,
+            orgEmail: orgMember.organizations?.email,
+            orgPhone: orgMember.organizations?.phone,
           }),
         });
       } catch (emailError) {

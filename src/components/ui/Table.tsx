@@ -3,7 +3,7 @@ import { Dropdown } from "./Dropdown";
 
 interface CellData {
   value: string | number | null | React.ReactElement;
-  rawValue?: string | number; // export/filter용 실제 값
+  rawValue?: string | number;
   className?: string;
   textColor?: string;
   bgColor?: string;
@@ -15,17 +15,12 @@ type CellContent = string | number | null | React.ReactElement | CellData;
 
 interface TableProps {
   headers: string[];
-  data: CellContent[][];
-  columnCount?: number;
-  selectable?: boolean;
+  data: CellContent[][] | undefined;
+  columnCount: number;
   onSelectionChange?: (selectedIndices: number[]) => void;
   filterOptions?: string[];
   filterColumn?: number;
-  searchable?: boolean;
-  pagination?: boolean;
-  pageSize?: number;
-  exportable?: boolean;
-  editable?: boolean;
+  pageSize: number;
   editableColumns?: number[];
   onCellEdit?: (
     rowIndex: number,
@@ -33,6 +28,9 @@ interface TableProps {
     newValue: string,
     originalRowData: CellContent[]
   ) => Promise<void>;
+  isDeletable?: boolean;
+  onBulkRemove?: () => void;
+  selectedIndices?: number[];
 }
 
 interface CheckboxProps {
@@ -76,7 +74,6 @@ const getCellValue = (cell: CellContent): string => {
   if (cell === null) return "";
   if (React.isValidElement(cell)) return "";
   if (isCellData(cell)) {
-    // rawValue가 있으면 우선 사용
     if (cell.rawValue !== undefined) {
       return String(cell.rawValue);
     }
@@ -149,17 +146,15 @@ export const Table: React.FC<TableProps> = ({
   headers,
   data,
   columnCount = headers.length,
-  selectable = false,
   onSelectionChange,
   filterOptions = [],
   filterColumn,
-  searchable = false,
-  pagination = false,
   pageSize = 10,
-  exportable = false,
-  editable = false,
   editableColumns = [],
   onCellEdit,
+  isDeletable = false,
+  onBulkRemove,
+  selectedIndices = [],
 }) => {
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [filterValue, setFilterValue] = useState<string>("");
@@ -168,9 +163,15 @@ export const Table: React.FC<TableProps> = ({
   const [editingCell, setEditingCell] = useState<{ row: number; col: number } | null>(null);
   const [editValue, setEditValue] = useState<string>("");
 
-  const displayHeaders = headers.slice(0, columnCount);
+  // Sync external selectedIndices with internal selectedRows
+  React.useEffect(() => {
+    setSelectedRows(new Set(selectedIndices));
+  }, [selectedIndices]);
 
-  let filteredData = data;
+  const displayHeaders = headers.slice(0, columnCount);
+  const normalizedData: CellContent[][] = data ?? [];
+
+  let filteredData = normalizedData;
 
   if (filterValue && filterColumn !== undefined) {
     filteredData = filteredData.filter((row) => {
@@ -188,10 +189,10 @@ export const Table: React.FC<TableProps> = ({
     });
   }
 
-  const totalPages = pagination ? Math.ceil(filteredData.length / pageSize) : 1;
-  const startIndex = pagination ? (currentPage - 1) * pageSize : 0;
-  const endIndex = pagination ? startIndex + pageSize : filteredData.length;
-  const paginatedData = pagination ? filteredData.slice(startIndex, endIndex) : filteredData;
+  const totalPages = Math.ceil(filteredData.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedData = filteredData.slice(startIndex, endIndex);
 
   const displayData = paginatedData.map((row) => {
     const slicedRow = row.slice(0, columnCount);
@@ -233,7 +234,7 @@ export const Table: React.FC<TableProps> = ({
   };
 
   const handleCellDoubleClick = (rowIndex: number, colIndex: number) => {
-    if (!editable || (editableColumns.length > 0 && !editableColumns.includes(colIndex))) {
+    if (editableColumns.length > 0 && !editableColumns.includes(colIndex)) {
       return;
     }
 
@@ -272,20 +273,19 @@ export const Table: React.FC<TableProps> = ({
   return (
     <div className="w-full">
       <div className="mb-4 flex gap-3 items-center">
-        {searchable && (
-          <input
-            type="text"
-            value={searchValue}
-            onChange={(e) => {
-              setSearchValue(e.target.value);
-              setCurrentPage(1);
-              setSelectedRows(new Set());
-              onSelectionChange?.([]);
-            }}
-            placeholder="Search..."
-            className="px-3 py-2 border border-gray-300 rounded"
-          />
-        )}
+        <input
+          type="text"
+          value={searchValue}
+          onChange={(e) => {
+            setSearchValue(e.target.value);
+            setCurrentPage(1);
+            setSelectedRows(new Set());
+            onSelectionChange?.([]);
+          }}
+          placeholder="Search..."
+          className="px-3 py-2 border border-gray-300 rounded"
+        />
+
         {filterOptions.length > 0 && filterColumn !== undefined && (
           <Dropdown
             value={filterValue}
@@ -304,58 +304,45 @@ export const Table: React.FC<TableProps> = ({
             ))}
           </Dropdown>
         )}
-        {/* {filterOptions.length > 0 && filterColumn !== undefined && (
-          <select
-            value={filterValue}
-            onChange={(e) => {
-              setFilterValue(e.target.value);
-              setCurrentPage(1);
-              setSelectedRows(new Set());
-              onSelectionChange?.([]);
-            }}
-            className="px-3 py-2 border border-gray-300 rounded"
+
+        <div className="ml-auto flex gap-2">
+          {isDeletable && selectedRows.size > 0 && (
+            <button
+              onClick={onBulkRemove}
+              className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Delete Selected ({selectedRows.size})
+            </button>
+          )}
+          <button
+            onClick={() => exportToCSV(headers, filteredData, columnCount)}
+            className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
           >
-            <option value="">All</option>
-            {filterOptions.map((option, index) => (
-              <option key={index} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        )} */}
-        {exportable && (
-          <div className="ml-auto flex gap-2">
-            <button
-              onClick={() => exportToCSV(headers, filteredData, columnCount)}
-              className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              Export CSV
-            </button>
-            <button
-              onClick={() => exportToExcel(headers, filteredData, columnCount)}
-              className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Export Excel
-            </button>
-          </div>
-        )}
+            Export CSV
+          </button>
+          <button
+            onClick={() => exportToExcel(headers, filteredData, columnCount)}
+            className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Export Excel
+          </button>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-gray-300">
-              {selectable && (
-                <th className="text-left py-3 px-4">
-                  <Checkbox
-                    checked={isAllSelected}
-                    indeterminate={isIndeterminate}
-                    onChange={handleSelectAll}
-                  />
-                </th>
-              )}
+              <th className="text-left py-3 px-4">
+                <Checkbox
+                  checked={isAllSelected}
+                  indeterminate={isIndeterminate}
+                  onChange={handleSelectAll}
+                />
+              </th>
+
               {displayHeaders.map((header, index) => (
-                <th key={index} className="text-left py-3 px-4 font-medium">
+                <th key={index} className="text-left px-4 font-bold text-sm min-w-[250px]">
                   {header}
                 </th>
               ))}
@@ -369,14 +356,13 @@ export const Table: React.FC<TableProps> = ({
                   selectedRows.has(rowIndex) ? "opacity-50" : ""
                 }`}
               >
-                {selectable && (
-                  <td className="py-3 px-4">
-                    <Checkbox
-                      checked={selectedRows.has(rowIndex)}
-                      onChange={(checked) => handleSelectRow(rowIndex, checked)}
-                    />
-                  </td>
-                )}
+                <td className="py-3 px-4">
+                  <Checkbox
+                    checked={selectedRows.has(rowIndex)}
+                    onChange={(checked) => handleSelectRow(rowIndex, checked)}
+                  />
+                </td>
+
                 {row.map((cell, cellIndex) => {
                   const cellData = isCellData(cell) ? cell : { value: cell };
                   const {
@@ -389,13 +375,12 @@ export const Table: React.FC<TableProps> = ({
                   } = cellData;
 
                   const isEditableCell =
-                    editable &&
-                    (editableColumns.length === 0 || editableColumns.includes(cellIndex));
+                    editableColumns.length === 0 || editableColumns.includes(cellIndex);
 
                   return (
                     <td
                       key={cellIndex}
-                      className={`py-3 px-4 ${className || ""} ${
+                      className={`text-sm px-3 min-w-[250px] ${className || ""} ${
                         isEditableCell ? "cursor-pointer" : ""
                       }`}
                       style={{
@@ -436,7 +421,7 @@ export const Table: React.FC<TableProps> = ({
         </table>
       </div>
 
-      {pagination && totalPages > 1 && (
+      {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between">
           <div className="text-sm text-gray-600">
             Showing {startIndex + 1} to {Math.min(endIndex, filteredData.length)} of{" "}

@@ -3,12 +3,13 @@ import { SubscriptionStatus, PaymentStatus } from "./plan";
 export interface OrganizationContextQuery {
   id: string;
   organization_id: string;
-  organization_name: string;
   role: RoleName;
   user_email?: string;
   organizations: {
     name: string;
     url: string;
+    email?: string;
+    phone?: string;
     subscription: {
       id: string;
       plan_id: string;

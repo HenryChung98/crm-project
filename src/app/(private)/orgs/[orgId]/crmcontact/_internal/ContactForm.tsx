@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Form } from "@/components/ui/Form";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 import { showSuccess, showError } from "@/components/feedback";
 
@@ -13,37 +14,32 @@ export interface ContactFormData {
   orgId: string;
   name: string;
   email: string;
-  jobTitle?: string | null;
   phone?: string | null;
+  status: string;
+  jobTitle?: string | null;
   note?: string | null;
 }
 
 interface ContactFormProps {
   currentOrgId: string;
-  initialData?: ContactFormData;
-  setIsFormCollapsed: () => void;
+  setFormCollapsed: () => void;
 }
 
-export const ContactForm = ({
-  currentOrgId,
-  initialData,
-  setIsFormCollapsed,
-}: ContactFormProps) => {
-  const [formData, setFormData] = useState<ContactFormData>(
-    initialData || {
-      orgId: currentOrgId,
-      name: "",
-      email: "",
-      jobTitle: "",
-      phone: "",
-      note: "",
-    }
-  );
+export const ContactForm = ({ currentOrgId, setFormCollapsed }: ContactFormProps) => {
+  const [formData, setFormData] = useState<ContactFormData>({
+    orgId: currentOrgId,
+    name: "",
+    email: "",
+    phone: "",
+    status: "",
+    jobTitle: "",
+    note: "",
+  });
   const [isButtonLoading, setIsButtonLoading] = useState(false);
   const { confirm, ConfirmModal } = useConfirm();
   const queryClient = useQueryClient();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -51,17 +47,16 @@ export const ContactForm = ({
   const handleCancel = () => {
     confirm(
       () => {
-        setFormData(
-          initialData || {
-            orgId: currentOrgId,
-            name: "",
-            email: "",
-            jobTitle: "",
-            phone: "",
-            note: "",
-          }
-        );
-        setIsFormCollapsed();
+        setFormData({
+          orgId: currentOrgId,
+          name: "",
+          email: "",
+          phone: "",
+          status: "",
+          jobTitle: "",
+          note: "",
+        });
+        setFormCollapsed();
       },
       {
         title: "Cancel Creating Contact",
@@ -81,6 +76,7 @@ export const ContactForm = ({
           formData.append("orgId", data.orgId);
           formData.append("name", data.name);
           formData.append("email", data.email);
+          formData.append("status", data.status);
           if (data.phone) formData.append("phone", data.phone);
           if (data.note) formData.append("note", data.note);
 
@@ -92,7 +88,16 @@ export const ContactForm = ({
               queryKey: ["customers"],
             });
             showSuccess("Customer successfully created");
-            setIsFormCollapsed();
+            setFormData({
+              orgId: currentOrgId,
+              name: "",
+              email: "",
+              phone: "",
+              status: "",
+              jobTitle: "",
+              note: "",
+            });
+            setFormCollapsed();
           }
         } catch (error) {
           showError("An error occurred.");
@@ -134,7 +139,20 @@ export const ContactForm = ({
           value={formData.email}
           onChange={handleChange}
           className="border w-full p-2"
+          required
         />
+        <Dropdown
+          value={formData.status}
+          onChange={handleChange}
+          label="Status"
+          name="status"
+          required
+        >
+          <option value="">Select Status</option>
+          <option value="lead">Lead</option>
+          <option value="customer">Customer</option>
+          <option value="inactive">Inactive</option>
+        </Dropdown>
         <FormField
           label="Phone"
           name="phone"

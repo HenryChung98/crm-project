@@ -35,9 +35,9 @@
 - max add contact
 - email sender
 - contact status
+- log(premium only)
 - link - booking form(instagram, facebook, ... / premium only)
 - link - create end point to save contact's action from external website(premium only)
-- optimistic update(premium only)
 
 <!--
 need to setup after done

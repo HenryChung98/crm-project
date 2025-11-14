@@ -1,8 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useOrganization } from "@/contexts/OrganizationContext";
+
 import { ContactForm } from "./_internal/ContactForm";
 import { useContactsDB } from "./_internal/useContactsDB";
+import {
+  updateContactStatus,
+  updateContactField,
+  removeBulkContacts,
+} from "./_internal/update-actions";
 
 // ui
 import { Table } from "@/components/ui/Table";
@@ -17,11 +23,12 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 export default function CRMContactPage() {
   const [isFormCollapsed, setIsFormCollapsed] = useState(true);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+
   const { confirm, ConfirmModal } = useConfirm();
   const { currentOrganizationId } = useOrganization();
   const { planData, planLoading } = useSubscription();
   const {
-    data: contactData,
+    data: contacts,
     isLoading,
     error,
     refetch,
@@ -30,9 +37,135 @@ export default function CRMContactPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [jsonModalData, setJsonModalData] = useState<any>(null);
+  const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+
+  // for optimistic update
+  const [localCustomers, setLocalCustomers] = useState(contacts || []);
+  useState(() => {
+    if (contacts) {
+      setLocalCustomers(contacts);
+    }
+  });
+  useEffect(() => {
+    if (contacts) {
+      setLocalCustomers(contacts);
+    }
+  }, [contacts]);
+
+  // update contact status
+  const handleStatusChange = async (customerId: string, targetStatus: string) => {
+    confirm(
+      async () => {
+        try {
+          const result = await updateContactStatus(customerId, currentOrganizationId, targetStatus);
+
+          if (result.error || !result.success) {
+            showError(result.error || "Failed to update status");
+            return;
+          }
+
+          showSuccess("Status updated successfully!");
+          refetch!();
+        } catch (error) {
+          showError("Failed to update status");
+          console.error("Update status error:", error);
+        }
+      },
+      {
+        title: "Change Status",
+        message: `Are you sure you want to change status from lead to ${targetStatus}? This action cannot be undone.`,
+        confirmText: "Change",
+        variant: "primary",
+      }
+    );
+  };
+
+  const handleCellEdit = async (rowIndex: number, columnIndex: number, newValue: string) => {
+    // 컬럼 매핑: 0=name, 1=email
+    const columnMap: { [key: number]: string } = {
+      0: "name",
+      1: "email",
+    };
+
+    const fieldName = columnMap[columnIndex];
+    if (!fieldName) return;
+
+    const customer = localCustomers[rowIndex];
+    const customerId = customer.id;
+    const previousValue = customer[fieldName as keyof typeof customer];
+
+    // 1. Optimistic Update: UI 먼저 업데이트
+    setLocalCustomers((prev) => {
+      const updated = [...prev];
+      updated[rowIndex] = {
+        ...updated[rowIndex],
+        [fieldName]: newValue,
+      };
+      return updated;
+    });
+
+    try {
+      // 2. Server Action 호출
+      const result = await updateContactField({
+        customerId,
+        fieldName,
+        newValue,
+        orgId: currentOrganizationId,
+      });
+
+      if (!result.success) {
+        showError(result.error || "Update failed");
+        throw new Error(result.error || "Update failed");
+      }
+
+      showSuccess(`${fieldName} updated successfully!`);
+    } catch (error) {
+      // 3. 실패시 롤백
+      setLocalCustomers((prev) => {
+        const rollback = [...prev];
+        rollback[rowIndex] = {
+          ...rollback[rowIndex],
+          [fieldName]: previousValue,
+        };
+        return rollback;
+      });
+      console.error("Cell edit error:", error);
+    }
+  };
+
+  const handleBulkRemove = async () => {
+    if (!contacts || selectedIndices.length === 0) return;
+
+    const selectedIds = selectedIndices.map((i) => contacts[i].id);
+
+    confirm(
+      async () => {
+        try {
+          const result = await removeBulkContacts(selectedIds, currentOrganizationId);
+
+          if (result.success) {
+            showSuccess(`${selectedIds.length} contacts removed successfully!`);
+            refetch!();
+            setSelectedIndices([]);
+          } else {
+            showError(`Failed to remove contacts: ${result.error}`);
+          }
+        } catch (error) {
+          showError("An error occurred while removing");
+          console.error("Remove contacts error:", error);
+        }
+      },
+      {
+        title: "Remove Contacts",
+        message: `Are you sure you want to remove ${selectedIds.length} contact(s)? This action cannot be undone.`,
+        confirmText: "Remove",
+        variant: "danger",
+      }
+    );
+  };
 
   const data =
-    contactData?.map((contact) => [
+    contacts?.map((contact) => [
       contact.name,
       contact.email,
       contact.source,
@@ -62,19 +195,6 @@ export default function CRMContactPage() {
         rawValue: contact.status,
       },
       "bigbig databig databig databig databig databig databig databig data data",
-      "bigbig databig databig databig databig databig databig databig data data",
-      "bigbig databig databig databig databig databig databig databig data data",
-      "bigbig databig databig databig databig databig databig databig data data",
-      "bigbig databig databig databig databig databig databig databig data data",
-      "bigbig databig databig databig databig databig databig databig data data",
-      "bigbig databig databig databig databig databig databig databig data data",
-      "bigbig databig databig databig databig databig databig databig data data",
-      "bigbig databig databig databig databig databig databig databig data data",
-      "bigbig databig databig databig databig databig databig databig data data",
-      "bigbig databig databig databig databig databig databig databig data data",
-      "bigbig databig databig databig databig databig databig databig data data",
-      "bigbig databig databig databig databig databig databig databig data data",
-      "bigbig databig databig databig databig databig databig databig data data",
     ]) || [];
 
   if (isLoading) return <FetchingSpinner />;
@@ -82,23 +202,25 @@ export default function CRMContactPage() {
   return (
     <>
       <div>contact</div>
-      <Button onClick={() => setIsFormCollapsed(!isFormCollapsed)}>create</Button>
-      <Button onClick={refetch} disabled={isFetching}>
-        {isFetching ? "refeshing.." : "refresh"}
-      </Button>
+      <div className="flex justify-between">
+        <Button onClick={refetch} disabled={isFetching}>
+          {isFetching ? "refeshing.." : "refresh"}
+        </Button>
+        <Button onClick={() => setIsFormCollapsed(!isFormCollapsed)}>create</Button>
+      </div>
       <Table
         headers={["Name", "Email", "Source", "Imported Data", "Created At", "Status"]}
         data={data}
-        searchable
-        pagination
         pageSize={20}
-        exportable
         filterOptions={["instagram Public Lead Form", "By"]}
         filterColumn={2}
-        columnCount={16}
-        editable={planData?.plan.name === "premium"}
-        editableColumns={[0, 1, 2]} // Name, Email, Source만 수정 가능
-        // onCellEdit={handleCellEdit}
+        columnCount={10}
+        selectedIndices={selectedIndices}
+        onSelectionChange={setSelectedIndices}
+        editableColumns={[0, 1, 2]} // Name, Email, Source
+        onCellEdit={handleCellEdit}
+        isDeletable
+        onBulkRemove={handleBulkRemove}
       />
       <div
         className={`
@@ -109,10 +231,13 @@ export default function CRMContactPage() {
       >
         <ContactForm
           currentOrgId={currentOrganizationId}
-          setIsFormCollapsed={() => setIsFormCollapsed(true)}
+          setFormCollapsed={() => {
+            setIsFormCollapsed(true);
+          }}
         />
       </div>
       {error && <QueryErrorUI data="contact" error={error} onRetry={refetch} />}
+      <ConfirmModal />
     </>
   );
 }

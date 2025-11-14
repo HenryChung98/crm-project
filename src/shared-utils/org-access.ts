@@ -73,9 +73,11 @@ export async function requireOrgAccess(
         : `
           id,
           organization_id,
-          organization_name,
           role,
+          user_email,
           organizations:organization_id(
+            email,
+            phone,
             name,
             url,
             subscription:subscriptions(
