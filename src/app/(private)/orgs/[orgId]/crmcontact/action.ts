@@ -86,25 +86,26 @@ export async function createContact(formData: FormData) {
       return { error: contactDataError.message };
     }
 
-    const activityLogData = {
-      organization_id: orgId,
-      entity_id: contactInsertData.id,
-      entity_type: "contact",
-      action: "contact-created",
-      changed_data: contactData,
-      performed_by: orgMember.id,
-    };
+    if (orgMember.organizations?.subscription?.plan.name === "premium") {
+      const activityLogData = {
+        organization_id: orgId,
+        entity_id: contactInsertData.id,
+        entity_type: "contact",
+        action: "contact-created",
+        changed_data: contactData,
+        performed_by: orgMember.id,
+      };
 
-    const { error: activityLogError } = await supabase
-      .from("activity_logs")
-      .insert([activityLogData])
-      .select("id")
-      .single();
+      const { error: activityLogError } = await supabase
+        .from("activity_logs")
+        .insert([activityLogData])
+        .select("id")
+        .single();
 
-    if (activityLogError) {
-      return { error: activityLogError.message };
+      if (activityLogError) {
+        return { error: activityLogError.message };
+      }
     }
-
     // resend logic
     const resend = new Resend(process.env.RESEND_API_KEY);
 

@@ -7,9 +7,9 @@ interface CheckboxContainerProps extends React.InputHTMLAttributes<HTMLInputElem
 }
 
 interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  checked: boolean;
   label?: string;
   error?: string;
-  indeterminate?: boolean;
 }
 
 export const CheckboxContainer = ({
@@ -39,10 +39,10 @@ export const CheckboxContainer = ({
   );
 };
 
-export const Checkbox = ({ label, error, className = "", ...props }: CheckboxProps) => {
+export const Checkbox = ({ label, error, checked, className = "", ...props }: CheckboxProps) => {
   return (
     <div className={`${className}`}>
-      <label className="flex justify-between items-center gap-2 w-25">
+      <label className="flex justify-between items-center gap-2 w-25 cursor-pointer">
         {label && <span className="text-sm">{label}</span>}
         <input
           type="checkbox"
@@ -55,6 +55,7 @@ export const Checkbox = ({ label, error, className = "", ...props }: CheckboxPro
               disabled:opacity-50 disabled:cursor-not-allowed
               ${error ? "border-destructive" : ""}
             `}
+          checked={checked}
           {...props}
         />
         <div className="w-4 h-4 flex-shrink-0 min-w-4 min-h-4 border-2 border-gray-400 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 flex items-center justify-center transition-all">

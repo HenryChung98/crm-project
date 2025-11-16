@@ -44,7 +44,7 @@ export function createCrmNavItems(orgId: string) {
       label: "Reports",
       icon: React.createElement(RiFileTextLine),
       children: [
-        { label: "Sales Reports", href: `#` },
+        { label: "Activity Logs", href: `/orgs/${orgId}/activity-logs` },
         { label: "Customer Reports", href: `#` },
         { label: "Analytics", href: `#` },
       ],

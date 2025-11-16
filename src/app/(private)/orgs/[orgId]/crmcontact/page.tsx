@@ -19,6 +19,7 @@ import { useConfirm } from "@/components/ui/ConfirmModal";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { JsonModal } from "@/components/ui/JsonModal";
 
 export default function CRMContactPage() {
   const [isFormCollapsed, setIsFormCollapsed] = useState(true);
@@ -35,9 +36,21 @@ export default function CRMContactPage() {
     isFetching,
   } = useContactsDB(currentOrganizationId);
 
+  const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [jsonModalData, setJsonModalData] = useState<any>(null);
-  const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+  const [triggerElement, setTriggerElement] = useState<HTMLElement | null>(null);
+
+  const handleViewData = (e: React.MouseEvent<HTMLButtonElement>, data: any) => {
+    if (jsonModalData === data) {
+      setJsonModalData(null);
+      setTriggerElement(null);
+    } else {
+      setTriggerElement(e.currentTarget);
+      setJsonModalData(data);
+    }
+  };
 
   // for optimistic update
   const [localCustomers, setLocalCustomers] = useState(contacts || []);
@@ -173,7 +186,7 @@ export default function CRMContactPage() {
         <Button
           key={`view-${contact.id}`}
           variant="secondary"
-          onClick={() => setJsonModalData(contact.imported_data)}
+          onClick={(e) => handleViewData(e, contact.imported_data)}
         >
           View Data
         </Button>
@@ -217,6 +230,7 @@ export default function CRMContactPage() {
         columnCount={10}
         selectedIndices={selectedIndices}
         onSelectionChange={setSelectedIndices}
+        isEditable
         editableColumns={[0, 1, 2]} // Name, Email, Source
         onCellEdit={handleCellEdit}
         isDeletable
@@ -238,6 +252,14 @@ export default function CRMContactPage() {
       </div>
       {error && <QueryErrorUI data="contact" error={error} onRetry={refetch} />}
       <ConfirmModal />
+      <JsonModal
+        data={jsonModalData}
+        onClose={() => {
+          setJsonModalData(null);
+          setTriggerElement(null);
+        }}
+        triggerElement={triggerElement}
+      />
     </>
   );
 }

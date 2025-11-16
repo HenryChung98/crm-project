@@ -1,4 +1,4 @@
-export interface ActivityLogs {
+export interface ActivityLogType {
     id: string;
     organization_id: string;
     entity_id: string;

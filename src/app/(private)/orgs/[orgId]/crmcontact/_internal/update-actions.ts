@@ -105,24 +105,26 @@ export async function removeBulkContacts(contactIds: string[], orgId: string) {
       return { success: false, error: deleteError.message };
     }
 
-    // Log the deletions
-    const activityLogsData = contactToRemove.map((contact) => ({
-      organization_id: orgId,
-      entity_id: contact.id,
-      entity_type: "contact",
-      action: "contact-deleted",
-      changed_data: {
-        contact_email: contact.email,
-      },
-      performed_by: orgMember.id,
-    }));
+    if (orgMember.organizations?.subscription?.plan.name === "premium") {
+      // Log the deletions
+      const activityLogsData = contactToRemove.map((contact) => ({
+        organization_id: orgId,
+        entity_id: contact.id,
+        entity_type: "contact",
+        action: "contact-deleted",
+        changed_data: {
+          contact_email: contact.email,
+        },
+        performed_by: orgMember.id,
+      }));
 
-    const { error: activityLogError } = await supabase
-      .from("activity_logs")
-      .insert(activityLogsData);
+      const { error: activityLogError } = await supabase
+        .from("activity_logs")
+        .insert(activityLogsData);
 
-    if (activityLogError) {
-      return { success: false, error: activityLogError.message };
+      if (activityLogError) {
+        return { success: false, error: activityLogError.message };
+      }
     }
 
     revalidatePath(`orgs/${orgId}/crmcontact`);
