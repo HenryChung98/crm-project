@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { isValidEmail } from "@/shared-utils/validations";
 // resend
 import { Resend } from "resend";
-import { WelcomeEmail } from "../../../../../components/resend-components/templates/WelcomeEmail";
+import { WelcomeEmail } from "@/components/resend-components/templates/WelcomeEmail";
 
 export async function createContact(formData: FormData) {
   const orgId = formData.get("orgId")?.toString().trim();
@@ -142,7 +142,7 @@ export async function createContact(formData: FormData) {
         };
       }
     }
-    revalidatePath(`/orgs/${orgId}/crmcontact`);
+    revalidatePath(`/orgs/${orgId}/crm/crmcontact`);
     return { success: true, customerId: contactInsertData.id };
   } catch (error) {
     return {

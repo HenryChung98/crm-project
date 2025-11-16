@@ -1,16 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { QueryResult } from "@/types/customData";
 import { NetworkError } from "@/types/errors";
-import { getActivityLogsDB } from "./activity-log-db";
-import { ActivityLogType } from "@/types/database/activityLogs";
+import { getContactsDB } from "./server/contacts-db";
+import { ContactType } from "@/types/database/customers";
 
-export const useActivityLogsDB = (orgId: string): QueryResult<ActivityLogType[]> => {
+export const useContactsDB = (orgId: string): QueryResult<ContactType[]> => {
   const { data, isLoading, error, refetch, isFetching } = useQuery<
-    ActivityLogType[] | null,
+    ContactType[] | null,
     NetworkError
   >({
-    queryKey: ["logs", orgId],
-    queryFn: () => getActivityLogsDB(orgId),
+    queryKey: ["contacts", orgId],
+    queryFn: () => getContactsDB(orgId),
     enabled: !!orgId && orgId.trim().length > 0,
     retry: (failureCount, error) => {
       if (error?.code === "PGRST301") return false;

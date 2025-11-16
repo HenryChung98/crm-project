@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createContact } from "../action";
+import { createContact } from "./server/create-action";
 import { useQueryClient } from "@tanstack/react-query";
 
 // ui
@@ -10,7 +10,7 @@ import { Dropdown } from "@/components/ui/Dropdown";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 import { showSuccess, showError } from "@/components/feedback";
 
-export interface ContactFormData {
+interface ContactFormData {
   orgId: string;
   name: string;
   email: string;

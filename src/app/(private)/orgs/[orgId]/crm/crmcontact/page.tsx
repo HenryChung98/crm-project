@@ -4,11 +4,7 @@ import { useOrganization } from "@/contexts/OrganizationContext";
 
 import { ContactForm } from "./_internal/ContactForm";
 import { useContactsDB } from "./_internal/useContactsDB";
-import {
-  updateContactStatus,
-  updateContactField,
-  removeBulkContacts,
-} from "./_internal/update-actions";
+import { updateContactField, removeBulkContacts } from "./_internal/server/update-actions";
 
 // ui
 import { Table } from "@/components/ui/Table";
@@ -18,16 +14,13 @@ import { Dropdown } from "@/components/ui/Dropdown";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
-import { useSubscription } from "@/contexts/SubscriptionContext";
 import { JsonModal } from "@/components/ui/JsonModal";
 
 export default function CRMContactPage() {
   const [isFormCollapsed, setIsFormCollapsed] = useState(true);
-  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
   const { confirm, ConfirmModal } = useConfirm();
   const { currentOrganizationId } = useOrganization();
-  const { planData, planLoading } = useSubscription();
   const {
     data: contacts,
     isLoading,
@@ -42,6 +35,7 @@ export default function CRMContactPage() {
   const [jsonModalData, setJsonModalData] = useState<any>(null);
   const [triggerElement, setTriggerElement] = useState<HTMLElement | null>(null);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleViewData = (e: React.MouseEvent<HTMLButtonElement>, data: any) => {
     if (jsonModalData === data) {
       setJsonModalData(null);
@@ -53,40 +47,38 @@ export default function CRMContactPage() {
   };
 
   // for optimistic update
-  const [localCustomers, setLocalCustomers] = useState(contacts || []);
-  useState(() => {
-    if (contacts) {
-      setLocalCustomers(contacts);
-    }
-  });
+  const [localContacts, setLocalContacts] = useState<any[]>([]);
   useEffect(() => {
     if (contacts) {
-      setLocalCustomers(contacts);
+      setLocalContacts(contacts);
     }
   }, [contacts]);
 
-  // update contact status
-  const handleStatusChange = async (customerId: string, targetStatus: string) => {
+  const handleDropdownChange = async (contactId: string, fieldName: string, newValue: string) => {
     confirm(
       async () => {
         try {
-          const result = await updateContactStatus(customerId, currentOrganizationId, targetStatus);
+          const result = await updateContactField({
+            customerId: contactId,
+            fieldName,
+            newValue,
+            orgId: currentOrganizationId,
+          });
 
-          if (result.error || !result.success) {
-            showError(result.error || "Failed to update status");
-            return;
+          if (result.success) {
+            showSuccess(`${fieldName} updated successfully!`);
+            refetch!();
+          } else {
+            showError(result.error || `Failed to update ${fieldName}`);
           }
-
-          showSuccess("Status updated successfully!");
-          refetch!();
         } catch (error) {
-          showError("Failed to update status");
-          console.error("Update status error:", error);
+          showError(`Failed to update ${fieldName}`);
+          console.error("Update dropdown error:", error);
         }
       },
       {
-        title: "Change Status",
-        message: `Are you sure you want to change status from lead to ${targetStatus}? This action cannot be undone.`,
+        title: `Change ${fieldName}`,
+        message: `Are you sure you want to change ${fieldName} to ${newValue}? This action cannot be undone.`,
         confirmText: "Change",
         variant: "primary",
       }
@@ -94,21 +86,21 @@ export default function CRMContactPage() {
   };
 
   const handleCellEdit = async (rowIndex: number, columnIndex: number, newValue: string) => {
-    // 컬럼 매핑: 0=name, 1=email
     const columnMap: { [key: number]: string } = {
       0: "name",
       1: "email",
+      5: "status",
     };
 
     const fieldName = columnMap[columnIndex];
     if (!fieldName) return;
 
-    const customer = localCustomers[rowIndex];
-    const customerId = customer.id;
-    const previousValue = customer[fieldName as keyof typeof customer];
+    const contact = localContacts[rowIndex];
+    const contactId = contact.id;
+    const previousValue = contact[fieldName as keyof typeof contact];
 
-    // 1. Optimistic Update: UI 먼저 업데이트
-    setLocalCustomers((prev) => {
+    // 1. Optimistic Update
+    setLocalContacts((prev) => {
       const updated = [...prev];
       updated[rowIndex] = {
         ...updated[rowIndex],
@@ -118,9 +110,9 @@ export default function CRMContactPage() {
     });
 
     try {
-      // 2. Server Action 호출
+      // 2. Server Action
       const result = await updateContactField({
-        customerId,
+        customerId: contactId,
         fieldName,
         newValue,
         orgId: currentOrganizationId,
@@ -133,8 +125,8 @@ export default function CRMContactPage() {
 
       showSuccess(`${fieldName} updated successfully!`);
     } catch (error) {
-      // 3. 실패시 롤백
-      setLocalCustomers((prev) => {
+      // 3. Rollback
+      setLocalContacts((prev) => {
         const rollback = [...prev];
         rollback[rowIndex] = {
           ...rollback[rowIndex],
@@ -147,9 +139,9 @@ export default function CRMContactPage() {
   };
 
   const handleBulkRemove = async () => {
-    if (!contacts || selectedIndices.length === 0) return;
+    if (!localContacts || selectedIndices.length === 0) return;
 
-    const selectedIds = selectedIndices.map((i) => contacts[i].id);
+    const selectedIds = selectedIndices.map((i) => localContacts[i].id);
 
     confirm(
       async () => {
@@ -178,7 +170,7 @@ export default function CRMContactPage() {
   };
 
   const data =
-    contacts?.map((contact) => [
+    localContacts?.map((contact) => [
       contact.name,
       contact.email,
       contact.source,
@@ -198,7 +190,7 @@ export default function CRMContactPage() {
         value: (
           <Dropdown
             value={contact.status}
-            onChange={(e) => handleStatusChange(contact.id, e.target.value)}
+            onChange={(e) => handleDropdownChange(contact.id, "status", e.target.value)}
           >
             <option value="lead">Lead</option>
             <option value="customer">Customer</option>
@@ -207,7 +199,6 @@ export default function CRMContactPage() {
         ),
         rawValue: contact.status,
       },
-      "bigbig databig databig databig databig databig databig databig data data",
     ]) || [];
 
   if (isLoading) return <FetchingSpinner />;
@@ -227,11 +218,11 @@ export default function CRMContactPage() {
         pageSize={20}
         filterOptions={["instagram Public Lead Form", "By"]}
         filterColumn={2}
-        columnCount={10}
+        columnCount={6}
         selectedIndices={selectedIndices}
         onSelectionChange={setSelectedIndices}
         isEditable
-        editableColumns={[0, 1, 2]} // Name, Email, Source
+        editableColumns={[0, 1]} // Name, Email, Source
         onCellEdit={handleCellEdit}
         isDeletable
         onBulkRemove={handleBulkRemove}

@@ -23,13 +23,13 @@ export function Dropdown({
             bg-input text-foreground
             focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent
             disabled:opacity-50 disabled:cursor-not-allowed
-            ${error ? "border-destructive" : ""}
+            ${error ? "border-danger" : ""}
           `}
         {...props}
       >
         {children}
       </select>
-      {error && <p className="mt-1 text-sm text-destructive">{error}</p>}
+      {error && <p className="mt-1 text-sm text-danger">{error}</p>}
     </div>
   );
 }

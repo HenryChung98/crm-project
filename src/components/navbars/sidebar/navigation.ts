@@ -23,11 +23,11 @@ export function createCrmNavItems(orgId: string) {
       icon: React.createElement(RiDashboardLine),
     },
     {
-      label: "Contacts",
+      label: "CRM",
       icon: React.createElement(RiGroupLine),
       children: [
-        { label: "All Contacts", href: `/orgs/${orgId}/crmcontact` },
-        { label: "Add Contact", href: `/orgs/${orgId}/contacts/create` },
+        { label: "Contacts", href: `/orgs/${orgId}/crm/crmcontact` },
+        { label: "Deals", href: `/orgs/${orgId}/crm/deals` },
       ],
     },
     {
@@ -44,8 +44,8 @@ export function createCrmNavItems(orgId: string) {
       label: "Reports",
       icon: React.createElement(RiFileTextLine),
       children: [
-        { label: "Activity Logs", href: `/orgs/${orgId}/activity-logs` },
-        { label: "Customer Reports", href: `#` },
+        { label: "Dashboard", href: `#` },
+        { label: "Activity Logs", href: `/orgs/${orgId}/reports/activity-logs` },
         { label: "Analytics", href: `#` },
       ],
     },

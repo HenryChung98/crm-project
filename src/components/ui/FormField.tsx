@@ -2,7 +2,7 @@ import React from "react";
 
 interface FormFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
-  // nameForLabel: string;
+  error?: string;
 }
 
 export function FormField({
@@ -10,6 +10,7 @@ export function FormField({
   className = "",
   name,
   required = false,
+  error,
   ...props
 }: FormFieldProps) {
   return (
@@ -23,9 +24,12 @@ export function FormField({
       <input
         id={name}
         name={name}
-        className={`placeholder-gray-400 w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent ${className}`}
+        className={`placeholder-gray-400 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent ${
+          error ? "border-danger" : "border-border"
+        } ${className}`}
         {...props}
       />
+      {error && <p className="text-danger text-sm mt-1">{error}</p>}
     </div>
   );
 }

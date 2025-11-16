@@ -3,32 +3,6 @@ import { requireOrgAccess } from "@/shared-utils/org-access";
 import { revalidatePath } from "next/cache";
 import { validateSubscription } from "@/shared-actions/action-validations";
 
-export async function updateContactStatus(customerId: string, orgId: string, targetStatus: string) {
-  try {
-    const { supabase } = await requireOrgAccess(orgId, true);
-
-    // check plan
-    const validation = await validateSubscription(orgId);
-    if (!validation.success) {
-      return { success: false, error: validation.error };
-    }
-
-    const { error } = await supabase
-      .from("contacts")
-      .update({ status: targetStatus })
-      .eq("id", customerId)
-      .eq("organization_id", orgId);
-
-    if (error) throw error;
-
-    revalidatePath(`orgs/${orgId}/crmcontact`);
-    return { success: true };
-  } catch (error) {
-    console.error("Update status error:", error);
-    return { success: false, error: "Failed to update status" };
-  }
-}
-
 export async function updateContactField({
   customerId,
   fieldName,
@@ -50,7 +24,7 @@ export async function updateContactField({
     }
 
     // 유효성 검사: 허용된 필드만 업데이트
-    const allowedFields = ["name", "email"];
+    const allowedFields = ["name", "email", "status"];
     if (!allowedFields.includes(fieldName)) {
       return { success: false, error: "Invalid field name" };
     }
@@ -127,7 +101,7 @@ export async function removeBulkContacts(contactIds: string[], orgId: string) {
       }
     }
 
-    revalidatePath(`orgs/${orgId}/crmcontact`);
+    revalidatePath(`orgs/${orgId}/crm/crmcontact`);
     return { success: true };
   } catch (error) {
     return {

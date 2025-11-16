@@ -1,4 +1,4 @@
-export interface Products {
+export interface ProductType {
   id: string;
   sku: string;
   organization_id: string;

@@ -56,12 +56,19 @@ export async function updateSession(request: NextRequest) {
   ];
   const protectedPaths = [
     "/orgs",
-    "/dashboard",
-    "/crmcontact",
-    "/settings",
     "/organizations",
-    "/sales",
     "/orgs/subscription",
+    "/crm",
+    "/crm/crmcontact",
+    "/crm/deals",
+    
+    "/sales",
+    "/sales/products",
+
+    "reports",
+    "reports/activity-logs",
+    "/dashboard",
+    "/settings",
   ];
 
   const isPublicPath =

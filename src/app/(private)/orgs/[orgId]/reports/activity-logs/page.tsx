@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { useActivityLogsDB } from "./_internal/useActivityLogsDB";
-import { removeBulkLogs } from "./_internal/delete-log";
+import { removeBulkLogs } from "./_internal/server/delete-log";
 
 // ui
 import { Table } from "@/components/ui/Table";
