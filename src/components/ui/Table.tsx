@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Dropdown } from "./Dropdown";
+import { Checkbox } from "./CheckBox";
 
 interface CellData {
   value: string | number | null | React.ReactElement;
@@ -21,6 +22,7 @@ interface TableProps {
   filterOptions?: string[];
   filterColumn?: number;
   pageSize: number;
+  isEditable: boolean;
   editableColumns?: number[];
   onCellEdit?: (
     rowIndex: number,
@@ -33,38 +35,29 @@ interface TableProps {
   selectedIndices?: number[];
 }
 
-interface CheckboxProps {
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  indeterminate?: boolean;
-}
-
-const Checkbox: React.FC<CheckboxProps> = ({ checked, onChange, indeterminate = false }) => {
-  return (
-    <label className="flex items-center cursor-pointer">
-      <input
-        type="checkbox"
-        className="sr-only peer"
-        checked={checked}
-        ref={(input) => {
-          if (input) input.indeterminate = indeterminate;
-        }}
-        onChange={(e) => onChange(e.target.checked)}
-      />
-      <div className="w-4 h-4 border-2 border-gray-400 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 flex items-center justify-center transition-all">
-        <svg
-          className="w-3 h-3 text-white hidden peer-checked:block"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          strokeWidth={3}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
-    </label>
-  );
-};
+// const Checkbox: React.FC<CheckboxProps> = ({ checked, onChange }) => {
+//   return (
+//     <label className="flex items-center cursor-pointer">
+//       <input
+//         type="checkbox"
+//         className="sr-only peer"
+//         checked={checked}
+//         onChange={(e) => onChange(e.target.checked)}
+//       />
+//       <div className="w-4 h-4 border-2 border-gray-400 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 flex items-center justify-center transition-all">
+//         <svg
+//           className="w-3 h-3 text-white hidden peer-checked:block"
+//           fill="none"
+//           stroke="currentColor"
+//           viewBox="0 0 24 24"
+//           strokeWidth={3}
+//         >
+//           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+//         </svg>
+//       </div>
+//     </label>
+//   );
+// };
 
 const isCellData = (cell: CellContent): cell is CellData => {
   return cell !== null && typeof cell === "object" && "value" in cell;
@@ -142,6 +135,21 @@ const exportToExcel = (headers: string[], data: CellContent[][], columnCount: nu
   document.body.removeChild(link);
 };
 
+/**
+ * @param headers - Column header labels to display
+ * @param data - 2D array of cell content; each row is an array of cells
+ * @param columnCount - Number of columns to display (truncates headers/data if less than headers.length)
+ * @param onSelectionChange - Callback fired when row selection changes; receives array of selected row indices
+ * @param filterOptions - Array of options for the filter dropdown
+ * @param filterColumn - Column index to apply the filter dropdown on
+ * @param pageSize - Number of rows to display per page
+ * @param isEditable - Enable double-click editing on cells
+ * @param editableColumns - Array of column indices that are editable; empty array = all columns editable
+ * @param onCellEdit - Callback fired on edit save; receives (rowIndex, columnIndex, newValue, originalRowData)
+ * @param isDeletable - Show bulk delete button when rows are selected
+ * @param onBulkRemove - Callback fired when bulk delete button is clicked
+ * @param selectedIndices - Externally controlled array of selected row indices (for syncing selection state)
+ */
 export const Table: React.FC<TableProps> = ({
   headers,
   data,
@@ -150,6 +158,7 @@ export const Table: React.FC<TableProps> = ({
   filterOptions = [],
   filterColumn,
   pageSize = 10,
+  isEditable = false,
   editableColumns = [],
   onCellEdit,
   isDeletable = false,
@@ -225,7 +234,6 @@ export const Table: React.FC<TableProps> = ({
   };
 
   const isAllSelected = displayData.length > 0 && selectedRows.size === displayData.length;
-  const isIndeterminate = selectedRows.size > 0 && selectedRows.size < displayData.length;
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -234,6 +242,9 @@ export const Table: React.FC<TableProps> = ({
   };
 
   const handleCellDoubleClick = (rowIndex: number, colIndex: number) => {
+    if (!isEditable) {
+      return;
+    }
     if (editableColumns.length > 0 && !editableColumns.includes(colIndex)) {
       return;
     }
@@ -336,8 +347,7 @@ export const Table: React.FC<TableProps> = ({
               <th className="text-left py-3 px-4">
                 <Checkbox
                   checked={isAllSelected}
-                  indeterminate={isIndeterminate}
-                  onChange={handleSelectAll}
+                  onChange={(e) => handleSelectAll(e.target.checked)}
                 />
               </th>
 
@@ -359,7 +369,7 @@ export const Table: React.FC<TableProps> = ({
                 <td className="py-3 px-4">
                   <Checkbox
                     checked={selectedRows.has(rowIndex)}
-                    onChange={(checked) => handleSelectRow(rowIndex, checked)}
+                    onChange={(e) => handleSelectRow(rowIndex, e.target.checked)}
                   />
                 </td>
 
@@ -375,7 +385,8 @@ export const Table: React.FC<TableProps> = ({
                   } = cellData;
 
                   const isEditableCell =
-                    editableColumns.length === 0 || editableColumns.includes(cellIndex);
+                    isEditable &&
+                    (editableColumns.length === 0 || editableColumns.includes(cellIndex));
 
                   return (
                     <td
@@ -390,21 +401,25 @@ export const Table: React.FC<TableProps> = ({
                       onDoubleClick={() => handleCellDoubleClick(rowIndex, cellIndex)}
                     >
                       {isEditing(rowIndex, cellIndex) ? (
-                        <input
-                          type="text"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          onBlur={() => handleEditSave(rowIndex, cellIndex)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              handleEditSave(rowIndex, cellIndex);
-                            } else if (e.key === "Escape") {
-                              handleEditCancel();
-                            }
-                          }}
-                          autoFocus
-                          className="w-full px-2 py-1 border border-blue-500 rounded"
-                        />
+                        <>
+                          <input
+                            type="text"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onBlur={() => handleEditSave(rowIndex, cellIndex)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                handleEditSave(rowIndex, cellIndex);
+                              } else if (e.key === "Escape") {
+                                handleEditCancel();
+                              }
+                            }}
+                            autoFocus
+                            className="w-full px-2 py-1 border border-blue-500 rounded"
+                            />
+                            <div>save changes: enter</div>
+                            <div>cancel changes: escape</div>
+                        </>
                       ) : (
                         <div className="flex items-center gap-2">
                           {icon && iconPosition === "left" && icon}
