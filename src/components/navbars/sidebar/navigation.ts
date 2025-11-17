@@ -34,7 +34,7 @@ export function createCrmNavItems(orgId: string) {
       label: "Sales",
       icon: React.createElement(RiLineChartLine),
       children: [
-        { label: "All Leads", href: `#` },
+        { label: "Overview", href: `/orgs/${orgId}/sales/overview` },
         { label: "Products", href: `/orgs/${orgId}/sales/products` },
         { label: "Pipeline", href: `/orgs/${orgId}/sales/pipeline` },
       ],
@@ -43,7 +43,6 @@ export function createCrmNavItems(orgId: string) {
       label: "Reports",
       icon: React.createElement(RiFileTextLine),
       children: [
-        { label: "Dashboard", href: `#` },
         { label: "Activity Logs", href: `/orgs/${orgId}/reports/activity-logs` },
         { label: "Analytics", href: `#` },
       ],
@@ -52,10 +51,7 @@ export function createCrmNavItems(orgId: string) {
       label: "Settings",
       icon: React.createElement(RiSettings3Line),
       children: [
-        { label: "Profile", href: `/orgs/${orgId}/settings/profile` },
-        { label: "Activity Logs", href: `/orgs/${orgId}/settings/log` },
         { label: "Billing", href: `/orgs/${orgId}/settings/billing` },
-        { label: "Team", href: `#` },
         { label: "Integrations", href: `#` },
       ],
     },

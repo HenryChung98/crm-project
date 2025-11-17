@@ -2,6 +2,7 @@
 import React from "react";
 import { PrivateProviders } from "@/contexts/PrivateProviders";
 import CRMSidebar from "@/components/navbars/sidebar/CRMSideBar";
+import { useParams } from "next/navigation";
 
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { useSidebar } from "@/contexts/SidebarContext";
@@ -25,6 +26,9 @@ function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
   const { planData, planLoading } = useSubscription();
   const { isCollapsed, toggleSidebar } = useSidebar();
 
+  const params = useParams();
+  const hasOrgId = !!params.orgId;
+
   if (orgMemberLoading || planLoading) {
     return <LoadingSpinner />;
   }
@@ -32,14 +36,16 @@ function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <>
       <ReactQueryDevtools initialIsOpen={false} position="bottom" />
-      <CRMSidebar
-        organizations={allOrganizations}
-        currentOrg={currentOrganizationId}
-        currentOrgPlan={planData?.plan.name}
-        onOrgChange={switchOrganization}
-        onToggleSidebar={toggleSidebar}
-      />
-      <div className={isCollapsed ? "" : "pl-64"}>
+      {hasOrgId && (
+        <CRMSidebar
+          organizations={allOrganizations}
+          currentOrg={currentOrganizationId}
+          currentOrgPlan={planData?.plan.name}
+          onOrgChange={switchOrganization}
+          onToggleSidebar={toggleSidebar}
+        />
+      )}
+      <div className={hasOrgId && !isCollapsed ? "pl-64" : ""}>
         <div className="min-h-screen px-20 py-8">
           <div className="max-w-8xl mx-auto">{children}</div>
         </div>

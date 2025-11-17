@@ -14,6 +14,7 @@ import { Dropdown } from "@/components/ui/Dropdown";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
+import { CRMHeader } from "@/components/CRMHeader";
 
 export default function DealPage() {
   const [isFormCollapsed, setIsFormCollapsed] = useState(true);
@@ -182,18 +183,29 @@ export default function DealPage() {
 
   return (
     <>
-      <div>deal</div>
-      <div className="flex justify-between">
-        <Button onClick={refetch} disabled={isFetching}>
-          {isFetching ? "refeshing.." : "refresh"}
-        </Button>
-        <Button onClick={() => setIsFormCollapsed(!isFormCollapsed)}>create</Button>
-      </div>
+      <CRMHeader
+        title="Deal"
+        actions={
+          <>
+            <Button onClick={refetch} disabled={isFetching}>
+              {isFetching ? "refeshing.." : "refresh"}
+            </Button>
+            <Button onClick={() => setIsFormCollapsed(!isFormCollapsed)}>create</Button>
+          </>
+        }
+      />
       <Table
         headers={["Name", "Stage", "Closed At", "Created At", "Note", "Contact", "Product"]}
         data={data}
         pageSize={20}
-        filterOptions={["Lead", "Qualified", "Proposal", "Negotiation", "Closed Won", "Closed Lost"]}
+        filterOptions={[
+          "Lead",
+          "Qualified",
+          "Proposal",
+          "Negotiation",
+          "Closed Won",
+          "Closed Lost",
+        ]}
         filterColumn={2}
         columnCount={7}
         selectedIndices={selectedIndices}

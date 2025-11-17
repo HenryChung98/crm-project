@@ -10,6 +10,7 @@ import { useDashboardStats } from "./_internal/useDashboardStats";
 import { Button } from "@/components/ui/Button";
 import { StatCard } from "./_internal/StatCard";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
+import { CRMHeader } from "@/components/CRMHeader";
 
 export default function DashboardPage() {
   const { currentOrganizationId, member } = useOrganization();
@@ -23,23 +24,14 @@ export default function DashboardPage() {
   if (member && planData && data) {
     return (
       <>
-        <Link href={`/orgs/subscription`}>sub</Link>
-        <div className="mb-5">
-          <h1 className="text-4xl font-bold mb-4">Dashboard</h1>
-          <div className="p-6 rounded-lg shadow-sm border border-border text-center">
-            <h3 className="text-lg text-text-secondary">
-              Organization Plan: <span className="text-green-500">{planData.plan.name}</span>
-              <br />
-              Expires:{" "}
-              <span className="text-green-500">
-                {new Date(planData.ends_at).toLocaleDateString()}
-              </span>
-            </h3>
-          </div>
-        </div>
-        <Button variant="secondary" onClick={refetch} disabled={isFetching} className="mb-5">
-          {isFetching ? "Fetching.." : "Refetch"}
-        </Button>
+        <CRMHeader
+          title="Dashboard"
+          actions={
+            <Button variant="secondary" onClick={refetch} disabled={isFetching}>
+              {isFetching ? "Fetching.." : "Refetch"}
+            </Button>
+          }
+        />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <StatCard
             title="Total Website Visits"

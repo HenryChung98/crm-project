@@ -15,6 +15,7 @@ import { useConfirm } from "@/components/ui/ConfirmModal";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 import { JsonModal } from "@/components/ui/JsonModal";
+import { CRMHeader } from "@/components/CRMHeader";
 
 export default function CRMContactPage() {
   const [isFormCollapsed, setIsFormCollapsed] = useState(true);
@@ -205,13 +206,17 @@ export default function CRMContactPage() {
 
   return (
     <>
-      <div>contact</div>
-      <div className="flex justify-between">
-        <Button onClick={refetch} disabled={isFetching}>
-          {isFetching ? "refeshing.." : "refresh"}
-        </Button>
-        <Button onClick={() => setIsFormCollapsed(!isFormCollapsed)}>create</Button>
-      </div>
+      <CRMHeader
+        title="Contact"
+        actions={
+          <>
+            <Button onClick={refetch} disabled={isFetching}>
+              {isFetching ? "refeshing.." : "refresh"}
+            </Button>
+            <Button onClick={() => setIsFormCollapsed(!isFormCollapsed)}>create</Button>
+          </>
+        }
+      />
       <Table
         headers={["Name", "Email", "Source", "Imported Data", "Created At", "Status"]}
         data={data}

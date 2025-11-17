@@ -13,6 +13,7 @@ import { showSuccess, showError } from "@/components/feedback";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
+import { CRMHeader } from "@/components/CRMHeader";
 
 export default function ProductPage() {
   const [isFormCollapsed, setIsFormCollapsed] = useState(true);
@@ -196,12 +197,17 @@ export default function ProductPage() {
 
   return (
     <>
-      <div className="flex justify-between">
-        <Button onClick={refetch} disabled={isFetching}>
-          {isFetching ? "refeshing.." : "refresh"}
-        </Button>
-        <Button onClick={() => setIsFormCollapsed(!isFormCollapsed)}>create</Button>
-      </div>
+      <CRMHeader
+        title="Product"
+        actions={
+          <>
+            <Button onClick={refetch} disabled={isFetching}>
+              {isFetching ? "refeshing.." : "refresh"}
+            </Button>
+            <Button onClick={() => setIsFormCollapsed(!isFormCollapsed)}>create</Button>
+          </>
+        }
+      />
       <Table
         headers={[
           "Name",

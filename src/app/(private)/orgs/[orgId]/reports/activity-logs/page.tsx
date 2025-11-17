@@ -12,6 +12,7 @@ import { useConfirm } from "@/components/ui/ConfirmModal";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
 import { JsonModal } from "@/components/ui/JsonModal";
+import { CRMHeader } from "@/components/CRMHeader";
 
 export default function ActivityLogPage() {
   const { currentOrganizationId } = useOrganization();
@@ -88,7 +89,7 @@ export default function ActivityLogPage() {
 
   return (
     <>
-      <div>logs</div>
+      <CRMHeader title="Activity Logs" />
       <Table
         headers={["Entity Type", "Action", "Performed By", "Created At"]}
         data={data}
