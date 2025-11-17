@@ -18,8 +18,21 @@ export async function createProduct(formData: FormData) {
 
     // check all fields
     if (!orgId || !name || !sku || !description || !type || !price || !cost) {
-        return { success: false, error: "Required fields are missing." };
-      }
+      return { success: false, error: "Required fields are missing." };
+    }
+
+    if (name.length < 2 || /^\d+$/.test(name)) {
+      return { error: "Invalid name." };
+    }
+
+    if (sku.length < 2 || /^\d+$/.test(name)) {
+      return { error: "Invalid SKU." };
+    }
+
+    if (parseFloat(price) < 0 || parseFloat(cost) < 0) {
+      return { error: "Invalid price or cost." };
+    }
+
 
     const productData = {
       organization_id: orgId,

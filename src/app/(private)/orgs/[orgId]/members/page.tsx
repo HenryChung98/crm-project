@@ -1,8 +1,9 @@
 "use client";
+import Link from "next/link";
 import { AccessDenied } from "@/components/AccessDenied";
 import { useOrganization } from "@/contexts/OrganizationContext";
 export default function MemberPage() {
-  const { member } = useOrganization();
+  const { member, currentOrganizationId } = useOrganization();
 
   if (member?.role !== "owner") {
     return <AccessDenied title="Access Denied" message="Owner role required" />;
@@ -10,6 +11,7 @@ export default function MemberPage() {
   return (
     <>
       <div>{member?.role}</div>
+      <Link href={`/orgs/${currentOrganizationId}/dashboard/invite-member`}>invite</Link>
     </>
   );
 }

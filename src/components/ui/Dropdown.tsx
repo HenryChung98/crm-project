@@ -7,16 +7,18 @@ export function Dropdown({
   children,
   label,
   error,
+  name,
   className = "",
   required,
   ...props
 }: DropdownProps) {
   return (
     <div className={`${className}`}>
-      <label className="block mb-1">
+      <label className="block text-sm font-medium mb-1" htmlFor={name}>
         {label} {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       <select
+        name={name}
         className={`
             px-3 py-2 w-30 w-full
             border border-border rounded-lg
@@ -29,7 +31,7 @@ export function Dropdown({
       >
         {children}
       </select>
-      {error && <p className="mt-1 text-sm text-danger">{error}</p>}
+      {error && error !== "SILENT_ERROR" && <p className="text-danger text-sm mt-1">{error}</p>}
     </div>
   );
 }

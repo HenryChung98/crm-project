@@ -29,7 +29,7 @@ export function FormField({
         } ${className}`}
         {...props}
       />
-      {error && <p className="text-danger text-sm mt-1">{error}</p>}
+      {error && error !== "SILENT_ERROR" && <p className="text-danger text-sm mt-1">{error}</p>}
     </div>
   );
 }

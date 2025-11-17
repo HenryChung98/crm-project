@@ -1,9 +1,9 @@
 "use client";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { signUp } from "./action";
 import { BiShow, BiHide } from "react-icons/bi";
-// import { useSearchParams } from "next/navigation";
+import { isValidEmail, isValidPassword } from "@/shared-utils/validations";
 
 import { signInWithGoogle } from "../signin/signInWIthGoogle";
 
@@ -29,28 +29,76 @@ export default function SignUpPage() {
     password: "",
     confirmPassword: "",
   });
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // const searchParams = useSearchParams();
+  const validateField = (name: string, value: string) => {
+    let error = "";
 
-  // useEffect(() => {
-    // const orgId = searchParams.get("org_id");
-    // const orgName = searchParams.get("org_name");
+    if (name === "firstName" || name === "lastName") {
+      if (!value) {
+        error = "SILENT_ERROR";
+      }
+    }
 
-    // if (orgId) document.cookie = `pending_org_id=${orgId}; path=/; max-age=3600`;
-    // if (orgName) document.cookie = `pending_org_name=${orgName}; path=/; max-age=3600`;
-  // }, [searchParams]);
+    if (name === "email") {
+      if (!value) {
+        error = "SILENT_ERROR";
+      } else if (!isValidEmail(value)) {
+        error = "Please enter a valid email address";
+      }
+    }
+
+    if (name === "password") {
+      if (!value) {
+        error = "SILENT_ERROR";
+      } else if (!isValidPassword(value)) {
+        error = "Password must be at least 8 characters long and contain letters and numbers";
+      }
+    }
+
+    if (name === "confirmPassword") {
+      if (!value) {
+        error = "SILENT_ERROR";
+      } else if (value !== formData.password) {
+        error = "Passwords do not match";
+      }
+    }
+
+    setErrors((prev) => ({ ...prev, [name]: error }));
+    return error;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    validateField(name, value);
+
+    // Re-validate confirmPassword when password changes
+    if (name === "password" && formData.confirmPassword) {
+      validateField("confirmPassword", formData.confirmPassword);
+    }
   };
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const form = e.currentTarget as HTMLFormElement;
+    if (!form.checkValidity()) {
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const res = await signUp(formData);
+      const submissionData = new FormData();
+      submissionData.append("firstName", formData.firstName);
+      submissionData.append("lastName", formData.lastName);
+      submissionData.append("email", formData.email);
+      submissionData.append("password", formData.password);
+      submissionData.append("confirmPassword", formData.confirmPassword);
+
+      const res = await signUp(submissionData);
 
       if (res?.error) {
         showError(res.error);
@@ -64,15 +112,18 @@ export default function SignUpPage() {
     }
   };
 
+  const hasErrors = Object.values(errors).some((error) => error !== "" && error !== "SILENT_ERROR");
+
   return (
     <>
-      <Form action={handleSubmit} formTitle="Sign up">
+      <Form onSubmit={handleSubmit} formTitle="Sign up">
         <FormField
           name="firstName"
           type="text"
           placeholder="First Name"
           value={formData.firstName}
           onChange={handleChange}
+          error={errors.firstName}
           required
         />
         <FormField
@@ -81,6 +132,7 @@ export default function SignUpPage() {
           placeholder="Last Name"
           value={formData.lastName}
           onChange={handleChange}
+          error={errors.lastName}
           required
         />
         <FormField
@@ -89,6 +141,7 @@ export default function SignUpPage() {
           placeholder="Email"
           value={formData.email}
           onChange={handleChange}
+          error={errors.email}
           required
         />
         <FormField
@@ -97,6 +150,7 @@ export default function SignUpPage() {
           placeholder="Password"
           value={formData.password}
           onChange={handleChange}
+          error={errors.password}
           required
         />
         <FormField
@@ -105,6 +159,7 @@ export default function SignUpPage() {
           placeholder="Confirm Password"
           value={formData.confirmPassword}
           onChange={handleChange}
+          error={errors.confirmPassword}
           required
         />
 
@@ -116,7 +171,9 @@ export default function SignUpPage() {
           {showPassword ? <BiShow size={20} /> : <BiHide size={20} />}
         </button>
         <div className="flex flex-col gap-5">
-          <Button type="submit"> Sign Up</Button>
+          <Button type="submit" disabled={isLoading || hasErrors}>
+            Sign Up
+          </Button>
           <Button type="button" onClick={signInWithGoogle} variant="secondary" disabled={isLoading}>
             Continue with Google
           </Button>

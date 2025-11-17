@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createContact } from "./server/create-action";
 import { useQueryClient } from "@tanstack/react-query";
+import { validateContactField } from "./validation";
 
 // ui
 import { Form } from "@/components/ui/Form";
@@ -35,6 +36,7 @@ export const ContactForm = ({ currentOrgId, setFormCollapsed }: ContactFormProps
     jobTitle: "",
     note: "",
   });
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isButtonLoading, setIsButtonLoading] = useState(false);
   const { confirm, ConfirmModal } = useConfirm();
   const queryClient = useQueryClient();
@@ -42,6 +44,9 @@ export const ContactForm = ({ currentOrgId, setFormCollapsed }: ContactFormProps
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    const error = validateContactField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
   const handleCancel = () => {
@@ -67,20 +72,22 @@ export const ContactForm = ({ currentOrgId, setFormCollapsed }: ContactFormProps
     );
   };
 
-  const handleSubmit = async (data: ContactFormData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     confirm(
       async () => {
         setIsButtonLoading(true);
         try {
-          const formData = new FormData();
-          formData.append("orgId", data.orgId);
-          formData.append("name", data.name);
-          formData.append("email", data.email);
-          formData.append("status", data.status);
-          if (data.phone) formData.append("phone", data.phone);
-          if (data.note) formData.append("note", data.note);
+          const submissionData = new FormData();
+          submissionData.append("orgId", formData.orgId);
+          submissionData.append("name", formData.name);
+          submissionData.append("email", formData.email);
+          submissionData.append("status", formData.status);
+          if (formData.phone) submissionData.append("phone", formData.phone);
+          if (formData.note) submissionData.append("note", formData.note);
 
-          const res = await createContact(formData);
+          const res = await createContact(submissionData);
           if (res?.error) {
             showError(`Error: ${res.error}` || "Failed to add customer");
           } else {
@@ -114,31 +121,28 @@ export const ContactForm = ({ currentOrgId, setFormCollapsed }: ContactFormProps
     );
   };
 
+  const hasErrors = Object.values(errors).some((error) => error !== "");
+
   return (
     <div>
-      <Form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit(formData);
-        }}
-        formTitle="Create Contact"
-      >
+      <Form onSubmit={handleSubmit} formTitle="Create Contact">
         <FormField
           label="Name"
           name="name"
-          placeholder="John"
+          placeholder="e.g., John Smith"
           value={formData.name}
           onChange={handleChange}
+          error={errors.name}
           required
         />
         <FormField
           label="Email"
           name="email"
           type="email"
-          placeholder="example@example.com"
+          placeholder="john.smith@company.com"
           value={formData.email}
           onChange={handleChange}
-          className="border w-full p-2"
+          error={errors.email}
           required
         />
         <Dropdown
@@ -146,6 +150,7 @@ export const ContactForm = ({ currentOrgId, setFormCollapsed }: ContactFormProps
           onChange={handleChange}
           label="Status"
           name="status"
+          error={errors.status}
           required
         >
           <option value="">Select Status</option>
@@ -157,31 +162,29 @@ export const ContactForm = ({ currentOrgId, setFormCollapsed }: ContactFormProps
           label="Phone"
           name="phone"
           type="tel"
-          placeholder="1234567890"
+          placeholder="555-123-4567"
           value={formData.phone ?? ""}
           onChange={handleChange}
-          className="border w-full p-2"
+          error={errors.phone}
         />
         <FormField
           label="Job Title"
           name="jobTitle"
           type="text"
-          placeholder="soft engineer"
+          placeholder="e.g., Software Engineer"
           value={formData.jobTitle ?? ""}
           onChange={handleChange}
-          className="border w-full p-2"
         />
         <FormField
           label="Note"
           name="note"
           type="text"
-          placeholder="Any Note"
+          placeholder="Additional notes (optional)"
           value={formData.note ?? ""}
           onChange={handleChange}
-          className="border w-full p-2"
         />
         <div className="flex justify-between mt-20">
-          <Button type="submit" disabled={isButtonLoading}>
+          <Button type="submit" disabled={isButtonLoading || hasErrors}>
             {isButtonLoading ? "Loading.." : "Create"}
           </Button>
           <Button variant="danger" type="button" onClick={handleCancel}>

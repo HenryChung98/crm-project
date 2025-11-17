@@ -16,7 +16,6 @@ import { showError } from "@/components/feedback";
 
 export default function ResetPasswordPage() {
   const { supabase } = useAuth();
-
   const router = useRouter();
 
   const [formData, setFormData] = useState<{
@@ -26,27 +25,70 @@ export default function ResetPasswordPage() {
     password: "",
     confirmPassword: "",
   });
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  const confirmPasswords = async () => {
+  const validateField = (name: string, value: string) => {
+    let error = "";
+
+    if (name === "password") {
+      if (!value) {
+        error = "Password is required";
+      } else if (!isValidPassword(value)) {
+        error = "Password must be at least 8 characters long and contain letters and numbers";
+      }
+    }
+
+    if (name === "confirmPassword") {
+      if (!value) {
+        error = "Please confirm your password";
+      } else if (value !== formData.password) {
+        error = "Passwords do not match";
+      }
+    }
+
+    setErrors((prev) => ({ ...prev, [name]: error }));
+    return error;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    validateField(name, value);
+
+    // Re-validate confirmPassword when password changes
+    if (name === "password" && formData.confirmPassword) {
+      validateField("confirmPassword", formData.confirmPassword);
+    }
+  };
+
+  const confirmPasswords = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const form = e.currentTarget as HTMLFormElement;
+    if (!form.checkValidity()) {
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { password, confirmPassword } = formData;
+      
       if (password !== confirmPassword) {
         showError("Passwords do not match");
-        setIsLoading(false);
         return;
       }
+      
       if (!isValidPassword(password)) {
         showError("Password must be at least 8 characters long and contain letters and numbers.");
-        setIsLoading(false);
         return;
       }
+      
       const { data: resetData } = await supabase.auth.updateUser({
         password: formData.password,
       });
+      
       if (resetData) {
         router.replace("/auth/signin");
       }
@@ -57,26 +99,20 @@ export default function ResetPasswordPage() {
     }
   };
 
-  // handle input change
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-
-    if (error) {
-      setError(null);
-    }
-  };
-  const [error, setError] = useState<string | null>(null);
+  const hasErrors = Object.values(errors).some((error) => error !== "");
+  const isFormValid = formData.password && formData.confirmPassword;
 
   return (
     <>
-      <Form action={confirmPasswords} formTitle="Enter your new password">
+      <Form onSubmit={confirmPasswords} formTitle="Enter your new password">
         <FormField
           type={showPassword ? "text" : "password"}
           placeholder="Password"
           name="password"
           value={formData.password}
           onChange={handleChange}
+          error={errors.password}
+          required
         />
         <FormField
           type={showPassword ? "text" : "password"}
@@ -84,6 +120,8 @@ export default function ResetPasswordPage() {
           name="confirmPassword"
           value={formData.confirmPassword}
           onChange={handleChange}
+          error={errors.confirmPassword}
+          required
         />
         <div className="mt-4 space-y-4">
           <div className="flex justify-between items-center text-sm">
@@ -97,7 +135,7 @@ export default function ResetPasswordPage() {
           </div>
 
           <div className="flex flex-col gap-5">
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading || hasErrors || !isFormValid}>
               reset
             </Button>
           </div>

@@ -38,6 +38,7 @@ export const ProductForm = ({ currentOrgId, setFormCollapsed }: ProductFormProps
     cost: null,
     note: "",
   });
+
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const [isButtonLoading, setIsButtonLoading] = useState(false);
@@ -79,23 +80,25 @@ export const ProductForm = ({ currentOrgId, setFormCollapsed }: ProductFormProps
     );
   };
 
-  const handleSubmit = async (data: ProductFormData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     confirm(
       async () => {
         setIsButtonLoading(true);
 
         try {
-          const formData = new FormData();
-          formData.append("orgId", data.orgId);
-          formData.append("name", data.name);
-          formData.append("sku", data.sku);
-          formData.append("description", data.description);
-          formData.append("type", data.type);
-          formData.append("price", data.price?.toString() || "0");
-          formData.append("cost", data.cost?.toString() || "0");
-          if (data.note) formData.append("note", data.note);
+          const submissionData = new FormData();
+          submissionData.append("orgId", formData.orgId);
+          submissionData.append("name", formData.name);
+          submissionData.append("sku", formData.sku);
+          submissionData.append("description", formData.description);
+          submissionData.append("type", formData.type);
+          submissionData.append("price", formData.price?.toString() || "0");
+          submissionData.append("cost", formData.cost?.toString() || "0");
+          if (formData.note) submissionData.append("note", formData.note);
 
-          const res = await createProduct(formData);
+          const res = await createProduct(submissionData);
           if (res?.error) {
             showError(`Error: ${res.error}` || "Failed to add product");
           } else {
@@ -130,20 +133,16 @@ export const ProductForm = ({ currentOrgId, setFormCollapsed }: ProductFormProps
     );
   };
 
+  const hasErrors = Object.values(errors).some((error) => error !== "");
+
   return (
     <div>
-      <Form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit(formData);
-        }}
-        formTitle="Create Product"
-      >
+      <Form onSubmit={handleSubmit} formTitle="Create Product">
         <FormField
           label="Product Name"
           name="name"
           type="text"
-          placeholder="Product 1"
+          placeholder="e.g., Premium Widget Pro"
           value={formData.name}
           onChange={handleChange}
           error={errors.name}
@@ -153,7 +152,7 @@ export const ProductForm = ({ currentOrgId, setFormCollapsed }: ProductFormProps
           label="SKU"
           name="sku"
           type="text"
-          placeholder="ABC-001"
+          placeholder="e.g., PROD-001"
           value={formData.sku}
           onChange={handleChange}
           error={errors.sku}
@@ -163,9 +162,10 @@ export const ProductForm = ({ currentOrgId, setFormCollapsed }: ProductFormProps
           label="Description"
           name="description"
           type="text"
-          placeholder="desc..."
+          placeholder="Brief product description"
           value={formData.description}
           onChange={handleChange}
+          error={errors.description}
           required
         />
         <Dropdown
@@ -174,6 +174,7 @@ export const ProductForm = ({ currentOrgId, setFormCollapsed }: ProductFormProps
           onChange={handleChange}
           label="Product Type"
           required
+          error={errors.type}
         >
           <option value="">Select Product Type</option>
           <option value="inventory">Inventory</option>
@@ -184,7 +185,7 @@ export const ProductForm = ({ currentOrgId, setFormCollapsed }: ProductFormProps
           label="Price"
           name="price"
           type="text"
-          placeholder="0"
+          placeholder="0.00"
           value={formData.price?.toString() ?? ""}
           onChange={handleChange}
           error={errors.price}
@@ -194,9 +195,10 @@ export const ProductForm = ({ currentOrgId, setFormCollapsed }: ProductFormProps
           label="Cost"
           name="cost"
           type="text"
-          placeholder="0"
+          placeholder="0.00"
           value={formData.cost?.toString() ?? ""}
           onChange={handleChange}
+          error={errors.cost}
           required
         />
         <div>
@@ -207,12 +209,12 @@ export const ProductForm = ({ currentOrgId, setFormCollapsed }: ProductFormProps
           label="Note"
           name="note"
           type="text"
-          placeholder="Optional"
+          placeholder="Additional notes (optional)"
           value={formData.note ?? ""}
           onChange={handleChange}
         />
         <div className="flex justify-between mt-20">
-          <Button type="submit" disabled={isButtonLoading}>
+          <Button type="submit" disabled={isButtonLoading || hasErrors}>
             {isButtonLoading ? "Loading.." : "Create"}
           </Button>
           <Button variant="danger" type="button" onClick={handleCancel}>
