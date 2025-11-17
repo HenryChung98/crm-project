@@ -61,7 +61,7 @@ export async function createProduct(formData: FormData) {
         organization_id: orgId,
         entity_id: productInsertData.id,
         entity_type: "product",
-        action: "product-created",
+        action: "product-create",
         changed_data: productData,
         performed_by: orgMember.id,
       };

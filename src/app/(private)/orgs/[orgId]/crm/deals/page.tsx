@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { DealForm } from "./_internal/DealForm";
 import { useDealsDB } from "./_internal/useDealsDB";
-// import { updateContactField, removeBulkContacts } from "./_internal/server/update-actions";
+import { updateDealField, removeBulkDeals } from "./_internal/server/update-actions";
 
 // ui
 import { AccessDenied } from "@/components/AccessDenied";
@@ -32,25 +32,121 @@ export default function DealPage() {
     }
   }, [deals]);
 
-  const handleDropdownChange = async (dealId: string, field: string, value: string) => {
-    // Optimistic update
-    setLocalDeals((prev) =>
-      prev.map((deal) => (deal.id === dealId ? { ...deal, [field]: value } : deal))
+  const handleDropdownChange = async (dealId: string, fieldName: string, newValue: string) => {
+    confirm(
+      async () => {
+        try {
+          const result = await updateDealField({
+            dealId: dealId,
+            fieldName,
+            newValue,
+            orgId: currentOrganizationId,
+          });
+
+          if (result.success) {
+            showSuccess(`${fieldName} updated successfully!`);
+            refetch!();
+          } else {
+            showError(result.error || `Failed to update ${fieldName}`);
+          }
+        } catch (error) {
+          showError(`Failed to update ${fieldName}`);
+          console.error("Update dropdown error:", error);
+        }
+      },
+      {
+        title: `Change ${fieldName}`,
+        message: `Are you sure you want to change ${fieldName} to ${newValue}? This action cannot be undone.`,
+        confirmText: "Change",
+        variant: "primary",
+      }
     );
+  };
+
+  const handleCellEdit = async (rowIndex: number, columnIndex: number, newValue: string) => {
+    const columnMap: { [key: number]: string } = {
+      0: "name",
+      1: "stage",
+      4: "note",
+    };
+
+    const fieldName = columnMap[columnIndex];
+    if (!fieldName) return;
+
+    const deal = localDeals[rowIndex];
+    const dealId = deal.id;
+    const previousValue = deal[fieldName as keyof typeof deal];
+
+    // 1. Optimistic Update
+    setLocalDeals((prev) => {
+      const updated = [...prev];
+      updated[rowIndex] = {
+        ...updated[rowIndex],
+        [fieldName]: newValue,
+      };
+      return updated;
+    });
 
     try {
-      // const res = await updateDealField(dealId, field, value);
-      // if (res?.error) {
-      //   showError(`Error: ${res.error}`);
-      //   setLocalDeals(deals || []);
-      // } else {
-      //   showSuccess("Deal updated successfully");
-      // }
+      // 2. Server Action
+      const result = await updateDealField({
+        dealId: dealId,
+        fieldName,
+        newValue,
+        orgId: currentOrganizationId,
+      });
+
+      if (!result.success) {
+        showError(result.error || "Update failed");
+        throw new Error(result.error || "Update failed");
+      }
+
+      showSuccess(`${fieldName} updated successfully!`);
     } catch (error) {
-      showError("An error occurred.");
-      setLocalDeals(deals || []);
+      // 3. Rollback
+      setLocalDeals((prev) => {
+        const rollback = [...prev];
+        rollback[rowIndex] = {
+          ...rollback[rowIndex],
+          [fieldName]: previousValue,
+        };
+        return rollback;
+      });
+      console.error("Cell edit error:", error);
     }
   };
+
+  const handleBulkRemove = async () => {
+    if (!localDeals || selectedIndices.length === 0) return;
+
+    const selectedIds = selectedIndices.map((i) => localDeals[i].id);
+
+    confirm(
+      async () => {
+        try {
+          const result = await removeBulkDeals(selectedIds, currentOrganizationId);
+
+          if (result.success) {
+            showSuccess(`${selectedIds.length} deals removed successfully!`);
+            refetch!();
+            setSelectedIndices([]);
+          } else {
+            showError(`Failed to remove deals: ${result.error}`);
+          }
+        } catch (error) {
+          showError("An error occurred while removing");
+          console.error("Remove deals error:", error);
+        }
+      },
+      {
+        title: "Remove Deals",
+        message: `Are you sure you want to remove ${selectedIds.length} deal(s)? This action cannot be undone.`,
+        confirmText: "Remove",
+        variant: "danger",
+      }
+    );
+  };
+
   const data =
     localDeals?.map((deal) => [
       deal.name,
@@ -73,6 +169,8 @@ export default function DealPage() {
       new Date(deal.closed_at).toLocaleDateString(),
       new Date(deal.created_at).toLocaleDateString(),
       deal.note,
+      deal.contact.name,
+      deal.product.name,
     ]) || [];
 
   if (isLoading) return <FetchingSpinner />;
@@ -92,19 +190,19 @@ export default function DealPage() {
         <Button onClick={() => setIsFormCollapsed(!isFormCollapsed)}>create</Button>
       </div>
       <Table
-        headers={["Name", "Stage", "Closed At", "Created At", "Note"]}
+        headers={["Name", "Stage", "Closed At", "Created At", "Note", "Contact", "Product"]}
         data={data}
         pageSize={20}
-        filterOptions={["instagram Public Lead Form", "By"]}
+        filterOptions={["Lead", "Qualified", "Proposal", "Negotiation", "Closed Won", "Closed Lost"]}
         filterColumn={2}
-        columnCount={6}
+        columnCount={7}
         selectedIndices={selectedIndices}
         onSelectionChange={setSelectedIndices}
         isEditable
         editableColumns={[0, 4]}
-        // onCellEdit={handleCellEdit}
+        onCellEdit={handleCellEdit}
         isDeletable
-        // onBulkRemove={handleBulkRemove}
+        onBulkRemove={handleBulkRemove}
       />
       <div
         className={`

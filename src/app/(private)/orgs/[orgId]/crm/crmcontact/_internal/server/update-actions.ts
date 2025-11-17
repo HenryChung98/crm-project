@@ -4,18 +4,18 @@ import { revalidatePath } from "next/cache";
 import { validateSubscription } from "@/shared-actions/action-validations";
 
 export async function updateContactField({
-  customerId,
+  contactId,
   fieldName,
   newValue,
   orgId,
 }: {
-  customerId: string;
+  contactId: string;
   fieldName: string;
   newValue: string;
   orgId: string;
 }): Promise<{ success: boolean; error?: string }> {
   try {
-    const { supabase } = await requireOrgAccess(orgId, true);
+    const { supabase, orgMember } = await requireOrgAccess(orgId, false);
 
     // check plan
     const validation = await validateSubscription(orgId);
@@ -29,15 +29,39 @@ export async function updateContactField({
       return { success: false, error: "Invalid field name" };
     }
 
-    const { error } = await supabase
+    const { data: updatedContact, error } = await supabase
       .from("contacts")
       .update({ [fieldName]: newValue })
-      .eq("id", customerId)
-      .eq("organization_id", orgId);
+      .eq("id", contactId)
+      .eq("organization_id", orgId)
+      .select()
+      .single();
 
     if (error) {
       console.error("Update customer field error:", error);
       return { success: false, error: error.message };
+    }
+
+    if (orgMember.organizations?.subscription?.plan.name === "premium") {
+      // Log the deletions
+      const activityLogsData = {
+        organization_id: orgId,
+        entity_id: updatedContact.id,
+        entity_type: "contact",
+        action: "contact-update",
+        changed_data: {
+          [fieldName]: newValue,
+        },
+        performed_by: orgMember.id,
+      };
+
+      const { error: activityLogError } = await supabase
+        .from("activity_logs")
+        .insert(activityLogsData);
+
+      if (activityLogError) {
+        return { success: false, error: activityLogError.message };
+      }
     }
 
     return { success: true };
@@ -85,7 +109,7 @@ export async function removeBulkContacts(contactIds: string[], orgId: string) {
         organization_id: orgId,
         entity_id: contact.id,
         entity_type: "contact",
-        action: "contact-deleted",
+        action: "contact-delete",
         changed_data: {
           contact_email: contact.email,
         },

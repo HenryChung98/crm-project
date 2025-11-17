@@ -33,6 +33,7 @@
 
 - max invite user
 - max add contact
+- max add deal
 - email sender
 - contact status
 - log(premium only)

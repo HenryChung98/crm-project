@@ -1,7 +1,7 @@
 "use server";
 
 import { requireOrgAccess } from "@/shared-utils/org-access";
-import { validateContactCreation } from "@/shared-actions/action-validations";
+import { validateDealCreation } from "@/shared-actions/action-validations";
 import { revalidatePath } from "next/cache";
 // resend
 import { Resend } from "resend";
@@ -21,7 +21,7 @@ export async function createDeal(formData: FormData) {
     const { orgMember, supabase } = await requireOrgAccess(orgId, false);
 
     // check plan
-    const validation = await validateContactCreation(orgId!);
+    const validation = await validateDealCreation(orgId!);
     if (!validation.success) {
       return { error: validation.error };
     }
@@ -60,7 +60,7 @@ export async function createDeal(formData: FormData) {
         organization_id: orgId,
         entity_id: dealInsertData.id,
         entity_type: "deal",
-        action: "deal-created",
+        action: "deal-create",
         changed_data: dealInsertData,
         performed_by: orgMember.id,
       };
@@ -112,7 +112,7 @@ export async function createDeal(formData: FormData) {
         }
       }
     }
-    revalidatePath(`/orgs/${orgId}/crm/crmcontact`);
+    revalidatePath(`orgs/${orgId}/crm/deals`);
     return { success: true, customerId: dealInsertData.id };
   } catch (error) {
     return {

@@ -16,7 +16,8 @@ export async function getDealsDB(orgId: string): Promise<DealType[] | null> {
     product:product_id(*)
   `
     )
-    .eq("organization_id", orgId);
+    .eq("organization_id", orgId)
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
 

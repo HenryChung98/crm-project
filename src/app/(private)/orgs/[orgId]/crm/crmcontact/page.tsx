@@ -59,7 +59,7 @@ export default function CRMContactPage() {
       async () => {
         try {
           const result = await updateContactField({
-            customerId: contactId,
+            contactId: contactId,
             fieldName,
             newValue,
             orgId: currentOrganizationId,
@@ -112,7 +112,7 @@ export default function CRMContactPage() {
     try {
       // 2. Server Action
       const result = await updateContactField({
-        customerId: contactId,
+        contactId: contactId,
         fieldName,
         newValue,
         orgId: currentOrganizationId,

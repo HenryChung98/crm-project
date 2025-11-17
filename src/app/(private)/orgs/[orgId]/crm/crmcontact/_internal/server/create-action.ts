@@ -40,32 +40,6 @@ export async function createContact(formData: FormData) {
       return { error: "Invalid email address." };
     }
 
-    // check duplicate
-    let query = supabase.from("contacts").select("id").eq("organization_id", orgId);
-
-    if (email && phone) {
-      query = query.or(`(email.eq.${email},phone.eq.${phone})`);
-    } else if (email) {
-      query = query.eq("email", email);
-    } else if (phone) {
-      query = query.eq("phone", phone);
-    }
-
-    const { data: existingCustomer, error: checkError } = await query.single();
-    // const { data: existingCustomer, error: checkError } = await supabase
-    //   .from("contacts")
-    //   .select("id")
-    //   .or(`(email.eq.${email},phone.eq.${phone})`)
-    //   .eq("organization_id", orgId)
-    //   .single();
-
-    if (checkError && checkError.code !== "PGRST116") {
-      return { error: checkError.message };
-    }
-    if (existingCustomer) {
-      return { error: "This customer already exists." };
-    }
-
     const contactData = {
       organization_id: orgId,
       name: name,
@@ -92,7 +66,7 @@ export async function createContact(formData: FormData) {
         organization_id: orgId,
         entity_id: contactInsertData.id,
         entity_type: "contact",
-        action: "contact-created",
+        action: "contact-create",
         changed_data: contactData,
         performed_by: orgMember.id,
       };

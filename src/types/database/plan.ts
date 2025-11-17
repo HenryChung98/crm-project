@@ -26,6 +26,7 @@ export interface PlanType {
   max_contacts?: number;
   email_sender?: number;
   track_visit?: number;
+  max_deals?: number;
 }
 
 export type PlanName = "free" | "basic" | "premium";

@@ -15,7 +15,7 @@ export async function updateProductField({
   orgId: string;
 }): Promise<{ success: boolean; error?: string }> {
   try {
-    const { supabase } = await requireOrgAccess(orgId, true);
+    const { supabase, orgMember } = await requireOrgAccess(orgId, true);
 
     // check plan
     const validation = await validateSubscription(orgId);
@@ -29,20 +29,43 @@ export async function updateProductField({
       return { success: false, error: "Invalid field name" };
     }
 
-    const { error } = await supabase
+    const { data: updatedProduct, error } = await supabase
       .from("products")
       .update({ [fieldName]: newValue })
       .eq("id", productId)
-      .eq("organization_id", orgId);
+      .eq("organization_id", orgId)
+      .select()
+      .single();
 
     if (error) {
-      console.error("Update customer field error:", error);
+      console.error("Update product field error:", error);
       return { success: false, error: error.message };
+    }
+
+    if (orgMember.organizations?.subscription?.plan.name === "premium") {
+      const activityLogsData = {
+        organization_id: orgId,
+        entity_id: updatedProduct.id,
+        entity_type: "product",
+        action: "product-update",
+        changed_data: {
+          [fieldName]: newValue,
+        },
+        performed_by: orgMember.id,
+      };
+
+      const { error: activityLogError } = await supabase
+        .from("activity_logs")
+        .insert(activityLogsData);
+
+      if (activityLogError) {
+        return { success: false, error: activityLogError.message };
+      }
     }
 
     return { success: true };
   } catch (error) {
-    console.error("Update customer field error:", error);
+    console.error("Update product field error:", error);
     return { success: false, error: "Server error" };
   }
 }

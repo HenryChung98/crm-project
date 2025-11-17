@@ -52,7 +52,8 @@ export async function checkPlan(orgId?: string): Promise<CheckPlanType | null> {
         max_users,
         max_contacts,
         email_sender,
-        track_visit
+        track_visit,
+        max_deals
       )
     )
   `

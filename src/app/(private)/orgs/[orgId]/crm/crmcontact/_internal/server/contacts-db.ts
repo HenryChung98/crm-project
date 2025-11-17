@@ -7,7 +7,11 @@ export async function getContactsDB(orgId: string): Promise<ContactType[] | null
 
   const { supabase } = await requireOrgAccess(orgId, true);
 
-  const { data, error } = await supabase.from("contacts").select("*").eq("organization_id", orgId);
+  const { data, error } = await supabase
+    .from("contacts")
+    .select("*")
+    .eq("organization_id", orgId)
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
 
