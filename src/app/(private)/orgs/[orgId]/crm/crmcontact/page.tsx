@@ -47,7 +47,7 @@ export default function CRMContactPage() {
   };
 
   // for optimistic update
-  const [localContacts, setLocalContacts] = useState<any[]>([]);
+  const [localContacts, setLocalContacts] = useState(contacts || []);
   useEffect(() => {
     if (contacts) {
       setLocalContacts(contacts);

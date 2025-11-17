@@ -74,8 +74,8 @@ export default function ActivityLogPage() {
         }
       },
       {
-        title: "Remove Contacts",
-        message: `Are you sure you want to remove ${selectedIds.length} contact(s)? This action cannot be undone.`,
+        title: "Remove Logs",
+        message: `Are you sure you want to remove ${selectedIds.length} log(s)? This action cannot be undone.`,
         confirmText: "Remove",
         variant: "danger",
       }
@@ -93,7 +93,7 @@ export default function ActivityLogPage() {
         headers={["Entity Type", "Action", "Performed By", "Created At"]}
         data={data}
         pageSize={20}
-        filterOptions={["contact"]}
+        filterOptions={["contact", "product"]}
         filterColumn={1}
         columnCount={5}
         isEditable={false}
@@ -102,7 +102,7 @@ export default function ActivityLogPage() {
         isDeletable
         onBulkRemove={handleBulkRemove}
       />
-      {error && <QueryErrorUI data="contact" error={error} onRetry={refetch} />}
+      {error && <QueryErrorUI data="log" error={error} onRetry={refetch} />}
       <ConfirmModal />
       <JsonModal
         data={jsonModalData}

@@ -3,19 +3,18 @@
 import { requireOrgAccess } from "@/shared-utils/org-access";
 import { validateContactCreation } from "@/shared-actions/action-validations";
 import { revalidatePath } from "next/cache";
-import { isValidEmail } from "@/shared-utils/validations";
 // resend
 import { Resend } from "resend";
 import { WelcomeEmail } from "@/components/resend-components/templates/WelcomeEmail";
 
-export async function createContact(formData: FormData) {
+export async function createDeal(formData: FormData) {
   const orgId = formData.get("orgId")?.toString().trim();
+  const ownerId = formData.get("ownerId")?.toString().trim();
   const name = formData.get("name")?.toString().trim();
-  const email = formData.get("email")?.toString().trim();
-  const phone = formData.get("phone")?.toString().trim();
-  const status = formData.get("status")?.toString().trim();
-  const jobTitle = formData.get("jobTitle")?.toString().trim();
+  const stage = formData.get("stage")?.toString().trim();
   const note = formData.get("note")?.toString().trim();
+  const contactId = formData.get("contactId")?.toString().trim();
+  const productId = formData.get("productId")?.toString().trim();
   const sendEmail = formData.get("sendEmail")?.toString().trim();
 
   try {
@@ -28,72 +27,41 @@ export async function createContact(formData: FormData) {
     }
 
     // check all fields
-    if (!orgId || !name || !status || !email) {
-      return { error: "Customer's name, status, and email are required." };
+    if (!orgId || !ownerId || !name || !stage || !contactId || !productId) {
+      return { error: "Deal's name, stage, and email are required." };
     }
 
     if (name.length < 2 || /^\d+$/.test(name)) {
       return { error: "Invalid name." };
     }
 
-    if (email && !isValidEmail(email)) {
-      return { error: "Invalid email address." };
-    }
-
-    // check duplicate
-    let query = supabase.from("contacts").select("id").eq("organization_id", orgId);
-
-    if (email && phone) {
-      query = query.or(`(email.eq.${email},phone.eq.${phone})`);
-    } else if (email) {
-      query = query.eq("email", email);
-    } else if (phone) {
-      query = query.eq("phone", phone);
-    }
-
-    const { data: existingCustomer, error: checkError } = await query.single();
-    // const { data: existingCustomer, error: checkError } = await supabase
-    //   .from("contacts")
-    //   .select("id")
-    //   .or(`(email.eq.${email},phone.eq.${phone})`)
-    //   .eq("organization_id", orgId)
-    //   .single();
-
-    if (checkError && checkError.code !== "PGRST116") {
-      return { error: checkError.message };
-    }
-    if (existingCustomer) {
-      return { error: "This customer already exists." };
-    }
-
-    const contactData = {
+    const dealData = {
       organization_id: orgId,
+      owner_id: ownerId,
       name: name,
-      source: `By ${orgMember.user_email}`,
-      email: email || null,
-      phone: phone || null,
-      job_title: jobTitle || null,
+      stage: stage,
+      contact_id: contactId,
+      product_id: productId,
       note: note || null,
-      status: status,
     };
 
-    const { data: contactInsertData, error: contactDataError } = await supabase
-      .from("contacts")
-      .insert([contactData])
+    const { data: dealInsertData, error: dealDataError } = await supabase
+      .from("deals")
+      .insert([dealData])
       .select("id")
       .single();
 
-    if (contactDataError) {
-      return { error: contactDataError.message };
+    if (dealDataError) {
+      return { error: dealDataError.message };
     }
 
     if (orgMember.organizations?.subscription?.plan.name === "premium") {
       const activityLogData = {
         organization_id: orgId,
-        entity_id: contactInsertData.id,
-        entity_type: "contact",
-        action: "contact-created",
-        changed_data: contactData,
+        entity_id: dealInsertData.id,
+        entity_type: "deal",
+        action: "deal-created",
+        changed_data: dealInsertData,
         performed_by: orgMember.id,
       };
 
@@ -107,28 +75,27 @@ export async function createContact(formData: FormData) {
         return { error: activityLogError.message };
       }
     }
+    
     // resend logic
     if (sendEmail) {
       const resend = new Resend(process.env.RESEND_API_KEY);
 
-      // const { data: orgData } = await supabase
-      //   .from("organizations")
-      //   .select("name, email, phone")
-      //   .eq("id", orgId)
-      //   .single();
+      const { data: contactData } = await supabase
+        .from("contacts")
+        .select("email")
+        .eq("id", contactId)
+        .single();
 
-      if (email && process.env.RESEND_API_KEY) {
+      if (contactData?.email && process.env.RESEND_API_KEY) {
         try {
           const fromEmail =
             `${orgMember.organizations?.name}@${process.env.RESEND_DOMAIN}` ||
             process.env.DEFAULT_FROM_EMAIL;
           const fromName = orgMember.organizations?.name || "CRM-Project";
-          // const orgEmail = orgData?.email || "this guy has no email";
-          // const orgPhone = orgData?.phone || "this guy has no phone";
 
           await resend.emails.send({
             from: `${fromName} <${fromEmail}>`,
-            to: [email],
+            to: [contactData?.email],
             subject: `Welcome to ${fromName}!`,
             html: WelcomeEmail({
               name,
@@ -146,7 +113,7 @@ export async function createContact(formData: FormData) {
       }
     }
     revalidatePath(`/orgs/${orgId}/crm/crmcontact`);
-    return { success: true, customerId: contactInsertData.id };
+    return { success: true, customerId: dealInsertData.id };
   } catch (error) {
     return {
       success: false,

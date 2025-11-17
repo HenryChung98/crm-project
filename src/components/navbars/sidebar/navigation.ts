@@ -36,7 +36,6 @@ export function createCrmNavItems(orgId: string) {
       children: [
         { label: "All Leads", href: `#` },
         { label: "Products", href: `/orgs/${orgId}/sales/products` },
-        { label: "Deals", href: `#` },
         { label: "Pipeline", href: `/orgs/${orgId}/sales/pipeline` },
       ],
     },

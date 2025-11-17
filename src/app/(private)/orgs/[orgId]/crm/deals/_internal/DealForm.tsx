@@ -1,7 +1,11 @@
+// DealForm.tsx
 import { useState } from "react";
-import { createContact } from "./server/create-action";
+import { createDeal } from "./server/create-action";
 import { useQueryClient } from "@tanstack/react-query";
-import { validateContactField } from "./validation";
+import { validateDealField } from "./validation";
+
+import { useContactsDB } from "../../crmcontact/_internal/useContactsDB";
+import { useProductsDB } from "../../../sales/products/_internal/useProductsDB";
 
 // ui
 import { Form } from "@/components/ui/Form";
@@ -12,31 +16,32 @@ import { useConfirm } from "@/components/ui/ConfirmModal";
 import { showSuccess, showError } from "@/components/feedback";
 import { Checkbox } from "@/components/ui/CheckBox";
 
-interface ContactFormData {
+interface DealFormData {
   orgId: string;
+  ownerId: string;
   name: string;
-  email: string;
-  phone?: string | null;
-  status: string;
-  jobTitle?: string | null;
+  stage: "" | "lead" | "qualified" | "proposal" | "negotiation" | "closed-won" | "closed-lost";
   note?: string | null;
+  contactId: string;
+  productId: string;
   sendEmail: boolean;
 }
 
-interface ContactFormProps {
+interface DealFormProps {
   currentOrgId: string;
+  userId: string;
   setFormCollapsed: () => void;
 }
 
-export const ContactForm = ({ currentOrgId, setFormCollapsed }: ContactFormProps) => {
-  const [formData, setFormData] = useState<ContactFormData>({
+export const DealForm = ({ currentOrgId, userId, setFormCollapsed }: DealFormProps) => {
+  const [formData, setFormData] = useState<DealFormData>({
     orgId: currentOrgId,
+    ownerId: userId,
     name: "",
-    email: "",
-    phone: "",
-    status: "",
-    jobTitle: "",
+    stage: "",
     note: "",
+    contactId: "",
+    productId: "",
     sendEmail: false,
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -44,16 +49,15 @@ export const ContactForm = ({ currentOrgId, setFormCollapsed }: ContactFormProps
   const { confirm, ConfirmModal } = useConfirm();
   const queryClient = useQueryClient();
 
+  const { data: contacts } = useContactsDB(currentOrgId);
+  const { data: products } = useProductsDB(currentOrgId);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    const error = validateContactField(name, value);
+    const error = validateDealField(name, value);
     setErrors((prev) => ({ ...prev, [name]: error }));
-  };
-
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, sendEmail: e.target.checked }));
   };
 
   const handleCancel = () => {
@@ -61,18 +65,18 @@ export const ContactForm = ({ currentOrgId, setFormCollapsed }: ContactFormProps
       () => {
         setFormData({
           orgId: currentOrgId,
+          ownerId: userId,
           name: "",
-          email: "",
-          phone: "",
-          status: "",
-          jobTitle: "",
+          stage: "",
           note: "",
+          contactId: "",
+          productId: "",
           sendEmail: false,
         });
         setFormCollapsed();
       },
       {
-        title: "Cancel Creating Contact",
+        title: "Cancel Creating Deal",
         message: "Do you want to discard the creation? This action cannot be undone.",
         confirmText: "Discard",
         variant: "danger",
@@ -80,8 +84,17 @@ export const ContactForm = ({ currentOrgId, setFormCollapsed }: ContactFormProps
     );
   };
 
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, sendEmail: e.target.checked }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const form = e.currentTarget as HTMLFormElement;
+    if (!form.checkValidity()) {
+      return;
+    }
 
     confirm(
       async () => {
@@ -89,29 +102,30 @@ export const ContactForm = ({ currentOrgId, setFormCollapsed }: ContactFormProps
         try {
           const submissionData = new FormData();
           submissionData.append("orgId", formData.orgId);
+          submissionData.append("ownerId", formData.ownerId);
           submissionData.append("name", formData.name);
-          submissionData.append("email", formData.email);
-          submissionData.append("status", formData.status);
+          submissionData.append("stage", formData.stage);
+          submissionData.append("contactId", formData.contactId);
+          submissionData.append("productId", formData.productId);
           submissionData.append("sendEmail", formData.sendEmail.toString());
-          if (formData.phone) submissionData.append("phone", formData.phone);
           if (formData.note) submissionData.append("note", formData.note);
 
-          const res = await createContact(submissionData);
+          const res = await createDeal(submissionData);
           if (res?.error) {
-            showError(`Error: ${res.error}` || "Failed to add customer");
+            showError(`Error: ${res.error}` || "Failed to add deal");
           } else {
             await queryClient.invalidateQueries({
-              queryKey: ["customers"],
+              queryKey: ["deals"],
             });
-            showSuccess("Customer successfully created");
+            showSuccess("Deal successfully created");
             setFormData({
               orgId: currentOrgId,
+              ownerId: userId,
               name: "",
-              email: "",
-              phone: "",
-              status: "",
-              jobTitle: "",
+              stage: "",
               note: "",
+              contactId: "",
+              productId: "",
               sendEmail: false,
             });
             setFormCollapsed();
@@ -123,68 +137,74 @@ export const ContactForm = ({ currentOrgId, setFormCollapsed }: ContactFormProps
         }
       },
       {
-        title: "Create Customer",
-        message: "Do you want to create this contact? This action cannot be undone.",
+        title: "Create Deal",
+        message: "Do you want to create this deal? This action cannot be undone.",
         confirmText: "Create",
         variant: "primary",
       }
     );
   };
 
-  const hasErrors = Object.values(errors).some((error) => error !== "");
+  const hasErrors = Object.values(errors).some((error) => error !== "" && error !== "SILENT_ERROR");
 
   return (
     <div>
-      <Form onSubmit={handleSubmit} formTitle="Create Contact">
+      <Form onSubmit={handleSubmit} formTitle="Create Deal">
         <FormField
-          label="Name"
+          label="Deal Name"
           name="name"
-          placeholder="e.g., John Smith"
+          placeholder="e.g., Q4 Enterprise Contract"
           value={formData.name}
           onChange={handleChange}
           error={errors.name}
           required
         />
-        <FormField
-          label="Email"
-          name="email"
-          type="email"
-          placeholder="john.smith@company.com"
-          value={formData.email}
-          onChange={handleChange}
-          error={errors.email}
-          required
-        />
         <Dropdown
-          value={formData.status}
+          value={formData.stage}
           onChange={handleChange}
-          label="Status"
-          name="status"
-          error={errors.status}
+          label="Stage"
+          name="stage"
+          error={errors.stage}
           required
         >
-          <option value="">Select Status</option>
+          <option value="">Select Stage</option>
           <option value="lead">Lead</option>
-          <option value="customer">Customer</option>
-          <option value="inactive">Inactive</option>
+          <option value="qualified">Qualified</option>
+          <option value="proposal">Proposal</option>
+          <option value="negotiation">Negotiation</option>
+          <option value="closed-won">Closed Won</option>
+          <option value="closed-lost">Closed Lost</option>
         </Dropdown>
-        <FormField
-          label="Phone"
-          name="phone"
-          type="tel"
-          placeholder="555-123-4567"
-          value={formData.phone ?? ""}
+        <Dropdown
+          value={formData.contactId}
           onChange={handleChange}
-          error={errors.phone}
-        />
-        <FormField
-          label="Job Title"
-          name="jobTitle"
-          type="text"
-          placeholder="e.g., Software Engineer"
-          value={formData.jobTitle ?? ""}
+          label="Contact"
+          name="contactId"
+          error={errors.contactId}
+          required
+        >
+          <option value="">Select Contact</option>
+          {contacts?.map((contact) => (
+            <option key={contact.id} value={contact.id}>
+              {contact.name} - {contact.email}
+            </option>
+          ))}
+        </Dropdown>
+        <Dropdown
+          value={formData.productId}
           onChange={handleChange}
-        />
+          label="Product"
+          name="productId"
+          error={errors.productId}
+          required
+        >
+          <option value="">Select Product</option>
+          {products?.map((product) => (
+            <option key={product.id} value={product.id}>
+              {product.name} - ${product.price}
+            </option>
+          ))}
+        </Dropdown>
         <FormField
           label="Note"
           name="note"
