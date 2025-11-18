@@ -34,6 +34,9 @@ export default function DealPage() {
   }, [deals]);
 
   const handleDropdownChange = async (dealId: string, fieldName: string, newValue: string) => {
+    const deal = localDeals.find((d) => d.id === dealId);
+    const previousValue = deal?.[fieldName as keyof typeof deal];
+
     confirm(
       async () => {
         try {
@@ -41,6 +44,7 @@ export default function DealPage() {
             dealId: dealId,
             fieldName,
             newValue,
+            oldValue: previousValue as string,
             orgId: currentOrganizationId,
           });
 
@@ -57,7 +61,7 @@ export default function DealPage() {
       },
       {
         title: `Change ${fieldName}`,
-        message: `Are you sure you want to change ${fieldName} to ${newValue}? This action cannot be undone.`,
+        message: `Are you sure you want to change ${fieldName} from "${previousValue}" to "${newValue}"? This action cannot be undone.`,
         confirmText: "Change",
         variant: "primary",
       }
@@ -94,6 +98,7 @@ export default function DealPage() {
         dealId: dealId,
         fieldName,
         newValue,
+        oldValue: previousValue as string,
         orgId: currentOrganizationId,
       });
 

@@ -7,11 +7,13 @@ export async function updateDealField({
   dealId,
   fieldName,
   newValue,
+  oldValue,
   orgId,
 }: {
   dealId: string;
   fieldName: string;
   newValue: string;
+  oldValue?: string;
   orgId: string;
 }): Promise<{ success: boolean; error?: string }> {
   try {
@@ -27,6 +29,19 @@ export async function updateDealField({
     const allowedFields = ["name", "stage", "note"];
     if (!allowedFields.includes(fieldName)) {
       return { success: false, error: "Invalid field name" };
+    }
+
+    // oldValue가 없으면 DB에서 조회
+    let previousValue = oldValue;
+    if (!previousValue) {
+      const { data: currentDeal } = await supabase
+        .from("deals")
+        .select(fieldName)
+        .eq("id", dealId)
+        .eq("organization_id", orgId)
+        .single();
+
+      previousValue = String(currentDeal?.[fieldName as keyof typeof currentDeal] ?? "");
     }
 
     const { data: updatedDeal, error } = await supabase
@@ -49,7 +64,10 @@ export async function updateDealField({
         entity_type: "deal",
         action: "deal-update",
         changed_data: {
-          [fieldName]: newValue,
+          [fieldName]: {
+            old: previousValue,
+            new: newValue,
+          },
         },
         performed_by: orgMember.id,
       };

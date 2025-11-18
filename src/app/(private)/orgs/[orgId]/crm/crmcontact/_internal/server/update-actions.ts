@@ -7,11 +7,13 @@ export async function updateContactField({
   contactId,
   fieldName,
   newValue,
+  oldValue,
   orgId,
 }: {
   contactId: string;
   fieldName: string;
   newValue: string;
+  oldValue: string;
   orgId: string;
 }): Promise<{ success: boolean; error?: string }> {
   try {
@@ -27,6 +29,18 @@ export async function updateContactField({
     const allowedFields = ["name", "email", "status"];
     if (!allowedFields.includes(fieldName)) {
       return { success: false, error: "Invalid field name" };
+    }
+
+    let previousValue = oldValue;
+    if (!previousValue) {
+      const { data: currentContact } = await supabase
+        .from("contacts")
+        .select(fieldName)
+        .eq("id", contactId)
+        .eq("organization_id", orgId)
+        .single();
+
+      previousValue = String(currentContact?.[fieldName as keyof typeof currentContact] ?? "");
     }
 
     const { data: updatedContact, error } = await supabase
@@ -50,7 +64,10 @@ export async function updateContactField({
         entity_type: "contact",
         action: "contact-update",
         changed_data: {
-          [fieldName]: newValue,
+          [fieldName]: {
+            old: previousValue,
+            new: newValue,
+          },
         },
         performed_by: orgMember.id,
       };

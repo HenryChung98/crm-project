@@ -16,7 +16,7 @@ import { CRMHeader } from "@/components/CRMHeader";
 
 export default function ActivityLogPage() {
   const { currentOrganizationId } = useOrganization();
-  const { data: logs, isLoading, error, refetch } = useActivityLogsDB(currentOrganizationId);
+  const { data: logs, isLoading, error, refetch, isFetching } = useActivityLogsDB(currentOrganizationId);
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
   const { confirm, ConfirmModal } = useConfirm();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -89,7 +89,16 @@ export default function ActivityLogPage() {
 
   return (
     <>
-      <CRMHeader title="Activity Logs" />
+      <CRMHeader
+        title="Activity Logs"
+        actions={
+          <>
+            <Button onClick={refetch} disabled={isFetching}>
+              {isFetching ? "refeshing.." : "refresh"}
+            </Button>
+          </>
+        }
+      />
       <Table
         headers={["Entity Type", "Action", "Performed By", "Created At"]}
         data={data}

@@ -56,6 +56,8 @@ export default function CRMContactPage() {
   }, [contacts]);
 
   const handleDropdownChange = async (contactId: string, fieldName: string, newValue: string) => {
+    const contact = localContacts.find((c) => c.id === contactId);
+    const previousValue = contact?.[fieldName as keyof typeof contact];
     confirm(
       async () => {
         try {
@@ -63,6 +65,7 @@ export default function CRMContactPage() {
             contactId: contactId,
             fieldName,
             newValue,
+            oldValue: previousValue as string,
             orgId: currentOrganizationId,
           });
 
@@ -116,6 +119,7 @@ export default function CRMContactPage() {
         contactId: contactId,
         fieldName,
         newValue,
+        oldValue: previousValue as string,
         orgId: currentOrganizationId,
       });
 

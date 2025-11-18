@@ -7,11 +7,13 @@ export async function updateProductField({
   productId,
   fieldName,
   newValue,
+  oldValue,
   orgId,
 }: {
   productId: string;
   fieldName: string;
   newValue: string;
+  oldValue?: string;
   orgId: string;
 }): Promise<{ success: boolean; error?: string }> {
   try {
@@ -27,6 +29,19 @@ export async function updateProductField({
     const allowedFields = ["name", "sku", "type", "description", "price", "cost", "status", "note"];
     if (!allowedFields.includes(fieldName)) {
       return { success: false, error: "Invalid field name" };
+    }
+
+    // oldValue가 없으면 DB에서 조회
+    let previousValue = oldValue;
+    if (!previousValue) {
+      const { data: currentProduct } = await supabase
+        .from("products")
+        .select(fieldName)
+        .eq("id", productId)
+        .eq("organization_id", orgId)
+        .single();
+
+      previousValue = String(currentProduct?.[fieldName as keyof typeof currentProduct] ?? "");
     }
 
     const { data: updatedProduct, error } = await supabase
@@ -49,7 +64,10 @@ export async function updateProductField({
         entity_type: "product",
         action: "product-update",
         changed_data: {
-          [fieldName]: newValue,
+          [fieldName]: {
+            old: previousValue,
+            new: newValue,
+          },
         },
         performed_by: orgMember.id,
       };

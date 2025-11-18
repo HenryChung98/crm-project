@@ -37,6 +37,9 @@ export default function ProductPage() {
   }, [products]);
 
   const handleDropdownChange = async (productId: string, fieldName: string, newValue: string) => {
+    const product = localProducts.find((p) => p.id === productId);
+    const previousValue = product?.[fieldName as keyof typeof product];
+
     confirm(
       async () => {
         try {
@@ -44,6 +47,7 @@ export default function ProductPage() {
             productId,
             fieldName,
             newValue,
+            oldValue: String(previousValue ?? ""),
             orgId: currentOrganizationId,
           });
 
@@ -60,7 +64,7 @@ export default function ProductPage() {
       },
       {
         title: `Change ${fieldName}`,
-        message: `Are you sure you want to change ${fieldName} to ${newValue}? This action cannot be undone.`,
+        message: `Are you sure you want to change ${fieldName} from "${previousValue}" to "${newValue}"? This action cannot be undone.`,
         confirmText: "Change",
         variant: "primary",
       }
@@ -102,6 +106,7 @@ export default function ProductPage() {
         productId,
         fieldName,
         newValue,
+        oldValue: String(previousValue ?? ""),
         orgId: currentOrganizationId,
       });
 
