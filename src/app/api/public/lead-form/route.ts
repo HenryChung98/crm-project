@@ -11,7 +11,7 @@ import { isValidEmail } from "@/shared-utils/validations";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { orgId, source, name, email, phone } = body;
+    const { orgId, source, name, email, phone, note } = body;
     const supabase = await createClient();
 
     // check plan
@@ -48,11 +48,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. 필수 필드 체크
-    if (!orgId || !name || (!email && !phone)) {
-      return NextResponse.json(
-        { error: "Name and either email or phone are required." },
-        { status: 400 }
-      );
+    if (!orgId || !name || !email) {
+      return NextResponse.json({ error: "Name and email are required." }, { status: 400 });
     }
 
     // 3. 기본 validation
@@ -66,21 +63,21 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. 중복 체크
-    if (email) {
-      const { data: existing } = await supabase
-        .from("contacts")
-        .select("id")
-        .eq("organization_id", orgId)
-        .eq("email", email)
-        .maybeSingle();
+    // if (email) {
+    //   const { data: existing } = await supabase
+    //     .from("contacts")
+    //     .select("id")
+    //     .eq("organization_id", orgId)
+    //     .eq("email", email)
+    //     .maybeSingle();
 
-      if (existing) {
-        return NextResponse.json(
-          { error: "You have already submitted this form." },
-          { status: 400 }
-        );
-      }
-    }
+    //   if (existing) {
+    //     return NextResponse.json(
+    //       { error: "You have already submitted this form." },
+    //       { status: 400 }
+    //     );
+    //   }
+    // }
 
     // ============ contact 생성 ============
 
@@ -89,7 +86,7 @@ export async function POST(request: NextRequest) {
       name,
       email: email || null,
       phone: phone || null,
-      note: null,
+      note: note || null,
       source: `Public Lead Form - ${source}`,
       status: "lead",
     };
@@ -102,6 +99,13 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error("Insert error:", insertError);
+      if (insertError.message.includes("contacts_email_key")) {
+        return NextResponse.json(
+          { error: "You have already submitted this form or contacted this organization." },
+          { status: 409 }
+        );
+      }
+
       return NextResponse.json(
         { error: "Failed to submit form. Please try again." },
         { status: 500 }

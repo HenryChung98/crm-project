@@ -80,11 +80,11 @@ export default function BookingFormPage() {
         />
         <FormField label="Name" name="name" type="text" placeholder="John" required />
 
-        <FormField label="Email" name="email" type="email" placeholder="example@gmail.com" />
+        <FormField label="Email" name="email" type="email" placeholder="example@gmail.com" required/>
 
         <FormField label="Phone" name="phone" type="tel" placeholder="1234567890" />
 
-        <FormField label="Message" name="note" type="textarea" placeholder="any question" />
+        <FormField label="Message" name="note" type="text" placeholder="any question" />
 
         <Button type="submit" disabled={loading}>
           {loading ? "Submitting..." : "Submit"}
