@@ -13,9 +13,9 @@ import { showSuccess, showError } from "@/components/feedback";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
-import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
+import { QueryErrorUI } from "@/components/pages/QueryErrorUI";
 import { JsonModal } from "@/components/ui/JsonModal";
-import { CRMHeader } from "@/components/CRMHeader";
+import { CRMHeader } from "@/components/pages/CRMHeader";
 
 export default function CRMContactPage() {
   const [isFormCollapsed, setIsFormCollapsed] = useState(true);

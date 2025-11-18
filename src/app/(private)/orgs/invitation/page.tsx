@@ -7,7 +7,7 @@ import { OrganizationInvitations } from "@/types/database/organizations";
 import { EMPTY_ARRAY } from "@/types/customData";
 
 // ui
-import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
+import { QueryErrorUI } from "@/components/pages/QueryErrorUI";
 
 export default function InvitationPage() {
   const { data = EMPTY_ARRAY, isLoading, error, refetch } = useInvitationCheck();

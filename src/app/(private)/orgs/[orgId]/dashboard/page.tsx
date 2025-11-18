@@ -10,7 +10,7 @@ import { useDashboardStats } from "./_internal/useDashboardStats";
 import { Button } from "@/components/ui/Button";
 import { StatCard } from "./_internal/StatCard";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
-import { CRMHeader } from "@/components/CRMHeader";
+import { CRMHeader } from "@/components/pages/CRMHeader";
 
 export default function DashboardPage() {
   const { currentOrganizationId, member } = useOrganization();
@@ -28,7 +28,7 @@ export default function DashboardPage() {
           title="Dashboard"
           actions={
             <Button variant="secondary" onClick={refetch} disabled={isFetching}>
-              {isFetching ? "Fetching.." : "Refetch"}
+              {isFetching ? "Refreshing.." : "Refresh"}
             </Button>
           }
         />
@@ -56,18 +56,27 @@ export default function DashboardPage() {
               test5: 3,
               test6: 223,
               test7: 22,
-              test8: 12,
             }}
-            allowedCharts={["bar", "pie"]}
+            allowedCharts={["bar", "pie", "line"]}
           />
           <StatCard
             title="Contacts most recently created by source"
             value={5}
+            subValues={{
+              test: 10,
+              test2: 10,
+              test3: 30,
+            }}
             allowedCharts={["bar", "pie", "line"]}
           />
           <StatCard
             title="Marketing email totals by open rate"
             value={5}
+            subValues={{
+              test: 2,
+              test2: 1,
+              test3: 0,
+            }}
             allowedCharts={["bar", "pie"]}
           />
         </div>

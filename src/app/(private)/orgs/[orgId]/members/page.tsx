@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { AccessDenied } from "@/components/AccessDenied";
+import { AccessDenied } from "@/components/pages/AccessDenied";
 import { useOrganization } from "@/contexts/OrganizationContext";
 export default function MemberPage() {
   const { member, currentOrganizationId } = useOrganization();

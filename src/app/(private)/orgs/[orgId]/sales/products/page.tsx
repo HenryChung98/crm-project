@@ -12,8 +12,8 @@ import { Dropdown } from "@/components/ui/Dropdown";
 import { showSuccess, showError } from "@/components/feedback";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
-import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
-import { CRMHeader } from "@/components/CRMHeader";
+import { QueryErrorUI } from "@/components/pages/QueryErrorUI";
+import { CRMHeader } from "@/components/pages/CRMHeader";
 
 export default function ProductPage() {
   const [isFormCollapsed, setIsFormCollapsed] = useState(true);

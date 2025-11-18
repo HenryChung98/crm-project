@@ -10,13 +10,19 @@ import { Button } from "@/components/ui/Button";
 import { showSuccess, showError } from "@/components/feedback";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
-import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
+import { QueryErrorUI } from "@/components/pages/QueryErrorUI";
 import { JsonModal } from "@/components/ui/JsonModal";
-import { CRMHeader } from "@/components/CRMHeader";
+import { CRMHeader } from "@/components/pages/CRMHeader";
 
 export default function ActivityLogPage() {
   const { currentOrganizationId } = useOrganization();
-  const { data: logs, isLoading, error, refetch, isFetching } = useActivityLogsDB(currentOrganizationId);
+  const {
+    data: logs,
+    isLoading,
+    error,
+    refetch,
+    isFetching,
+  } = useActivityLogsDB(currentOrganizationId);
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
   const { confirm, ConfirmModal } = useConfirm();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

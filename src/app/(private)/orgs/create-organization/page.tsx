@@ -17,8 +17,8 @@ import { Button } from "@/components/ui/Button";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { showSuccess, showError } from "@/components/feedback";
-import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
-import { AccessDenied } from "@/components/AccessDenied";
+import { QueryErrorUI } from "@/components/pages/QueryErrorUI";
+import { AccessDenied } from "@/components/pages/AccessDenied";
 
 interface OrganizationFormData {
   orgName: string;
@@ -162,9 +162,9 @@ export default function CreateOrganizationPage() {
             required
             className="border w-full p-2"
           />
-          <Dropdown 
-            name="orgCountry" 
-            value={formData.orgCountry} 
+          <Dropdown
+            name="orgCountry"
+            value={formData.orgCountry}
             onChange={handleChange}
             error={errors.orgCountry}
             required

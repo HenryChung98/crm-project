@@ -1,6 +1,6 @@
 import React from "react";
 import { NetworkError } from "../../types/errors";
-import { Button } from "./Button";
+import { Button } from "../ui/Button";
 
 export const ErrorMessage: React.FC<{ message?: string }> = ({ message = "An error occurred" }) => (
   <div className="flex items-center justify-center">

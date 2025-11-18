@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { CRMHeader } from "@/components/CRMHeader";
+import { CRMHeader } from "@/components/pages/CRMHeader";
 
 export default function BillingPage() {
   const { planData, planLoading } = useSubscription();
