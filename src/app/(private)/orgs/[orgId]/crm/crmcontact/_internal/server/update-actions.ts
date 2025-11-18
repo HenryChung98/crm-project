@@ -53,6 +53,9 @@ export async function updateContactField({
 
     if (error) {
       console.error("Update customer field error:", error);
+      if (error.message.includes("contacts_email_key")) {
+        return { success: false, error: "A contact with this email already exists in your organization." };
+      }
       return { success: false, error: error.message };
     }
 

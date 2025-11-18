@@ -33,7 +33,6 @@ export async function createProduct(formData: FormData) {
       return { error: "Invalid price or cost." };
     }
 
-
     const productData = {
       organization_id: orgId,
       name: name,
@@ -53,6 +52,18 @@ export async function createProduct(formData: FormData) {
       .single();
 
     if (error) {
+      if (error.message.includes("products_name_key")) {
+        return {
+          success: false,
+          error: "A product with this name already exists in your organization.",
+        };
+      }
+      if (error.message.includes("products_sku_key")) {
+        return {
+          success: false,
+          error: "A product with this SKU already exists in your organization.",
+        };
+      }
       return { success: false, error: error.message };
     }
 

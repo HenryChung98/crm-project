@@ -54,6 +54,18 @@ export async function updateProductField({
 
     if (error) {
       console.error("Update product field error:", error);
+      if (error.message.includes("products_name_key")) {
+        return {
+          success: false,
+          error: "A product with this name already exists in your organization.",
+        };
+      }
+      if (error.message.includes("products_sku_key")) {
+        return {
+          success: false,
+          error: "A product with this SKU already exists in your organization.",
+        };
+      }
       return { success: false, error: error.message };
     }
 

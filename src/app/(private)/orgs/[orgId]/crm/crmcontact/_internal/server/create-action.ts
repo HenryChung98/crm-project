@@ -58,6 +58,9 @@ export async function createContact(formData: FormData) {
       .single();
 
     if (contactDataError) {
+      if (contactDataError.message.includes("contacts_email_key")) {
+        return { error: "A contact with this email already exists in your organization." };
+      }
       return { error: contactDataError.message };
     }
 

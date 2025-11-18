@@ -54,6 +54,12 @@ export async function updateDealField({
 
     if (error) {
       console.error("Update deal field error:", error);
+      if (error.message.includes("deals_name_key")) {
+        return {
+          success: false,
+          error: "A deal with this name already exists in your organization.",
+        };
+      }
       return { success: false, error: error.message };
     }
 

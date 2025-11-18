@@ -52,6 +52,9 @@ export async function createDeal(formData: FormData) {
       .single();
 
     if (dealDataError) {
+      if (dealDataError.message.includes("deals_name_key")) {
+        return { error: "A deal with this name already exists in your organization." };
+      }
       return { error: dealDataError.message };
     }
 
