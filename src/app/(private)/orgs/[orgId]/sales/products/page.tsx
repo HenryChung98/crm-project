@@ -14,6 +14,7 @@ import { useConfirm } from "@/components/ui/ConfirmModal";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/pages/QueryErrorUI";
 import { CRMHeader } from "@/components/pages/CRMHeader";
+import { EmptyState } from "@/components/pages/EmptyState";
 
 export default function ProductPage() {
   const [isFormCollapsed, setIsFormCollapsed] = useState(true);
@@ -213,31 +214,36 @@ export default function ProductPage() {
           </>
         }
       />
-      <Table
-        headers={[
-          "Name",
-          "SKU",
-          "Description",
-          "Type",
-          "Price",
-          "Cost",
-          "Margin",
-          "Status",
-          "Note",
-        ]}
-        data={data}
-        pageSize={20}
-        filterOptions={["TEST", "PROD"]}
-        filterColumn={1}
-        columnCount={9}
-        isEditable
-        editableColumns={[0, 1, 2, 4, 5, 8]}
-        onCellEdit={handleCellEdit}
-        selectedIndices={selectedIndices}
-        onSelectionChange={setSelectedIndices}
-        isDeletable
-        onBulkRemove={handleBulkRemove}
-      />
+      {localProducts && localProducts.length > 0 ? (
+        <Table
+          headers={[
+            "Name",
+            "SKU",
+            "Description",
+            "Type",
+            "Price",
+            "Cost",
+            "Margin",
+            "Status",
+            "Note",
+          ]}
+          data={data}
+          pageSize={20}
+          filterOptions={["TEST", "PROD"]}
+          filterColumn={1}
+          columnCount={9}
+          isEditable
+          editableColumns={[0, 1, 2, 4, 5, 8]}
+          onCellEdit={handleCellEdit}
+          selectedIndices={selectedIndices}
+          onSelectionChange={setSelectedIndices}
+          isDeletable
+          onBulkRemove={handleBulkRemove}
+        />
+      ) : (
+        <EmptyState title="products" />
+      )}
+      {error && <QueryErrorUI data="product" error={error} onRetry={refetch} />}
       <div
         className={`
           w-130 pt-22 h-screen bg-navbar border-l border-border p-4 fixed right-0 top-0 overflow-y-auto z-40
@@ -252,7 +258,6 @@ export default function ProductPage() {
           }}
         />
       </div>
-      {error && <QueryErrorUI data="product" error={error} onRetry={refetch} />}
       <ConfirmModal />
     </>
   );

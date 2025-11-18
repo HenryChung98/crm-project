@@ -13,6 +13,7 @@ import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/pages/QueryErrorUI";
 import { JsonModal } from "@/components/ui/JsonModal";
 import { CRMHeader } from "@/components/pages/CRMHeader";
+import { EmptyState } from "@/components/pages/EmptyState";
 
 export default function ActivityLogPage() {
   const { currentOrganizationId } = useOrganization();
@@ -105,19 +106,24 @@ export default function ActivityLogPage() {
           </>
         }
       />
-      <Table
-        headers={["Entity Type", "Action", "Performed By", "Created At"]}
-        data={data}
-        pageSize={20}
-        filterOptions={["contact", "product"]}
-        filterColumn={1}
-        columnCount={5}
-        isEditable={false}
-        selectedIndices={selectedIndices}
-        onSelectionChange={setSelectedIndices}
-        isDeletable
-        onBulkRemove={handleBulkRemove}
-      />
+      {logs && logs.length > 0 ? (
+        <Table
+          headers={["Entity Type", "Action", "Performed By", "Created At"]}
+          data={data}
+          pageSize={20}
+          filterOptions={["contact", "product"]}
+          filterColumn={1}
+          columnCount={5}
+          isEditable={false}
+          selectedIndices={selectedIndices}
+          onSelectionChange={setSelectedIndices}
+          isDeletable
+          onBulkRemove={handleBulkRemove}
+        />
+      ) : (
+        <EmptyState title="logs" />
+      )}
+
       {error && <QueryErrorUI data="log" error={error} onRetry={refetch} />}
       <ConfirmModal />
       <JsonModal

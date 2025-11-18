@@ -6,15 +6,16 @@ import { useDealsDB } from "./_internal/useDealsDB";
 import { updateDealField, removeBulkDeals } from "./_internal/server/update-actions";
 
 // ui
-import { AccessDenied } from "@/components/AccessDenied";
+import { AccessDenied } from "@/components/pages/AccessDenied";
 import { Table } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
 import { showSuccess, showError } from "@/components/feedback";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { useConfirm } from "@/components/ui/ConfirmModal";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
-import { QueryErrorUI } from "@/components/ui/QueryErrorUI";
-import { CRMHeader } from "@/components/CRMHeader";
+import { QueryErrorUI } from "@/components/pages/QueryErrorUI";
+import { CRMHeader } from "@/components/pages/CRMHeader";
+import { EmptyState } from "@/components/pages/EmptyState";
 
 export default function DealPage() {
   const [isFormCollapsed, setIsFormCollapsed] = useState(true);
@@ -199,28 +200,33 @@ export default function DealPage() {
           </>
         }
       />
-      <Table
-        headers={["Name", "Stage", "Closed At", "Created At", "Note", "Contact", "Product"]}
-        data={data}
-        pageSize={20}
-        filterOptions={[
-          "Lead",
-          "Qualified",
-          "Proposal",
-          "Negotiation",
-          "Closed Won",
-          "Closed Lost",
-        ]}
-        filterColumn={2}
-        columnCount={7}
-        selectedIndices={selectedIndices}
-        onSelectionChange={setSelectedIndices}
-        isEditable
-        editableColumns={[0, 4]}
-        onCellEdit={handleCellEdit}
-        isDeletable
-        onBulkRemove={handleBulkRemove}
-      />
+      {localDeals && localDeals.length > 0 ? (
+        <Table
+          headers={["Name", "Stage", "Closed At", "Created At", "Note", "Contact", "Product"]}
+          data={data}
+          pageSize={20}
+          filterOptions={[
+            "Lead",
+            "Qualified",
+            "Proposal",
+            "Negotiation",
+            "Closed Won",
+            "Closed Lost",
+          ]}
+          filterColumn={2}
+          columnCount={7}
+          selectedIndices={selectedIndices}
+          onSelectionChange={setSelectedIndices}
+          isEditable
+          editableColumns={[0, 4]}
+          onCellEdit={handleCellEdit}
+          isDeletable
+          onBulkRemove={handleBulkRemove}
+        />
+      ) : (
+        <EmptyState title="deals" />
+      )}
+
       <div
         className={`
         w-130 pt-22 h-screen bg-navbar border-l border-border p-4 fixed right-0 top-0 overflow-y-auto z-40

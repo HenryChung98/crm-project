@@ -16,6 +16,7 @@ import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { QueryErrorUI } from "@/components/pages/QueryErrorUI";
 import { JsonModal } from "@/components/ui/JsonModal";
 import { CRMHeader } from "@/components/pages/CRMHeader";
+import { EmptyState } from "@/components/pages/EmptyState";
 
 export default function CRMContactPage() {
   const [isFormCollapsed, setIsFormCollapsed] = useState(true);
@@ -221,21 +222,26 @@ export default function CRMContactPage() {
           </>
         }
       />
-      <Table
-        headers={["Name", "Email", "Source", "Imported Data", "Created At", "Status", "Note"]}
-        data={data}
-        pageSize={20}
-        filterOptions={["instagram Public Lead Form", "By"]}
-        filterColumn={2}
-        columnCount={7}
-        selectedIndices={selectedIndices}
-        onSelectionChange={setSelectedIndices}
-        isEditable
-        editableColumns={[0, 1]} // Name, Email, Source
-        onCellEdit={handleCellEdit}
-        isDeletable
-        onBulkRemove={handleBulkRemove}
-      />
+      {localContacts && localContacts.length > 0 ? (
+        <Table
+          headers={["Name", "Email", "Source", "Imported Data", "Created At", "Status", "Note"]}
+          data={data}
+          pageSize={20}
+          filterOptions={["instagram Public Lead Form", "By"]}
+          filterColumn={2}
+          columnCount={7}
+          selectedIndices={selectedIndices}
+          onSelectionChange={setSelectedIndices}
+          isEditable
+          editableColumns={[0, 1]} // Name, Email, Source
+          onCellEdit={handleCellEdit}
+          isDeletable
+          onBulkRemove={handleBulkRemove}
+        />
+      ) : (
+        <EmptyState title="contacts" />
+      )}
+      {error && <QueryErrorUI data="contact" error={error} onRetry={refetch} />}
       <div
         className={`
           w-130 pt-22 h-screen bg-navbar border-l border-border p-4 fixed right-0 top-0 overflow-y-auto z-40
@@ -250,7 +256,6 @@ export default function CRMContactPage() {
           }}
         />
       </div>
-      {error && <QueryErrorUI data="contact" error={error} onRetry={refetch} />}
       <ConfirmModal />
       <JsonModal
         data={jsonModalData}
