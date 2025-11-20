@@ -78,7 +78,7 @@ export default function CRMSidebar({
       <ToggleButton isCollapsed={isCollapsed} onClick={toggleSidebar} />
       <nav
         className={`
-          w-64 pt-22 h-screen bg-navbar border-r border-border p-4 fixed left-0 top-0 overflow-y-auto z-40
+          w-55 pt-22 h-screen bg-navbar border-r border-border p-4 fixed left-0 top-0 overflow-y-auto z-40
           transition-transform duration-300 ease-in-out
           ${isCollapsed ? "-translate-x-full" : "translate-x-0"}
         `}

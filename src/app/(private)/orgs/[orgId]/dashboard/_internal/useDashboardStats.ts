@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { getDashboardStats, DashboardStatsType } from "./dashboard-stats";
+import { getDashboardStats, DashboardStatsResponse } from "./dashboard-stats";
 import { QueryResult } from "@/types/customData";
 import { NetworkError } from "@/types/errors";
 
-export const useDashboardStats = (orgId: string): QueryResult<DashboardStatsType> => {
-  const { data, isLoading, error, refetch, isFetching } = useQuery<DashboardStatsType | null, NetworkError>({
+export const useDashboardStats = (orgId: string): QueryResult<DashboardStatsResponse> => {
+  const { data, isLoading, error, refetch, isFetching } = useQuery<DashboardStatsResponse | null, NetworkError>({
     queryKey: ["dashboardStats", orgId],
     queryFn: () => getDashboardStats(orgId),
     enabled: !!orgId && orgId.trim().length > 0,

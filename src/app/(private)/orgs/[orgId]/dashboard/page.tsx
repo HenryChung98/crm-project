@@ -1,10 +1,12 @@
 "use client";
-import Link from "next/link";
 
 // custom hooks
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useDashboardStats } from "./_internal/useDashboardStats";
+
+// import { useMonthlyStats } from "./_internal/dashboard-monthly-stats";
+import { TimeSeriesCard } from "./_internal/TimeSeriesCard";
 
 // ui
 import { Button } from "@/components/ui/Button";
@@ -16,6 +18,7 @@ export default function DashboardPage() {
   const { currentOrganizationId, member } = useOrganization();
   const { planData } = useSubscription();
   const { data, isLoading, refetch, isFetching } = useDashboardStats(currentOrganizationId);
+  // const { data: monthlyData } = useMonthlyStats(currentOrganizationId);
 
   if (isLoading) {
     return <FetchingSpinner />;
@@ -34,61 +37,49 @@ export default function DashboardPage() {
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <StatCard
-            title="Total Website Visits"
-            value={data.visitTotal}
-            subValues={{
-              instagram: data.visitFromInstagram,
-              facebook: data.visitFromFacebook,
-              etc: data.visitTotal - data.visitFromFacebook - data.visitFromInstagram,
-            }}
-            allowedCharts={["bar", "pie"]}
-          />
-          <StatCard
-            title="Form Submission Total"
-            value={data.contactFromInstagram + data.contactFromFacebook}
-            subValues={{
-              instagram: data.contactFromInstagram,
-              facebook: data.contactFromFacebook,
-              test: 30,
-              test2: 100,
-              test3: 30,
-              test4: 10,
-              test5: 3,
-              test6: 223,
-              test7: 22,
-            }}
+            title="Contacts"
+            data={data.periodStats}
+            dataKeys={["lead", "customer"]}
             allowedCharts={["bar", "pie", "line"]}
-          />
-          <StatCard
-            title="Contacts most recently created by source"
-            value={5}
-            subValues={{
-              test: 10,
-              test2: 10,
-              test3: 30,
+            labelMap={{
+              lead: "Leads",
+              customer: "Customers",
             }}
-            allowedCharts={["bar", "pie", "line"]}
           />
+
           <StatCard
-            title="Marketing email totals by open rate"
-            value={5}
-            subValues={{
-              test: 2,
-              test2: 1,
-              test3: 0,
-            }}
+            title="Contact Sources"
+            data={data.periodStats}
+            dataKeys={["contactFromInstagram", "contactFromFacebook", "contactFromMember"]}
             allowedCharts={["bar", "pie"]}
+            labelMap={{
+              contactFromInstagram: "Instagram",
+              contactFromFacebook: "Facebook",
+              contactFromMember: "Member Referral",
+            }}
+          />
+
+          <StatCard
+            title="Visits"
+            data={data.periodStats}
+            dataKeys={["visitFromInstagram", "visitFromFacebook"]}
+            allowedCharts={["bar", "line"]}
+            labelMap={{
+              visitFromInstagram: "Instagram",
+              visitFromFacebook: "Facebook",
+            }}
+          />
+
+          <TimeSeriesCard
+            title="Monthly"
+            data={data.monthlyStats}
+            dataKeys={["contactTotal", "visitTotal"]}
+            labelMap={{
+              contactTotal: "Contacts",
+              visitTotal: "Visits",
+            }}
           />
         </div>
-        {/* <div className="space-y-8">
-            {member?.role === "owner" && (
-              <div className="flex justify-end">
-                <Button variant="primary">
-                  <Link href={`dashboard/invite-member`}>invite</Link>
-                </Button>
-              </div>
-            )}
-          </div> */}
       </>
     );
   }

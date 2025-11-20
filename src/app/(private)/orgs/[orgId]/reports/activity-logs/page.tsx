@@ -110,7 +110,7 @@ export default function ActivityLogPage() {
         <Table
           headers={["Entity Type", "Action", "Performed By", "Created At"]}
           data={data}
-          pageSize={20}
+          pageSize={15}
           filterOptions={["contact", "product"]}
           filterColumn={1}
           columnCount={5}

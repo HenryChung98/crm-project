@@ -204,7 +204,7 @@ export default function DealPage() {
         <Table
           headers={["Name", "Stage", "Closed At", "Created At", "Note", "Contact", "Product"]}
           data={data}
-          pageSize={20}
+          pageSize={15}
           filterOptions={[
             "Lead",
             "Qualified",

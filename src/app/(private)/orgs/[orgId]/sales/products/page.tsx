@@ -228,7 +228,7 @@ export default function ProductPage() {
             "Note",
           ]}
           data={data}
-          pageSize={20}
+          pageSize={15}
           filterOptions={["TEST", "PROD"]}
           filterColumn={1}
           columnCount={9}

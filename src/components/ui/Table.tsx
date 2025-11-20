@@ -157,7 +157,7 @@ export const Table: React.FC<TableProps> = ({
   onSelectionChange,
   filterOptions = [],
   filterColumn,
-  pageSize = 10,
+  pageSize = 15,
   isEditable = false,
   editableColumns = [],
   onCellEdit,

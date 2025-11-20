@@ -6,7 +6,7 @@ interface ToggleButtonProps {
 export const ToggleButton = ({ isCollapsed, onClick }: ToggleButtonProps) => {
   const baseClasses =
     "bg-background z-50 p-2 border-2 rounded-lg shadow-sm hover:bg-accent transition-all duration-300 ease-in-out fixed top-1/2 -translate-y-1/2";
-  const positionClasses = isCollapsed ? "-left-2" : "left-60";
+  const positionClasses = isCollapsed ? "-left-2" : "left-51";
   const responsiveClasses = "md:block";
 
   return (

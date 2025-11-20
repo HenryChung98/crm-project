@@ -45,8 +45,8 @@ function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
           onToggleSidebar={toggleSidebar}
         />
       )}
-      <div className={hasOrgId && !isCollapsed ? "pl-64" : ""}>
-        <div className="min-h-screen px-20 py-8">
+      <div className={hasOrgId && !isCollapsed ? "pl-50" : ""}>
+        <div className="min-h-screen px-10 py-5">
           <div className="max-w-8xl mx-auto">{children}</div>
         </div>
       </div>

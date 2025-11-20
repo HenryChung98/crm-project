@@ -226,7 +226,7 @@ export default function CRMContactPage() {
         <Table
           headers={["Name", "Email", "Source", "Imported Data", "Created At", "Status", "Note"]}
           data={data}
-          pageSize={20}
+          pageSize={15}
           filterOptions={["instagram Public Lead Form", "By"]}
           filterColumn={2}
           columnCount={7}
