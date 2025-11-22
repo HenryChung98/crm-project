@@ -28,7 +28,12 @@ export interface MonthlyStatsData {
   year: number;
   month: number;
   contactTotal: number;
+  contactFromInstagram: number;
+  contactFromFacebook: number;
+  contactFromMember: number;
   visitTotal: number;
+  visitFromInstagram: number;
+  visitFromFacebook: number;
 }
 
 export interface DashboardStatsResponse {
@@ -96,7 +101,17 @@ export async function getDashboardStats(orgId: string): Promise<DashboardStatsRe
 
   const monthlyData = new Map<
     string,
-    { year: number; month: number; contacts: number; visits: number }
+    {
+      year: number;
+      month: number;
+      contactTotal: number;
+      contactFromInstagram: number;
+      contactFromFacebook: number;
+      contactFromMember: number;
+      visitTotal: number;
+      visitFromInstagram: number;
+      visitFromFacebook: number;
+    }
   >();
 
   contacts.forEach((c) => {
@@ -105,8 +120,28 @@ export async function getDashboardStats(orgId: string): Promise<DashboardStatsRe
     const month = date.getMonth() + 1;
     const key = `${year}-${month}`;
 
-    const current = monthlyData.get(key) || { year, month, contacts: 0, visits: 0 };
-    monthlyData.set(key, { ...current, contacts: current.contacts + 1 });
+    const current = monthlyData.get(key) || {
+      year,
+      month,
+      contactTotal: 0,
+      contactFromInstagram: 0,
+      contactFromFacebook: 0,
+      contactFromMember: 0,
+      visitTotal: 0,
+      visitFromInstagram: 0,
+      visitFromFacebook: 0,
+    };
+
+    monthlyData.set(key, {
+      ...current,
+      contactTotal: current.contactTotal + 1,
+      contactFromInstagram:
+        current.contactFromInstagram +
+        (c.source === "Public Lead Form - instagram" ? 1 : 0),
+      contactFromFacebook:
+        current.contactFromFacebook + (c.source === "Public Lead Form - facebook" ? 1 : 0),
+      contactFromMember: current.contactFromMember + (c.source?.includes("@") ? 1 : 0),
+    });
   });
 
   visits.forEach((v) => {
@@ -115,21 +150,30 @@ export async function getDashboardStats(orgId: string): Promise<DashboardStatsRe
     const month = date.getMonth() + 1;
     const key = `${year}-${month}`;
 
-    const current = monthlyData.get(key) || { year, month, contacts: 0, visits: 0 };
-    monthlyData.set(key, { ...current, visits: current.visits + 1 });
+    const current = monthlyData.get(key) || {
+      year,
+      month,
+      contactTotal: 0,
+      contactFromInstagram: 0,
+      contactFromFacebook: 0,
+      contactFromMember: 0,
+      visitTotal: 0,
+      visitFromInstagram: 0,
+      visitFromFacebook: 0,
+    };
+
+    monthlyData.set(key, {
+      ...current,
+      visitTotal: current.visitTotal + 1,
+      visitFromInstagram: current.visitFromInstagram + (v.source === "instagram" ? 1 : 0),
+      visitFromFacebook: current.visitFromFacebook + (v.source === "facebook" ? 1 : 0),
+    });
   });
 
-  const monthlyStats = Array.from(monthlyData.values())
-    .map((data) => ({
-      year: data.year,
-      month: data.month,
-      contactTotal: data.contacts,
-      visitTotal: data.visits,
-    }))
-    .sort((a, b) => {
-      if (a.year !== b.year) return a.year - b.year;
-      return a.month - b.month;
-    });
+  const monthlyStats = Array.from(monthlyData.values()).sort((a, b) => {
+    if (a.year !== b.year) return a.year - b.year;
+    return a.month - b.month;
+  });
 
   return {
     periodStats,

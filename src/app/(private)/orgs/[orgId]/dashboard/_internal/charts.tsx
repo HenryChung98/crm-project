@@ -11,7 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
-  LabelList,
+  Legend,
 } from "recharts";
 
 const COLORS = ["#2563eb", "#7c3aed", "#db2777", "#ea580c", "#ca8a04", "#16a34a"];
@@ -46,30 +46,26 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   );
 };
 
-export const BarChartComponent = ({ data }: ChartProps) => {
-  const total = data.reduce((acc, curr) => acc + curr.value, 0);
+export const BarChartComponent = ({
+  data,
+  dataKeys,
+}: {
+  data: Array<{ name: string; [key: string]: string | number }>;
+  dataKeys?: string[];
+}) => {
+  const keys =
+    dataKeys || (data.length > 0 ? Object.keys(data[0]).filter((k) => k !== "name") : ["value"]);
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} margin={{ top: 40, right: 10, left: 0, bottom: 20 }}>
-        <XAxis
-          dataKey="name"
-          tick={{ fontSize: 12 }}
-          tickFormatter={(name, index) => `${name} (${data[index].value})`}
-        />
+      <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
+        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
         <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
         <Tooltip content={<CustomTooltip />} />
-        <text
-          x="50%"
-          y={20}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fill="#9e9e9e"
-          className="font-semibold"
-        >
-          Total: {total}
-        </text>
-        <Bar dataKey="value" fill="#2563eb" radius={[4, 4, 0, 0]} />
+        <Legend />
+        {keys.map((key, index) => (
+          <Bar key={key} dataKey={key} fill={COLORS[index % COLORS.length]} radius={[4, 4, 0, 0]} />
+        ))}
       </BarChart>
     </ResponsiveContainer>
   );
@@ -112,6 +108,7 @@ export const LineChartComponent = ({ data, dataKeys }: LineChartProps) => {
         <XAxis dataKey="name" tick={{ fontSize: 12 }} />
         <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
         <Tooltip content={<CustomTooltip />} />
+        <Legend />
         {keys.map((key, index) => (
           <Line
             key={key}

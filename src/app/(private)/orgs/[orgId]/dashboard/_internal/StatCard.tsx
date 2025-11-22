@@ -22,7 +22,7 @@ export const StatCard = React.memo(
     labelMap?: Record<string, string>;
   }) => {
     const [selectedKeys, setSelectedKeys] = useState<string[]>(dataKeys);
-    const [chartType, setChartType] = useState<string>("bar");
+    const [chartType, setChartType] = useState<string>("pie");
     const [isOpen, setIsOpen] = useState(false);
     const [selectedPeriod, setSelectedPeriod] = useState<
       "30d" | "60d" | "90d" | "180d" | "365d" | "total"

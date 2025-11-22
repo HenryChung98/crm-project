@@ -5,12 +5,10 @@ import { useOrganization } from "@/contexts/OrganizationContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useDashboardStats } from "./_internal/useDashboardStats";
 
-// import { useMonthlyStats } from "./_internal/dashboard-monthly-stats";
-import { TimeSeriesCard } from "./_internal/TimeSeriesCard";
-
 // ui
 import { Button } from "@/components/ui/Button";
 import { StatCard } from "./_internal/StatCard";
+import { MonthlyStatCard } from "./_internal/MonthlyStatCard";
 import { FetchingSpinner } from "@/components/ui/LoadingSpinner";
 import { CRMHeader } from "@/components/pages/CRMHeader";
 
@@ -36,32 +34,38 @@ export default function DashboardPage() {
           }
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <StatCard
-            title="Contacts"
-            data={data.periodStats}
-            dataKeys={["lead", "customer"]}
-            allowedCharts={["bar", "pie", "line"]}
-            labelMap={{
-              lead: "Leads",
-              customer: "Customers",
-            }}
-          />
-
-          <StatCard
+          <MonthlyStatCard
             title="Contact Sources"
-            data={data.periodStats}
+            data={data.monthlyStats}
             dataKeys={["contactFromInstagram", "contactFromFacebook", "contactFromMember"]}
-            allowedCharts={["bar", "pie"]}
+            allowedCharts={["bar", "line"]}
             labelMap={{
               contactFromInstagram: "Instagram",
               contactFromFacebook: "Facebook",
               contactFromMember: "Member Referral",
             }}
           />
-
+          <div>
+            <div>contact total: {data.periodStats["total"].contactTotal}</div>
+            <div>contact insta: {data.periodStats["total"].contactFromInstagram}</div>
+            <div>contact fb: {data.periodStats["total"].contactFromFacebook}</div>
+            <div>contact m: {data.periodStats["total"].contactFromMember}</div>
+            <div>visit total: {data.periodStats["total"].visitTotal}</div>
+          </div>
           <StatCard
-            title="Visits"
+            title="Contacts"
             data={data.periodStats}
+            dataKeys={["lead", "customer"]}
+            allowedCharts={["bar", "pie"]}
+            labelMap={{
+              lead: "Leads",
+              customer: "Customers",
+            }}
+          />
+
+          <MonthlyStatCard
+            title="Visits"
+            data={data.monthlyStats}
             dataKeys={["visitFromInstagram", "visitFromFacebook"]}
             allowedCharts={["bar", "line"]}
             labelMap={{
@@ -70,10 +74,11 @@ export default function DashboardPage() {
             }}
           />
 
-          <TimeSeriesCard
+          <MonthlyStatCard
             title="Monthly"
             data={data.monthlyStats}
             dataKeys={["contactTotal", "visitTotal"]}
+            allowedCharts={["bar", "line"]}
             labelMap={{
               contactTotal: "Contacts",
               visitTotal: "Visits",
